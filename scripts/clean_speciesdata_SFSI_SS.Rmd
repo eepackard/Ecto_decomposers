@@ -1,0 +1,198 @@
+---
+title: "cleaning_ectodecomposers"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(readr)
+library(dplyr)
+library(tidyr)
+```
+
+#read in spec data¨and clean
+```{r}
+#need to align with SS metadata so need to read in
+Meta.data.spatial<-read_csv("../clean_data/Clean_spatial_study_metadata.csv")
+
+#or the clusters combined with the SFSI
+SFSI.SS.specraw.2<-read_delim("../raw_data/all_tag_by_cluster_counts5689.txt",delim = ";",col_names = TRUE,trim_ws = FALSE,show_col_types = FALSE)
+SFSI.SS.specraw.3<-read_delim("../raw_data/all_tag_by_cluster_counts5690.txt",delim = ";",col_names = TRUE,trim_ws = FALSE,show_col_types = FALSE)
+SFSI.SS.specraw.4<-read_delim("../raw_data/all_tag_by_cluster_counts6056.txt",delim = ";",col_names = TRUE,trim_ws = FALSE,show_col_types = FALSE)
+
+datasetlist<-list(SFSI.SS.specraw.2,SFSI.SS.specraw.3,SFSI.SS.specraw.4)
+
+#eperate dataset for the SS and SFSI
+datasetlist.SFSI<-list()
+datasetlist.SS<-list()
+for (i in 1:length(datasetlist)){
+datasetlist[[i]]<-separate(datasetlist[[i]], Tag, c("Year","Pool tag1","tag2"),sep = "_",extra = "merge")
+datasetlist.SS[[i]]<-datasetlist[[i]][which(datasetlist[[i]]$Year == "Spatial"),]
+datasetlist.SFSI[[i]]<-datasetlist[[i]][-which(datasetlist[[i]]$Year == "Spatial"),]
+}
+
+#SS clean----
+for (i in 1:length(datasetlist.SS)) {
+datasetlist.SS[[i]]<-separate(datasetlist.SS[[i]], tag2, c("tagx","tag1","prim","tagy","tag2"),sep = "_",extra = "merge")
+datasetlist.SS[[i]]<-datasetlist.SS[[i]][,-which(colnames(datasetlist.SS[[i]]) %in% c("Year","tagx","prim","tagy"))]#remove columns that just have primer info etc
+datasetlist.SS[[i]]$switches<-if_else(datasetlist.SS[[i]]$tag1 == datasetlist.SS[[i]]$tag2,1,0)
+length(which(datasetlist.SS[[i]]$tag1 != datasetlist.SS[[i]]$tag2)) # should remove 14598 samples - leave with 468
+datasetlist.SS[[i]]<-datasetlist.SS[[i]][-which(datasetlist.SS[[i]]$switches == 0),]
+which(datasetlist.SS[[i]]$tag1 != datasetlist.SS[[i]]$tag2)#check they actually match
+datasetlist.SS[[i]]<-datasetlist.SS[[i]][,-which(colnames(datasetlist.SS[[i]]) == "switches")]
+datasetlist.SS[[i]]<-datasetlist.SS[[i]][-which(datasetlist.SS[[i]]$tag1 == 40),]#remove tag 40 -mock 
+#load file with tag to sample name matching
+tag.matches<-read_delim("../raw_data/spatial_tag_matching.txt",delim = "\t",col_names = TRUE,show_col_types = FALSE)
+datasetlist.SS[[i]]<-separate(datasetlist.SS[[i]], `Pool tag1`,c("Pool","tag1"),sep = " ",extra="merge") #FYI this overwrite tag1 but now tag1 and tag2 are the same so its okay 
+datasetlist.SS[[i]]$tag1<-paste(datasetlist.SS[[i]]$Pool,datasetlist.SS[[i]]$tag2) #again overwriting tag1 to make a combo column which I can more easily use to match with the tag matching file
+tag.matches$tag1<-paste(tag.matches$Pool,tag.matches$Tag)
+datasetlist.SS[[i]]<-datasetlist.SS[[i]][match(tag.matches$tag1,datasetlist.SS[[i]]$tag1),]#this should put in the same order and remove extras from SS file
+datasetlist.SS[[i]]<-datasetlist.SS[[i]][,-2]
+colnames(datasetlist.SS[[i]])[2]<-"tag1"
+}
+
+
+#SFSI
+combine_rows <- function(data, row1, row2) {
+  data[row2,5:ncol(data) ] <- data[row1,5:ncol(data) ] + data[row2,5:ncol(data) ]
+  data[-row1, ]
+}
+
+datasetlist.SFSI.1<-datasetlist.SFSI
+for (i in 1:length(datasetlist.SFSI)){
+datasetlist.SFSI[[i]]<-separate(datasetlist.SFSI[[i]], `Pool tag1`,c("Pool","tag1"),sep = " ",extra="merge")#split columns again
+datasetlist.SFSI[[i]]$switches<-if_else(datasetlist.SFSI[[i]]$tag1 == datasetlist.SFSI[[i]]$tag2,1,0)
+datasetlist.SFSI[[i]]<-datasetlist.SFSI[[i]][-which(datasetlist.SFSI[[i]]$switches == 0),]
+which(datasetlist.SFSI[[i]]$tag1 != datasetlist.SFSI[[i]]$tag2)#check they actually match
+#identify the sample that have been rerun
+datasetlist.SFSI[[i]][which(grepl("-",datasetlist.SFSI[[i]]$tag1)),1:4]
+
+#if using a slightly different datset always check that row numbers are correct *** i.e `which(datasetlist.SFSI.1[[i]]$tag1 == "160337-1")`
+datasetlist.SFSI.1[[i]]<-combine_rows(datasetlist.SFSI[[i]],which(datasetlist.SFSI[[i]]$tag1 == "242648-2"),which(datasetlist.SFSI[[i]]$tag1 == "242648-1"))
+datasetlist.SFSI.1[[i]][which(grepl("-",datasetlist.SFSI.1[[i]]$tag1)),1:4]
+datasetlist.SFSI.1[[i]]<-combine_rows(datasetlist.SFSI.1[[i]],which(datasetlist.SFSI.1[[i]]$tag1 == "159065-2"),which(datasetlist.SFSI.1[[i]]$tag1 == "159065-1"))
+datasetlist.SFSI.1[[i]][which(grepl("-",datasetlist.SFSI.1[[i]]$tag1)),1:4]
+datasetlist.SFSI.1[[i]]<-combine_rows(datasetlist.SFSI.1[[i]],which(datasetlist.SFSI.1[[i]]$tag1 == "242649-2"),which(datasetlist.SFSI.1[[i]]$tag1 == "242649-1"))
+datasetlist.SFSI.1[[i]][which(grepl("-",datasetlist.SFSI.1[[i]]$tag1)),1:4]
+datasetlist.SFSI.1[[i]]<-combine_rows(datasetlist.SFSI.1[[i]],which(datasetlist.SFSI.1[[i]]$tag1 == "155157-2"),which(datasetlist.SFSI.1[[i]]$tag1 == "155157-1"))
+datasetlist.SFSI.1[[i]][which(grepl("-",datasetlist.SFSI.1[[i]]$tag1)),1:4]
+datasetlist.SFSI.1[[i]]<-combine_rows(datasetlist.SFSI.1[[i]],which(datasetlist.SFSI.1[[i]]$tag1 == "160337-2"),which(datasetlist.SFSI.1[[i]]$tag1 == "160337-1"))
+datasetlist.SFSI.1[[i]][which(grepl("-",datasetlist.SFSI.1[[i]]$tag1)),1:4]
+datasetlist.SFSI[[i]]<-combine_rows(datasetlist.SFSI.1[[i]],which(datasetlist.SFSI.1[[i]]$tag1 == "158776-2"),which(datasetlist.SFSI.1[[i]]$tag1 == "158776-1"))
+
+#can now remove the -2/-1 on the merge samples
+datasetlist.SFSI[[i]]<-datasetlist.SFSI[[i]][,-4]#remove second tag column
+datasetlist.SFSI[[i]]<-separate(datasetlist.SFSI[[i]],tag1,c("tag1","remove"),sep = "-")#there will be a warning because most samples do not have a "-" - should be 1782 warnings...
+datasetlist.SFSI[[i]]<-datasetlist.SFSI[[i]][,-4]#remove the "remove" column
+}
+
+
+##need to put into the same order as the metadata 
+Meta.data.spatial$pool_tag<-paste(Meta.data.spatial$pool,Meta.data.spatial$tag)
+for (i in 1:length(datasetlist.SS)){
+datasetlist.SS[[i]]$pool_tag<-paste(datasetlist.SS[[i]]$Pool,datasetlist.SS[[i]]$tag1)
+datasetlist.SS[[i]]<-datasetlist.SS[[i]][match(Meta.data.spatial$pool_tag,datasetlist.SS[[i]]$pool_tag),]
+print(which(Meta.data.spatial$tag != datasetlist.SS[[i]]$tag1))#check that they match now
+}
+```
+
+#calculate relative abundance 
+```{r}
+#relative abundance SS data 
+datasetlist.rel<-list()
+for (i in 1:length(datasetlist.SS)) {
+datasetlist.rel[[i]]<-datasetlist.SS[[i]][,-which(colnames(datasetlist.SS[[i]]) %in% c("Pool","tag1","pool_tag"))]/rowSums(datasetlist.SS[[i]][,-which(colnames(datasetlist.SS[[i]]) %in% c("Pool","tag1","pool_tag"))])
+}
+
+#only 2 percent clustering SFSI
+datasetlist.rel.sfsi<-datasetlist.SFSI[[1]][,-which(colnames(datasetlist.SFSI[[1]]) %in% c("Year","tag1","Pool"))]/rowSums(datasetlist.SFSI[[1]][,-which(colnames(datasetlist.SFSI[[1]]) %in% c("Pool","tag1","Year"))])
+datasetlist.rel.sfsi$JordProvnr<-datasetlist.SFSI[[1]]$tag1
+
+```
+
+#create filtered relative abun data
+```{r}
+#need to read in taxonomic data so I filter out only agaricomycetes or only ecm 
+taxsetlist<-list(read_csv("../clean_data/clean_taxonomicdata_SFSI_SS_2perc.csv"),read_csv("../clean_data/clean_taxonomicdata_SFSI_SS_3perc.csv"),read_csv("../clean_data/clean_taxonomicdata_SFSI_SS_4perc.csv"))
+taxsetlist.agar<-list(read_csv("../clean_data/clean_taxonimcdata_SFSI_SS_agar_2perc.csv"),read_csv("../clean_data/clean_taxonimcdata_SFSI_SS_agar_3perc.csv"),read_csv("../clean_data/clean_taxonimcdata_SFSI_SS_agar_4perc.csv"))
+
+##can be present at any level of relative abundance, present in at least 25 cores -evrything must be run together - variable names are resued!
+#create the df
+datasetlist.p2<-datasetlist.rel
+#swith to presence absence
+for (i in 1:length(datasetlist.p2)){
+datasetlist.p2[[i]][datasetlist.p2[[i]] >0]<-1
+}
+
+#Filter out only the agaricos
+datasetlist.p2.agar<-list()
+
+for (i in 1:length(datasetlist.p2)){
+datasetlist.p2.agar[[i]]<-datasetlist.p2[[i]][,which(colnames(datasetlist.p2[[i]]) %in% taxsetlist.agar[[i]][which(taxsetlist.agar[[i]]$Class == "Agaricomycetes"),]$`Cluster ID`)]
+}
+
+#filter out specs present in less than 15 cores
+datasetlist.p2.15<-list()
+datasetlist.p2.agar.15<-list()
+for (i in 1:length(datasetlist.p2.agar)){
+datasetlist.p2.15[[i]]<-datasetlist.p2[[i]][,-which(colSums(datasetlist.p2[[i]]) <15)]
+datasetlist.p2.agar.15[[i]]<-datasetlist.p2.agar[[i]][,-which(colSums(datasetlist.p2.agar[[i]]) <15)]
+}
+
+#make sure that the species are present in more than 2 sites at least for the datasets where all sites are together... 
+#there is no taxa not present in more than 2 sites with the 25 threshold
+counts_per_site.agar.15<-list()
+counts_per_site.15<-list()
+for (i in 1:length(datasetlist.p2.15)){
+datasetlist.p2.agar.15[[i]]$site <-Meta.data.spatial$plot
+datasetlist.p2.15[[i]]$site <-Meta.data.spatial$plot
+counts_per_site.agar.15[[i]]<-aggregate(x= datasetlist.p2.agar.15[[i]][,-ncol(datasetlist.p2.agar.15[[i]])],by=list(datasetlist.p2.agar.15[[i]]$site),FUN=sum)
+counts_per_site.agar.15[[i]][counts_per_site.agar.15[[i]]>0]<-1
+datasetlist.p2.agar.15[[i]]<-datasetlist.p2.agar.15[[i]][,- c(which(colSums(counts_per_site.agar.15[[i]][,-1]) == 1),which(colSums(counts_per_site.agar.15[[i]][,-1]) == 2))]
+counts_per_site.15[[i]]<-aggregate(x= datasetlist.p2.15[[i]][,-ncol(datasetlist.p2.15[[i]])],by=list(datasetlist.p2.15[[i]]$site),FUN=sum)
+counts_per_site.15[[i]][counts_per_site.15[[i]]>0]<-1
+datasetlist.p2.15[[i]]<-datasetlist.p2.15[[i]][,- c(which(colSums(counts_per_site.15[[i]][,-1]) == 1),which(colSums(counts_per_site.15[[i]][,-1]) == 2))]
+}
+
+
+#flip back to the relative abundance data 
+datasetlist.rel.15<-list()
+datasetlist.rel.agar.15<-list()
+
+
+for (i in 1:length(datasetlist.p2.agar)){
+datasetlist.rel.15[[i]]<-datasetlist.rel[[i]][,which(colnames(datasetlist.rel[[i]]) %in% colnames(datasetlist.p2.15[[i]]))]
+datasetlist.rel.agar.15[[i]]<-datasetlist.rel[[i]][,which(colnames(datasetlist.rel[[i]]) %in% colnames(datasetlist.p2.agar.15[[i]]))]
+}
+
+```
+
+#make ecto relative abun of sfsi 2%
+```{r}
+#make ecto only data set 
+datasetlist.ecm.sfsi<-datasetlist.SFSI[[1]][,which(colnames(datasetlist.SFSI[[1]]) %in% taxsetlist[[1]][which(taxsetlist[[1]]$Ecology == "ECM"),]$`Cluster ID`)]
+#only 2 percent
+datasetlist.rel.sfsi.ecm<-datasetlist.ecm.sfsi/rowSums(datasetlist.ecm.sfsi)
+
+datasetlist.rel.sfsi.ecm$JordProvnr<-datasetlist.SFSI[[1]]$tag1
+```
+
+#write clean files
+```{r}
+
+perc<-list("2","3","4")
+for(x in 1:3){
+   write.csv(datasetlist.rel.15[[x]],file = paste('../clean_data/','SS_data_relabun_15_',perc[x],'perc','.csv',sep=""), row.names = F)
+}
+
+for(x in 1:3){
+   write.csv(datasetlist.rel.agar.15[[x]],file = paste('../clean_data/','SS_data_relabun_agar_15_',perc[x],'perc','.csv',sep=""), row.names = F)
+}
+
+write_csv(datasetlist.rel.sfsi,"../clean_data/SFSI_data_relabun_2perc.csv")
+write_csv(datasetlist.rel.sfsi.ecm,"../clean_data/SFSI_data_relabun_ECM_2perc.csv")
+```
+

@@ -1,0 +1,71 @@
+---
+title: "clean_ectodecomposers"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(readr)
+library(dplyr)
+library(tidyr)
+library(splitstackshape)
+```
+
+#read in taxonomic data
+```{r}
+#read in files
+scata5689_tax<-read_delim("../raw_data/all_clusters_scata5689.txt",delim = "\t",col_names = FALSE,show_col_types = FALSE) #it doesnt work to simply use ; as delim
+scata5689_tax<-cSplit(scata5689_tax,'X1',sep = ";",type.convert = FALSE)
+scata5690_tax<-read_delim("../raw_data/all_clusters_scata5690.txt",delim = "\t",col_names = FALSE,show_col_types = FALSE) #it doesnt work to simply use ; as delim
+scata5690_tax<-cSplit(scata5690_tax,'X1',sep = ";",type.convert = FALSE)
+scata6056_tax<-read_delim("../raw_data/all_clusters_scata6056.txt",delim = "\t",col_names = FALSE,show_col_types = FALSE) #it doesnt work to simply use ; as delim
+scata6056_tax<-cSplit(scata6056_tax,'X1',sep = ";",type.convert = FALSE)
+
+taxsetlist.SFSI<-list(scata5689_tax,scata5690_tax,scata6056_tax)
+
+##now I can split the taxonomy data out
+for (i in 1:length(taxsetlist.SFSI)) {
+colnames(taxsetlist.SFSI[[i]])<-as.character(taxsetlist.SFSI[[i]][35,])# make column names
+taxsetlist.SFSI[[i]]<-taxsetlist.SFSI[[i]][36:nrow(taxsetlist.SFSI[[i]]),]
+taxsetlist.SFSI[[i]]<-taxsetlist.SFSI[[i]][-which(grepl("NF_",taxsetlist.SFSI[[i]]$Reference)),]##remove any plant clusters 
+}
+
+#read in species database
+spec_database19<-read_delim("../raw_data/Speciesdatabase_19.txt",delim = "\t",col_names = TRUE,show_col_types = FALSE) 
+#unique(spec_database19[spec_database19$Class == "Agaricomycetes",]$Genus)
+agar.genera<-c("Agaricus|Echinoderma|Amanita|Conocybe|Camarophyllopsis|Clavaria|Clavulinopsis|Hodophilus|Ramariopsis|Cortinarius|Crepidotus|Clitopilus|Entocybe|Entoloma|Laccaria|Ampulloclitocybe|Arrhenia|Cuphophyllus|Gliophorus|Hygrocybe|Hygrophorus|Galerina|Gymnopilus|Hebeloma|Hymenogaster|Naucoria|Psilocybe|Calyptella|Clitocybe|Collybia|Cystoderma|Delicatula|Dendrocollybia|Fayodia|Lepista|Mycenella|Panaeolus|Rhizocybe|Squamanita|Inocybe|Lycoperdon|Asterophora|Calocybe|Tephrocybe|Marasmius|Hemimycena|Hydropus|Mycena|Roridomyces|Xeromphalina|Gymnopus|Mycetinis|Paragymnopus|Rhodocollybia|Armillaria|Flammulina|Rhizomarasmius|Pluteus|Coprinellus|Coprinopsis|Homophron|Parasola|Psathyrella|Pseudoclitocybe|Cristinia|Deconica|Hemipholiota|Hypholoma|Pholiota|Stropharia|Dermoloma|Tricholoma|Macrotyphula|Typhula|Amylocorticiellum|Ceraceomyces|Amphinema|Athelia|Byssocorticium|Piloderma|Tretomyces|Tylospora|Boletus|Chalciporus|Chamonixia|Imleria|Leccinum|Tylopilus|Xerocomellus|Xerocomus|Coniophora|Chroogomphus|Hygrophoropsis|Leucogyrophana|Alpova|Hydnomerulius|Melanogaster|Paxillus|Rhizopogon|Scleroderma|Serpula|Suillus|Fibricium|Protodontia|Pseudohydnum|Stypella|Oliveonia|Ceratobasidium|Clavulina|Craterellus|Hydnum|Sistotrema|Minimedusa|Waitea|Tubulicrinis|Alloclavaria|Cotylidia|Resinicium|Rickenella|Hyphodontia|Xylodon|Fibulochlamys|Postia|Rigidoporus|Physisporinus|Phanerochaete|Ganoderma|Odontia|Xenasmatella|Byssoporia|Gloiothele|Scytinostroma|Lactarius|Russula|Helvellosebacina|Sebacina|Serendipita|Phellodon|Pseudotomentella|Thelephora|Tomentella|Tomentellopsis|Luellia|Sistotremastrum|Subulicystidium|Trechispora|Steccherinum|Nidulariopsis|Clavariadelphus|Gautieria|Ramaria|Kavinia|Hysterangium|Phallus")
+
+sapro.genera<-c("Agaricus|Echinoderma|Conocybe|Camarophyllopsis|Clavaria|Clavulinopsis|Hodophilus|Ramariopsis|Crepidotus|Clitopilus|Entocybe|Ampulloclitocybe|Arrhenia|Cuphophyllus|Gliophorus|Hygrocybe|Galerina|Gymnopilus|Psilocybe|Calyptella|Clitocybe|Collybia|Cystoderma|Delicatula|Dendrocollybia|Fayodia|Lepista|Mycenella|Panaeolus|Rhizocybe|Squamanita|Lycoperdon|Asterophora|Calocybe|Tephrocybe|Marasmius|Hemimycena|Hydropus|Mycena|Roridomyces|Xeromphalina|Gymnopus|Mycetinis|Paragymnopus|Rhodocollybia|Armillaria|Flammulina|Rhizomarasmius|Pluteus|Coprinellus|Coprinopsis|Homophron|Parasola|Psathyrella|Pseudoclitocybe|Cristinia|Deconica|Hemipholiota|Hypholoma|Pholiota|Stropharia|Dermoloma|Entoloma|Macrotyphula|Typhula|Amylocorticiellum|Ceraceomyces|Athelia|Coniophora|Hygrophoropsis|Leucogyrophana|Hydnomerulius|Serpula|Fibricium|Protodontia|Pseudohydnum|Stypella|Oliveonia|Ceratobasidium|Minimedusa|Waitea|Tubulicrinis|Alloclavaria|Cotylidia|Resinicium|Rickenella|Hyphodontia|Xylodon|Fibulochlamys|Postia|Rigidoporus|Physisporinus|Phanerochaete|Ganoderma|Odontia|Xenasmatella|Byssoporia|Gloiothele|Scytinostroma|Luellia|Sistotremastrum|Subulicystidium|Trechispora|Steccherinum|Nidulariopsis|Clavariadelphus|Kavinia|Phallus")
+
+ecm.genera<-c("Cenococcum|Elaphomyces|Hyaloscypha|Acephala|Tarzetta|Hydnotrya|Genea|Geopora|Humaria|Otidea|Trichophaea|Wilcoxina|Tuber|Amanita|Cortinarius|Laccaria|Entoloma_silvae-frondosae|Entoloma_sericatum|Hygrophorus|Hebeloma|Hymenogaster|Naucoria|Inocybe|Tricholoma|Amphinema|Byssocorticium|Piloderma|Tretomyces|Tylospora|Boletus|Chalciporus|Chamonixia|Imleria|Leccinum|Tylopilus|Xerocomellus|Xerocomus|Chroogomphus|Alpova|Melanogaster|Paxillus|Rhizopogon|Scleroderma|Suillus|Clavulina|Craterellus|Hydnum|Sistotrema|Lactarius|Russula|Helvellosebacina|Sebacina|Serendipita|Phellodon|Pseudotomentella|Thelephora|Tomentella|Tomentellopsis|Gautieria|Ramaria|Hysterangium")
+
+taxsetlist.agar<-taxsetlist.SFSI 
+for (i in 1:length(taxsetlist.SFSI)){
+taxsetlist.agar[[i]]$Class<-ifelse(grepl(agar.genera,taxsetlist.SFSI[[i]]$Reference),"Agaricomycetes","other")
+taxsetlist.agar[[i]]$Ecology<-ifelse(grepl(ecm.genera,taxsetlist.agar[[i]]$Reference),"ECM",ifelse(grepl(sapro.genera,taxsetlist.agar[[i]]$Reference),"SAP","other")) 
+taxsetlist.SFSI[[i]]$Ecology<-ifelse(grepl(ecm.genera,taxsetlist.SFSI[[i]]$Reference),"ECM",ifelse(grepl(sapro.genera,taxsetlist.SFSI[[i]]$Reference),"SAP","other")) 
+}##this is a quick solution to pick out clusters identified to genus level from the class agaricomyctes... 
+
+
+```
+
+#write clean data
+```{r}
+#write listed df to seperate csvs https://stackoverflow.com/questions/42046992/write-csv-on-a-list-of-data-frames
+
+#all SS and SFSI clusters cleaned
+
+perc<-list("2","3","4")
+for(x in 1:length(taxsetlist.SFSI)){
+   write.csv(taxsetlist.SFSI[[x]],file = paste('../clean_data/','clean_taxonomicdata_SFSI_SS','_',perc[x],'perc','.csv',sep=""), row.names = F)
+}
+
+for(x in 1:length(taxsetlist.agar)){
+   write.csv(taxsetlist.agar[[x]],file = paste('../clean_data/','clean_taxonimcdata_SFSI_SS_agar','_',perc[x],'perc','.csv',sep=""), row.names = F)
+}
+
+```
+

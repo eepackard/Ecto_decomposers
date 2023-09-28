@@ -1,0 +1,95 @@
+---
+title: "Cleaning_ectodecomposers"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r }
+library(readr)
+library(dplyr)
+library(tidyr)
+library(factoextra)
+library(ggplot2)
+```
+
+## read in metadata
+```{r}
+Meta.data.spatial<-read_delim("../raw_data/Spatial_data_fungi_env_all.txt",delim = "\t", escape_double = FALSE, trim_ws = TRUE,locale = locale(decimal_mark = ","))
+Leticia.MnP.calc<-read_delim("../raw_data/MnP_Assay_Plates_Final_Leticia.txt",delim = "\t", escape_double = FALSE, trim_ws = TRUE,locale = locale(encoding = "latin1",decimal_mark = "."),skip = 1)
+Leticia.MnP.calc$ID_plot<-gsub("-","_",Leticia.MnP.calc$ID_plot)
+
+#put in the same order
+Leticia.MnP.calc<-Leticia.MnP.calc[match(Meta.data.spatial$ID_plot,Leticia.MnP.calc$ID_plot),]
+```
+#create variables
+```{r}
+#area of core
+core.area<-rep(3.1415*(0.01)^2,456)
+fresh.weight<-Leticia.MnP.calc$total_dry_weight/(1-Meta.data.spatial$water/100)
+water.weight<-fresh.weight- Leticia.MnP.calc$total_dry_weight
+Meta.data.spatial$waterg_m2<-water.weight/core.area
+OM.weight<-Leticia.MnP.calc$total_dry_weight*(Meta.data.spatial$C/100)/0.462
+Meta.data.spatial$waterg_gOM<-water.weight/OM.weight
+Meta.data.spatial$ergosterol_m2<-Meta.data.spatial$ergosterol_gsoil*Leticia.MnP.calc$total_dry_weight/core.area
+Meta.data.spatial$ergosterol_gOM<-Meta.data.spatial$ergosterol_gsoil*Leticia.MnP.calc$total_dry_weight/OM.weight
+Meta.data.spatial$roots_m2<-Meta.data.spatial$roots_gsoil*Leticia.MnP.calc$total_dry_weight/core.area
+Meta.data.spatial$roots_gOM<-Meta.data.spatial$roots_gsoil*Leticia.MnP.calc$total_dry_weight/OM.weight
+Meta.data.spatial$mincon<-1-((0.01*Meta.data.spatial$C)/0.462)
+
+soil.conv<-rep((0.2/25000)*(50/200),456)
+MnP_pergram<-(Leticia.MnP.calc$MnDependentOx...3*0.00001)/soil.conv
+Mnp_total<-MnP_pergram*Leticia.MnP.calc$total_dry_weight
+Mnp_m2<-Mnp_total/core.area
+MnP_gC<-(Leticia.MnP.calc$MnDependentOx...3*0.00001)/(soil.conv*(Meta.data.spatial$C/100))
+MnP_gOM<-Mnp_total/OM.weight
+MnP_gOM[which(MnP_gOM < 0)]<-0 ##some negative values should be changed to zero
+Meta.data.spatial$MnP_gOM<-MnP_gOM
+
+Meta.data.spatial$pool<-gsub("pool1","pool1.v2",Meta.data.spatial$pool)
+```
+
+
+## clean data
+```{r}
+#remove old (leticia) species data from meta data
+Meta.data.spatial<-Meta.data.spatial[,which(!grepl("SH_",colnames(Meta.data.spatial)))]
+#trim down to needed variables
+Meta.data.spatial<-Meta.data.spatial[,c(1:3,5:7,19:22,29,30,35,37,39)]
+```
+
+#normalize and scale metadata
+
+```{r}
+#need to log roots, and MnP
+
+Meta.data.spatial$MnP_gOM.log<-log(Meta.data.spatial$MnP_gOM+0.00027) #min value is 0.000027 but better fit by adding on tenth higher value
+Meta.data.spatial$roots_gOM.log<-log(Meta.data.spatial$roots_gOM)
+
+#Then I need to scale all by site/plot
+
+Meta.data.spatial_scaled<-Meta.data.spatial %>% group_by(plot) %>% mutate_at(c("ergosterol_gOM","MnP_gOM","MnP_gOM.log","roots_gOM.log","ph","NC"), scale)
+Meta.data.spatial$ph_scaled<-Meta.data.spatial_scaled$ph[,1]
+Meta.data.spatial$NC_scaled<-Meta.data.spatial_scaled$NC[,1]
+Meta.data.spatial$ergosterol_gOM_scaled<-Meta.data.spatial_scaled$ergosterol_gOM[,1]
+Meta.data.spatial$MnP_gOM_scaled<-Meta.data.spatial_scaled$MnP_gOM[,1]
+Meta.data.spatial$MnP_gOM.log_scaled<-Meta.data.spatial_scaled$MnP_gOM.log[,1]
+Meta.data.spatial$roots_gOM.log_scaled<-Meta.data.spatial_scaled$roots_gOM.log[,1]
+
+#then visualize with PCA
+
+pca<-prcomp(Meta.data.spatial[,which(colnames(Meta.data.spatial) %in% c("ph_scaled","NC_scaled"))])
+fviz_pca_biplot(pca)
+
+Meta.data.spatial$pc1<- -1*pca$x[,1] #multiply by -1 to change direction so more positive is increasing pH
+Meta.data.spatial$pc2<- pca$x[,2]
+```
+
+#write cleaned file
+```{r}
+write_csv(Meta.data.spatial, "../clean_data/Clean_spatial_study_metadata.csv")
+```
+

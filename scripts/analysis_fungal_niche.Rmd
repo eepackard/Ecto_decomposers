@@ -1,0 +1,222 @@
+---
+title: "analysis_ectodecomposers"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#load packages
+```{r include =FALSE}
+library(readr)
+library(car)
+library(Rlab)
+library(vegan)
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+library(factoextra)
+library(beepr)
+library(corrgram)
+library(lme4)
+library(splitstackshape)
+library(DHARMa)
+library(ggfortify)
+library(ggrepel)
+```
+
+
+#read in data
+```{r}
+datasetlist.rel.sfsi<-read_csv("../clean_data/SFSI_data_relabun_2perc_filtered.csv")
+datasetlist.rel.sfsi.ecm<-read_csv("../clean_data/SFSI_data_relabun_ECM_2perc_filtered.csv")
+SFSI.soil.f2<-read_csv("../clean_data/Clean_filtered_SFSI_soil_data.csv")
+```
+
+#create scaled soil parameters
+```{r}
+#this centers and scales 
+SFSI.soil.sel<-SFSI.soil.f2%>% mutate_at(c("Bestandsalder","Bestandsalder_log","Tallandel","Granandel","Bjorkandel","CN_log","Temperatursumma","pH_H2O_log","NC","CN","Cstock","Cstock_log"),list(scaled =scale))
+
+#PCA of variables of interest
+pca.sfsi<-prcomp(SFSI.soil.sel[,which(colnames(SFSI.soil.sel) %in% c("Bestandsalder_scaled","Granandel_scaled","pH_H2O_log_scaled","Temperatursumma_scaled","NC_scaled"))]) 
+fviz_pca_biplot(pca.sfsi,invisible = "ind",axes = c(1,2))#
+fviz_pca_biplot(pca.sfsi,invisible = "ind",axes = c(3,4))#
+
+SFSI.soil.sel$pc1<- pca.sfsi$x[,1]
+SFSI.soil.sel$pc2<- pca.sfsi$x[,2]
+SFSI.soil.sel$pc3<- pca.sfsi$x[,3]
+SFSI.soil.sel$pc4<- pca.sfsi$x[,4]
+
+#create binary age category
+SFSI.soil.sel$Bestandsaldercat<-as.factor(if_else(between(SFSI.soil.sel$Bestandsalder,0,70),"young",if_else(between(SFSI.soil.sel$Bestandsalder,70,300),"old","miss")))
+
+```
+
+
+#create fungal miners guild and investigate covariates of forest properties
+```{r}
+miner.taxa.sfsi<-as.data.frame(cbind(datasetlist.rel.sfsi$scata5689_149,datasetlist.rel.sfsi$scata5689_284,datasetlist.rel.sfsi$scata5689_274,datasetlist.rel.sfsi$scata5689_262,datasetlist.rel.sfsi$scata5689_687,datasetlist.rel.sfsi$scata5689_302,datasetlist.rel.sfsi$scata5689_66))#,datasetlist.rel.sfsi$scata5689_294
+colnames(miner.taxa.sfsi)<-c("Lactarius_vietus","Gautieria_monticola","Cortinarius_comptulus","Russula_aquosa","Cortinarius_anomalus","Hysterangium","Cortinarius_semisanguineus")#,"Suillus_luteus"
+
+miner.taxa.sfsi.ecm<-as.data.frame(cbind(datasetlist.rel.sfsi.ecm$scata5689_149,datasetlist.rel.sfsi.ecm$scata5689_284,datasetlist.rel.sfsi.ecm$scata5689_274,datasetlist.rel.sfsi.ecm$scata5689_262,datasetlist.rel.sfsi.ecm$scata5689_687,datasetlist.rel.sfsi.ecm$scata5689_302,datasetlist.rel.sfsi.ecm$scata5689_66))#,datasetlist.rel.sfsi.ecm$scata5689_294
+colnames(miner.taxa.sfsi.ecm)<-c("Lactarius_vietus","Gautieria_monticola","Cortinarius_comptulus","Russula_aquosa","Cortinarius_anomalus","Hysterangium","Cortinarius_semisanguineus")#,"Suillus_luteus"
+
+
+miner.taxa.p.sfsi<-miner.taxa.sfsi
+miner.taxa.p.sfsi[miner.taxa.p.sfsi>0]<-1 # change to presence absence if rel abun is greater than zero
+miner.taxa.p.sfsi[sapply(miner.taxa.p.sfsi,is.numeric)]<-lapply(miner.taxa.p.sfsi[sapply(miner.taxa.p.sfsi,is.numeric)],as.factor) #switch to factor from numeric
+
+#relative aundace of guild as proportion of whole fungal community
+miner.guild.sfsi<-rowSums(miner.taxa.sfsi) #aggreate into guild 
+miner.guild.p.sfsi<-miner.guild.sfsi
+miner.guild.p.sfsi[miner.guild.p.sfsi>0]<-1 #guild presence absence
+miner.guild.sqrt.sfsi<-sqrt(miner.guild.sfsi) #hellinger transformation of realtive abun data
+
+#relative aundace of guild as proportion of only ectomycorrhizal community
+miner.guild.sfsi.ecm<-rowSums(miner.taxa.sfsi.ecm) #aggreate into guild 
+miner.guild.sfsi.ecm[is.na(miner.guild.sfsi.ecm)]<-0 #18 samples have 0 relative abundance of ecto fungi and replace these Nan with zero
+miner.guild.p.sfsi.ecm<-miner.guild.sfsi.ecm
+miner.guild.p.sfsi.ecm[miner.guild.p.sfsi.ecm>0]<-1#guild presence absence
+miner.guild.sqrt.sfsi.ecm<-sqrt(miner.guild.sfsi.ecm)#hellinger transformation of realtive abun data
+```
+
+## niche variables
+```{r}
+#bind together soil data and guild data
+sfsi.fungniche<-as.data.frame(cbind(miner.taxa.sfsi,miner.taxa.sfsi.ecm,miner.taxa.p.sfsi,miner.guild.p.sfsi,miner.guild.sfsi,miner.guild.sfsi.ecm,miner.guild.sqrt.sfsi,miner.guild.sqrt.sfsi.ecm,SFSI.soil.sel$Bestandsalder_scaled,SFSI.soil.sel$Bestandsalder_log_scaled,SFSI.soil.sel$Granandel_scaled,SFSI.soil.sel$pH_H2O_log_scaled,SFSI.soil.sel$NC_scaled,SFSI.soil.sel$Temperatursumma_scaled,SFSI.soil.sel$Taxar,SFSI.soil.sel$Bestandsaldercat,SFSI.soil.sel$Cstock_log_scaled,SFSI.soil.sel$Cstock_scaled))
+colnames(sfsi.fungniche)<-c(colnames(miner.taxa.sfsi),paste("ecm",colnames(miner.taxa.p.sfsi)),paste("p",colnames(miner.taxa.p.sfsi)),"miners.pres","miners.rel","miners.relecm","miners.relsqrt","miners.relsqrtecm","age","age_log","spruce","pH","NC","temp","year","agecat","Cstock_log","Cstock")
+
+corrgram(sfsi.fungniche[,which(colnames(sfsi.fungniche) %in% c("miners.pres","age","pH","NC","spruce","temp"))],upper.panel = panel.conf,lower.panel = panel.fill)
+
+pca.sfsi.fert<-prcomp(sfsi.fungniche[,which(colnames(sfsi.fungniche) %in% c("NC","pH"))]) 
+fviz_pca_biplot(pca.sfsi.fert,axes = c(1,2))#,invisible = "ind"
+#fviz_pca_biplot(pca.sfsi.fert,axes = c(2,3))#,invisible = "ind"
+
+sfsi.fungniche$fert.pca <-c(pca.sfsi.fert$x[,1]*-1)
+
+corrgram(sfsi.fungniche[,which(colnames(sfsi.fungniche) %in% c("fert.pca","spruce","miners.pres","temp","age"))],upper.panel = panel.conf,lower.panel = panel.fill)
+
+#split into spruce and pine
+hist(sfsi.fungniche$spruce)
+sfsi.spruce<-sfsi.fungniche[which(sfsi.fungniche$spruce > 0 ),]
+sfsi.pine<-sfsi.fungniche[which(sfsi.fungniche$spruce < 0 ),]
+
+```
+
+
+#GLMM of presence absence
+```{r}
+glm.pa.spruce<-glmer(miners.pres~age+fert.pca+(1|year),family = binomial(),data = sfsi.spruce)
+summary(glm.pa.spruce)
+Anova(glm.pa.spruce)
+
+glm.pa.pine<-glmer(miners.pres~age+fert.pca+(1|year),family = binomial(),data = sfsi.pine)
+summary(glm.pa.pine)
+Anova(glm.pa.pine)
+
+
+#check assumption of the glm using DHARMA https://cran.r-project.org/web/packages/DHARMa/vignettes/DHARMa.html
+simulationOutput <- simulateResiduals(fittedModel = glm.pa.spruce, plot = F)
+plot(simulationOutput)
+simulationOutput <- simulateResiduals(fittedModel = glm.pa.pine, plot = F)
+plot(simulationOutput)
+```
+
+#create relative abun dataset with samples only where guild is present
+```{r}
+##remove samples where persence is zero
+sfsi.pres<-sfsi.fungniche[-which(sfsi.fungniche$miners.pres == 0),]
+sfsi.pine.pres<-sfsi.pine[-which(sfsi.pine$miners.pres == 0),]
+sfsi.spruce.pres<-sfsi.spruce[-which(sfsi.spruce$miners.pres == 0),]
+
+#transform 
+hist(sfsi.spruce.pres$miners.relecm)
+sfsi.spruce.pres$miner.relecmlog<-log(sfsi.spruce.pres$miners.relecm)
+hist(sfsi.spruce.pres$miner.relecmlog)
+
+hist(sfsi.pine.pres$miners.relecm)
+sfsi.pine.pres$miner.relecmlog<-log(sfsi.pine.pres$miners.relecm)
+hist(sfsi.pine.pres$miner.relecmlog)
+
+#linear model with relecmative abun of guild to only ectomycorrhizal
+#pine
+lm.relecm.pine<-lmer(miner.relecmlog~age+fert.pca+(1|year),data = sfsi.pine.pres)
+summary(lm.relecm.pine)
+summary(aov(miner.relecmlog~age+fert.pca+(1|year),data = sfsi.pine.pres))
+plot(lm.relecm.pine)
+
+lm.relecm.pine.test<-lm(miner.relecmlog~age+fert.pca,data = sfsi.pine.pres)
+summary(lm.relecm.pine.test)
+
+#test.varpart<-varpart(sfsi.pine.pres$miner.relecmlog, ~age, ~ fert.pca ,data = sfsi.pine.pres[,which(colnames(sfsi.pine.pres) %in% c("miner.relecmlog","age","fert.pca"))])
+#summary(test.varpart)
+#showvarparts(2)
+#plot(test.varpart,cutoff=-Inf)
+
+#spruce
+lm.relecm.spruce<-lmer(miner.relecmlog~age+fert.pca+(1|year),data = sfsi.spruce.pres)
+summary(lm.relecm.spruce)
+summary(aov(miner.relecmlog~age+fert.pca+(1|year),data = sfsi.spruce.pres))
+plot(lm.relecm.spruce)
+
+lm.relecm.spruce.test<-lm(miner.relecmlog~age_log+fert.pca,data = sfsi.spruce.pres)
+summary(lm.relecm.spruce.test)
+summary(aov(miner.relecmlog~age_log+fert.pca,data = sfsi.spruce.pres))
+plot(lm.relecm.spruce.test)
+
+test.varpart<-varpart(sfsi.spruce.pres$miner.relecmlog, ~age, ~ fert.pca ,data = sfsi.spruce.pres[,which(colnames(sfsi.spruce.pres) %in% c("miner.relecmlog","age","fert.pca"))])
+summary(test.varpart)
+showvarparts(2)
+plot(test.varpart,cutoff=-Inf)
+
+lm.relecm.spruce<-lmer(miner.relecmlog~age+(1|year),data = sfsi.spruce.pres)
+summary(lm.relecm.spruce)
+summary(aov(miner.relecmlog~age+(1|year),data = sfsi.spruce.pres))
+plot(lm.relecm.spruce)
+
+```
+
+
+#testing individual miner taxa
+```{r}
+#presence/absence - fisher exact test
+list.pres.abs.miners<-list(c(colnames(sfsi.pine[,8:14])))
+fisher.results.pine<-list()
+fisher.results.spruce<-list()
+for (i in 1:7){
+barplot(table(sfsi.pine[,which(colnames(sfsi.pine) %in% c("agecat",list.pres.abs.miners[[1]][[i]]))]))
+barplot(table(sfsi.spruce[,which(colnames(sfsi.spruce) %in% c("agecat",list.pres.abs.miners[[1]][[i]]))]))     
+fisher.results.pine[[i]]<-fisher.test(as.matrix(table(sfsi.pine[,which(colnames(sfsi.pine) %in% c("agecat",list.pres.abs.miners[[1]][[i]]))])),or=1)
+fisher.results.spruce[[i]]<-fisher.test(as.matrix(table(sfsi.spruce[,which(colnames(sfsi.spruce) %in% c("agecat",list.pres.abs.miners[[1]][[i]]))])),or=1)
+}
+
+plot(sfsi.spruce[which(sfsi.spruce$`p Cortinarius_semisanguineus` == "1"),]$agecat,sfsi.spruce[which(sfsi.spruce$`p Cortinarius_semisanguineus` == "1"),]$`Cortinarius_semisanguineus`)
+plot(sfsi.spruce[which(sfsi.spruce$`p Hysterangium` == "1"),]$agecat,sfsi.spruce[which(sfsi.spruce$`p Hysterangium` == "1"),]$`Hysterangium`)
+plot(sfsi.spruce[which(sfsi.spruce$`p Cortinarius_anomalus` == "1"),]$agecat,sfsi.spruce[which(sfsi.spruce$`p Cortinarius_anomalus` == "1"),]$`Cortinarius_anomalus`)
+plot(sfsi.spruce[which(sfsi.spruce$`p Cortinarius_anomalus` == "1"),]$agecat,sfsi.spruce[which(sfsi.spruce$`p Cortinarius_anomalus` == "1"),]$`Cortinarius_anomalus`)
+plot(sfsi.spruce[which(sfsi.spruce$`p Lactarius_vietus` == "1"),]$agecat,sfsi.spruce[which(sfsi.spruce$`p Lactarius_vietus` == "1"),]$`Lactarius_vietus`)
+plot(sfsi.spruce[which(sfsi.spruce$`p Russula_aquosa` == "1"),]$agecat,log(sfsi.spruce[which(sfsi.spruce$`p Russula_aquosa` == "1"),]$`Russula_aquosa`))
+plot(sfsi.spruce[which(sfsi.spruce$`p Gautieria_monticola` == "1"),]$agecat,sfsi.spruce[which(sfsi.spruce$`p Gautieria_monticola` == "1"),]$`Gautieria_monticola`)
+plot(sfsi.pine[which(sfsi.pine$`p Cortinarius_semisanguineus` == "1"),]$agecat,log(sfsi.pine[which(sfsi.pine$`p Cortinarius_semisanguineus` == "1"),]$`Cortinarius_semisanguineus`))
+plot(sfsi.pine[which(sfsi.pine$`p Hysterangium` == "1"),]$agecat,log(sfsi.pine[which(sfsi.pine$`p Hysterangium` == "1"),]$`Hysterangium`))
+plot(sfsi.pine[which(sfsi.pine$`p Cortinarius_anomalus` == "1"),]$agecat,log(sfsi.pine[which(sfsi.pine$`p Cortinarius_anomalus` == "1"),]$`Cortinarius_anomalus`))
+plot(sfsi.pine[which(sfsi.pine$`p Cortinarius_anomalus` == "1"),]$agecat,log(sfsi.pine[which(sfsi.pine$`p Cortinarius_anomalus` == "1"),]$`Cortinarius_anomalus`))
+plot(sfsi.pine[which(sfsi.pine$`p Lactarius_vietus` == "1"),]$agecat,log(sfsi.pine[which(sfsi.pine$`p Lactarius_vietus` == "1"),]$`Lactarius_vietus`))
+plot(sfsi.pine[which(sfsi.pine$`p Russula_aquosa` == "1"),]$agecat,log(sfsi.pine[which(sfsi.pine$`p Russula_aquosa` == "1"),]$`Russula_aquosa`))
+plot(sfsi.pine[which(sfsi.pine$`p Gautieria_monticola` == "1"),]$agecat,log(sfsi.pine[which(sfsi.pine$`p Gautieria_monticola` == "1"),]$`Gautieria_monticola`))
+
+#Rel abun - wilcox
+list.rel.miners.ecm<-list(c(colnames(sfsi.pine[,8:14])))
+col.num<-list(15:21)
+
+wilcox.results.spruce.ecm<-list()
+wilcox.results.pine.ecm<-list()
+   for (i in 1:7){
+ wilcox.results.spruce.ecm[[i]]<- wilcox.test(log(sfsi.spruce[which(sfsi.spruce[, col.num[[1]][i]] == "1" & sfsi.spruce$agecat == "old"),which(colnames(sfsi.spruce) == list.rel.miners.ecm[[1]][[i]])]),log(sfsi.spruce[which(sfsi.spruce[,col.num[[1]][i]] == "1" & sfsi.spruce$agecat == "young"),which(colnames(sfsi.spruce) == list.rel.miners.ecm[[1]][[i]])]))
+
+ wilcox.results.pine.ecm[[i]]<- wilcox.test(log(sfsi.pine[which(sfsi.pine[, col.num[[1]][i]] == "1" & sfsi.pine$agecat == "old"),which(colnames(sfsi.pine) == list.rel.miners.ecm[[1]][[i]])]),log(sfsi.pine[which(sfsi.pine[,col.num[[1]][i]] == "1" & sfsi.pine$agecat == "young"),which(colnames(sfsi.pine) == list.rel.miners.ecm[[1]][[i]])]))
+}
+
+```

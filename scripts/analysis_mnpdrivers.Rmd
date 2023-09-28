@@ -1,0 +1,88 @@
+---
+title: "analysis_ectodecomposers"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#load packages
+```{r include =FALSE}
+library(readr)
+library(car)
+library(Rlab)
+library(vegan)
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+library(factoextra)
+library(corrgram)
+library(lme4)
+library(splitstackshape)
+library(ggfortify)
+library(ggrepel)
+```
+
+#read in data
+```{r}
+datasetlist.rel.15<-list(read_csv("../clean_data/SS_data_relabun_15_2perc.csv"),read_csv("../clean_data/SS_data_relabun_15_3perc.csv"),read_csv("../clean_data/SS_data_relabun_15_4perc.csv"))
+Metadata.spatial.study<-read_csv("../clean_data/Clean_spatial_study_metadata.csv")
+```
+
+
+#model the abio factors then abio plus with the subset taxa
+
+#make CA axes
+```{r}
+CA.fung.15<-cca(sqrt(datasetlist.rel.15[[1]])) # 2 percent cluster
+#CA.fung.15<-cca(sqrt(datasetlist.rel.15[[2]])) # 3 percent cluster
+#CA.fung.15<-cca(sqrt(datasetlist.rel.15[[3]])) # 4 percent cluster
+```
+
+#plot CA 
+```{r}
+plot.df<-as.data.frame(scores(CA.fung.15,choices = c(1,2))$sites)
+plot.df$age<-Meta.data.spatial$age
+plot.df$host<-Meta.data.spatial$species
+plot.df.spec<-as.data.frame(scores(CA.fung.15,choices = c(1,2))$species)
+which(colnames(datasetlist.rel.15[[1]]) %in% c("scata5689_149","scata5689_284","scata5689_274","scata5689_262","scata5689_687","scata5689_302","scata5689_66"))
+highligh.df<-plot.df.spec[which(colnames(datasetlist.rel.15[[1]]) %in% c("scata5689_149","scata5689_284","scata5689_274","scata5689_262","scata5689_687","scata5689_302","scata5689_66")),]
+rownames(highligh.df)<-c("Cortainarius_semisanguineus","Lactarius_vietus","Cortinarius_comptulus","Hysterangium","Russula_aquosa","Gautieria_monticola","Cortinarius_anomalus")
+
+ggplot(plot.df)+geom_point(data = plot.df,aes(x=CA1,y=CA2,color=age,shape=host),size=2)+geom_point(data=plot.df.spec,aes(x=CA1,y=CA2),size=2)+geom_point(data=highligh.df,aes(x=CA1,y=CA2),color="green")+geom_label_repel(data=highligh.df,aes(x=CA1,y=CA2),label=rownames(highligh.df))+theme_classic()
+plot(CA.fung.15)
+```
+
+# create a model to explain the drivers of the MnP
+```{r}
+#MnP ~ Fert (pca1) , CA of fung communty
+
+MnP.drivers.15<-lm(Meta.data.spatial$MnP_gOM.log ~
+                     scores(CA.fung.15,choices = c(1))$sites+
+                     scores(CA.fung.15,choices = c(2))$sites+
+                     scores(CA.fung.15,choices = c(3))$sites+
+                     Meta.data.spatial$pc1+
+                     as.factor(Meta.data.spatial$age)*as.factor(Meta.data.spatial$species))
+plot(MnP.drivers.15)
+summary(MnP.drivers.15)
+Anova(MnP.drivers.15,type = 3)
+
+tukey.mnp.drivers.15<-aov(Meta.data.spatial$MnP_gOM.log ~
+                     scores(CA.fung.15,choices = c(1))$sites+
+                     scores(CA.fung.15,choices = c(2))$sites+
+                     scores(CA.fung.15,choices = c(3))$sites+
+                     Meta.data.spatial$pc1+
+                     as.factor(Meta.data.spatial$age)*as.factor(Meta.data.spatial$species))
+TukeyHSD(tukey.mnp.drivers.15)
+
+plot(scores(CA.fung.15,choices = c(2))$sites,Meta.data.spatial$MnP_gOM.log)
+```
+
+#plot corregram
+```{r}
+test.corr.15<-cbind(Meta.data.spatial$MnP_gOM.log,scores(CA.fung.15,choices = c(1))$sites,scores(CA.fung.15,choices = c(2))$sites,scores(CA.fung.15,choices = c(3))$sites,Meta.data.spatial$pc1)
+colnames(test.corr.15)<-c("MnP.log","C1","C2","C3","fert")
+corrgram(test.corr.15,upper.panel = panel.conf,lower.panel = panel.fill)
+
+```
