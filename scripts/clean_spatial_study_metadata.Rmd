@@ -71,7 +71,7 @@ Meta.data.spatial$roots_gOM.log<-log(Meta.data.spatial$roots_gOM)
 
 #Then I need to scale all by site/plot
 
-Meta.data.spatial_scaled<-Meta.data.spatial %>% group_by(plot) %>% mutate_at(c("ergosterol_gOM","MnP_gOM","MnP_gOM.log","roots_gOM.log","ph","NC"), scale)
+Meta.data.spatial_scaled<-Meta.data.spatial %>% group_by(plot) %>% mutate_at(c("ergosterol_gOM","MnP_gOM","MnP_gOM.log","roots_gOM.log","ph","NC"), ~scale(.,center = TRUE)) #scaling but not centering
 Meta.data.spatial$ph_scaled<-Meta.data.spatial_scaled$ph[,1]
 Meta.data.spatial$NC_scaled<-Meta.data.spatial_scaled$NC[,1]
 Meta.data.spatial$ergosterol_gOM_scaled<-Meta.data.spatial_scaled$ergosterol_gOM[,1]
@@ -84,7 +84,7 @@ Meta.data.spatial$roots_gOM.log_scaled<-Meta.data.spatial_scaled$roots_gOM.log[,
 pca<-prcomp(Meta.data.spatial[,which(colnames(Meta.data.spatial) %in% c("ph_scaled","NC_scaled"))])
 fviz_pca_biplot(pca)
 
-Meta.data.spatial$pc1<- -1*pca$x[,1] #multiply by -1 to change direction so more positive is increasing pH
+Meta.data.spatial$pc1<- -1*pca$x[,1] 
 Meta.data.spatial$pc2<- pca$x[,2]
 ```
 

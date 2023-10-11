@@ -97,6 +97,23 @@ datasetlist.SS[[i]]$pool_tag<-paste(datasetlist.SS[[i]]$Pool,datasetlist.SS[[i]]
 datasetlist.SS[[i]]<-datasetlist.SS[[i]][match(Meta.data.spatial$pool_tag,datasetlist.SS[[i]]$pool_tag),]
 print(which(Meta.data.spatial$tag != datasetlist.SS[[i]]$tag1))#check that they match now
 }
+
+#need to remove non-fungal taxa 
+#read in taxonomic data 
+taxsetlist<-list(read_csv("../clean_data/clean_taxonomicdata_SFSI_SS_2perc.csv"),read_csv("../clean_data/clean_taxonomicdata_SFSI_SS_3perc.csv"),read_csv("../clean_data/clean_taxonomicdata_SFSI_SS_4perc.csv"))
+taxsetlist.agar<-list(read_csv("../clean_data/clean_taxonimcdata_SFSI_SS_agar_2perc.csv"),read_csv("../clean_data/clean_taxonimcdata_SFSI_SS_agar_3perc.csv"),read_csv("../clean_data/clean_taxonimcdata_SFSI_SS_agar_4perc.csv"))
+
+NF.scata<-list()
+for (i in 1:3){
+NF.scata[[i]]<-taxsetlist[[i]][which(grepl("NF_",taxsetlist[[i]]$Reference)),]$`Cluster ID`
+}
+
+#remove the NF species hypothesis
+for (i in 1:3){
+datasetlist.SFSI[[i]]<-datasetlist.SFSI[[i]][,-which(colnames(datasetlist.SFSI[[i]]) %in% NF.scata[[i]])]
+datasetlist.SS[[i]]<-datasetlist.SS[[i]][,-which(colnames(datasetlist.SS[[i]]) %in% NF.scata[[i]])]
+}
+
 ```
 
 #calculate relative abundance 
@@ -115,9 +132,6 @@ datasetlist.rel.sfsi$JordProvnr<-datasetlist.SFSI[[1]]$tag1
 
 #create filtered relative abun data
 ```{r}
-#need to read in taxonomic data so I filter out only agaricomycetes or only ecm 
-taxsetlist<-list(read_csv("../clean_data/clean_taxonomicdata_SFSI_SS_2perc.csv"),read_csv("../clean_data/clean_taxonomicdata_SFSI_SS_3perc.csv"),read_csv("../clean_data/clean_taxonomicdata_SFSI_SS_4perc.csv"))
-taxsetlist.agar<-list(read_csv("../clean_data/clean_taxonimcdata_SFSI_SS_agar_2perc.csv"),read_csv("../clean_data/clean_taxonimcdata_SFSI_SS_agar_3perc.csv"),read_csv("../clean_data/clean_taxonimcdata_SFSI_SS_agar_4perc.csv"))
 
 ##can be present at any level of relative abundance, present in at least 25 cores -evrything must be run together - variable names are resued!
 #create the df

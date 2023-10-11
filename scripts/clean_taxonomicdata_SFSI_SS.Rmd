@@ -30,7 +30,7 @@ taxsetlist.SFSI<-list(scata5689_tax,scata5690_tax,scata6056_tax)
 for (i in 1:length(taxsetlist.SFSI)) {
 colnames(taxsetlist.SFSI[[i]])<-as.character(taxsetlist.SFSI[[i]][35,])# make column names
 taxsetlist.SFSI[[i]]<-taxsetlist.SFSI[[i]][36:nrow(taxsetlist.SFSI[[i]]),]
-taxsetlist.SFSI[[i]]<-taxsetlist.SFSI[[i]][-which(grepl("NF_",taxsetlist.SFSI[[i]]$Reference)),]##remove any plant clusters 
+#taxsetlist.SFSI[[i]]<-taxsetlist.SFSI[[i]][-which(grepl("NF_",taxsetlist.SFSI[[i]]$Reference)),]##remove any plant clusters 
 }
 
 #read in species database
