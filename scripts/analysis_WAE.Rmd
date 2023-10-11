@@ -29,7 +29,8 @@ library(ggrepel)
 #read in data
 ```{r}
 datasetlist.rel.agar.15<-list(read_csv("../clean_data/SS_data_relabun_agar_15_2perc.csv"),read_csv("../clean_data/SS_data_relabun_agar_15_3perc.csv"),read_csv("../clean_data/SS_data_relabun_agar_15_4perc.csv"))
-Metadata.spatial.study<-read_csv("clean_data/Clean_spatial_study_metadata.csv")
+Metadata.spatial.study<-read_csv("../clean_data/Clean_spatial_study_metadata.csv")
+taxsetlist.agar<-list(read_csv("../clean_data/clean_taxonimcdata_SFSI_SS_agar_2perc.csv"),read_csv("../clean_data/clean_taxonimcdata_SFSI_SS_agar_3perc.csv"),read_csv("../clean_data/clean_taxonimcdata_SFSI_SS_agar_3perc.csv"))
 ```
 
 
@@ -82,3 +83,18 @@ colnames(wae.perm.results.15)<-c("Cluster_ID","adjusted_p","p","ID")
 wae.perm.results.15[match(sort(wae.perm.results.15$p),wae.perm.results.15$p),]
 
 ```
+```{r}
+which(rownames(scores(MnP.CCA,choices = 1)$species) %in% taxsetlist.agar[[1]][which(taxsetlist.agar[[1]]$Class == "Agaricomycetes"),]$`Cluster ID`) #length139
+
+
+scores.MnP.agar<-as.data.frame(cbind(scores(MnP.CCA,choices = 1)$species,rownames(scores(MnP.CCA,choices = 1)$species)))
+
+
+scores.MnP.agar<-scores.MnP.agar[which(scores.MnP.agar$V2 %in% taxsetlist.agar[[1]][which(taxsetlist.agar[[1]]$Class == "Agaricomycetes"),]$`Cluster ID`),]
+
+scores.MnP.agar<-scores.MnP.agar[match(scores.MnP.agar$V2,rownames(wae.15)),]
+
+plot(scores.MnP.agar$CCA1,wae.15$Weight.aver)
+text(scores.MnP.agar$CCA1,wae.15$Weight.aver,labels = rownames(wae.15))
+```
+
