@@ -36,7 +36,7 @@ Meta.data.spatial<-read_csv("../clean_data/Clean_spatial_study_metadata.csv")
 #create detrended MnP 
 ```{r}
 
-MnP.v.NC<-lm(Meta.data.spatial$MnP_gOM.log~Meta.data.spatial$NC)
+MnP.v.NC<-lm(Meta.data.spatial$MnP_gOM.log~Meta.data.spatial$NC+Meta.data.spatial$ph)
 MnP.res<-residuals(MnP.v.NC)
 
 Meta.data.spatial$MnP.res<-MnP.res
@@ -47,80 +47,14 @@ Meta.data.spatial$MnP.res<-MnP.res
 #restrict permutations within sites 
 ctrl<-how(nperm = 1000, blocks = Meta.data.spatial$plot)
 
-MnP.CCA<-cca(sqrt(datasetlist.rel.15[[1]])~Meta.data.spatial$MnP.res)
+set.seed(13)
+MnP.CCA.1<-cca(sqrt(datasetlist.rel.15[[1]])~Meta.data.spatial$MnP_gOM.log)
+MnP.CCA.2<-cca(sqrt(datasetlist.rel.15[[1]])~Meta.data.spatial$MnP.res)
 
 plot(MnP.CCA)
 
-anova(MnP.CCA,permutations = ctrl)
-
+anova(MnP.CCA.1,permutations = ctrl)
+anova(MnP.CCA.2,permutations = ctrl)
 ```
 
 
-
-#make CA axes
-```{r}
-CA.fung.15<-cca(sqrt(datasetlist.rel.15[[1]])) # 2 percent cluster
-CA.fung.15<-cca(sqrt(datasetlist.rel.15[[1]])~Meta.data.spatial$plot)
-#CA.fung.15<-cca(sqrt(datasetlist.rel.15[[2]])) # 3 percent cluster
-#CA.fung.15<-cca(sqrt(datasetlist.rel.15[[3]])) # 4 percent cluster
-```
-
-#plot CA 
-```{r}
-plot.df<-as.data.frame(scores(CA.fung.15,choices = c(12,13))$sites)
-plot.df$age<-Meta.data.spatial$age
-plot.df$host<-Meta.data.spatial$species
-plot.df.spec<-as.data.frame(scores(CA.fung.15,choices = c(12,13))$species)
-which(colnames(datasetlist.rel.15[[1]]) %in% c("scata5689_149","scata5689_284","scata5689_274","scata5689_262","scata5689_687","scata5689_302","scata5689_66"))
-highligh.df<-plot.df.spec[which(colnames(datasetlist.rel.15[[1]]) %in% c("scata5689_149","scata5689_284","scata5689_274","scata5689_262","scata5689_687","scata5689_302","scata5689_66")),]
-rownames(highligh.df)<-c("Cortainarius_semisanguineus","Lactarius_vietus","Cortinarius_comptulus","Hysterangium","Russula_aquosa","Gautieria_monticola","Cortinarius_anomalus")
-
-ggplot(plot.df)+geom_point(data=plot.df.spec,aes(x=CA1,y=CA2),size=2)+geom_label(data=plot.df.spec,aes(x=CA1,y=CA2,label=rownames(plot.df.spec)))+geom_point(data=highligh.df,aes(x=CA1,y=CA2),color="green")+geom_label_repel(data=highligh.df,aes(x=CA1,y=CA2),label=rownames(highligh.df))+theme_classic()
-plot(CA.fung.15)
-
-#+geom_point(data = plot.df,aes(x=CA1,y=CA2,color=age,shape=host),size=2)
-```
-
-# create a model to explain the drivers of the MnP
-```{r}
-#MnP ~ Fert (pca1) , CA of fung communty
-
-MnP.drivers.15<-lm(Meta.data.spatial$MnP_gOM.log ~
-                     scores(CA.fung.15,choices = c(1))$sites+
-                     scores(CA.fung.15,choices = c(2))$sites+
-                     scores(CA.fung.15,choices = c(3))$sites+
-                     Meta.data.spatial$pc1+
-                     as.factor(Meta.data.spatial$age)*as.factor(Meta.data.spatial$species))
-
-MnP.drivers.15<-lm(Meta.data.spatial$MnP_gOM.log_scaled ~
-                     scores(CA.fung.15,choices = c(12))$sites+
-                     scores(CA.fung.15,choices = c(13))$sites+
-                     scores(CA.fung.15,choices = c(14))$sites+
-                     Meta.data.spatial$pc1
-                     )
-
-
-plot(MnP.drivers.15)
-summary(MnP.drivers.15)
-Anova(MnP.drivers.15,type = 3)
-
-tukey.mnp.drivers.15<-aov(Meta.data.spatial$MnP_gOM.log ~
-                     scores(CA.fung.15,choices = c(1))$sites+
-                     scores(CA.fung.15,choices = c(2))$sites+
-                     scores(CA.fung.15,choices = c(3))$sites+
-                     Meta.data.spatial$pc1+
-                     as.factor(Meta.data.spatial$age)*as.factor(Meta.data.spatial$species))
-TukeyHSD(tukey.mnp.drivers.15)
-
-plot(scores(CA.fung.15,choices = c(12))$sites,Meta.data.spatial$MnP_gOM.log_scaled)
-plot(scores(CA.fung.15,choices = c(13))$sites,Meta.data.spatial$MnP_gOM.log_scaled)
-plot(Meta.data.spatial$pc1,Meta.data.spatial$MnP_gOM.log_scaled)
-```
-
-#plot corregram
-```{r}
-test.corr.15<-cbind(Meta.data.spatial$MnP_gOM.log,scores(CA.fung.15,choices = c(1))$sites,scores(CA.fung.15,choices = c(2))$sites,scores(CA.fung.15,choices = c(3))$sites,Meta.data.spatial$pc1)
-colnames(test.corr.15)<-c("MnP.log","C1","C2","C3","fert")
-corrgram(test.corr.15,upper.panel = panel.conf,lower.panel = panel.fill)
-
-```
