@@ -103,6 +103,8 @@ hist(sfsi.fungniche$spruce)
 sfsi.spruce<-sfsi.fungniche[which(sfsi.fungniche$spruce > 0 ),]
 sfsi.pine<-sfsi.fungniche[which(sfsi.fungniche$spruce < 0 ),]
 
+#the sites that are 50/50 split between spruce and pine and currently in the spruce category - remove these samples
+sfsi.spruce<-sfsi.spruce[-which(sfsi.spruce$spruce < 0.01 ),]
 ```
 
 
@@ -175,7 +177,6 @@ lm.relecm.spruce<-lmer(miner.relecmlog~age+(1|year),data = sfsi.spruce.pres)
 summary(lm.relecm.spruce)
 summary(aov(miner.relecmlog~age+(1|year),data = sfsi.spruce.pres))
 plot(lm.relecm.spruce)
-
 ```
 
 
