@@ -1,0 +1,92 @@
+---
+title: "analysis_ectodecomposers"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+# META:
+# Created by: Cristofer Engberg Hydén - Edited by Erica Packard
+# Date: 2023-10-16
+```
+
+#load packages
+```{r}
+library(tidyverse)  # General data management (+ ggplot2)
+library(dbplyr)     # Addition to tidyverse (dplyr) - more database functionalities
+library(DBI)        # Handle database connections and SQL-code
+library(odbc)       # Handle the local computers ODBC-connections
+library(sf)         # Simple Features, handle .shp-filer, geographical data and coordinates
+library(tmap)       # Like ggplot2 but specifically for creating maps
+```
+
+#   Read in data 
+##  Data: 
+```{r}
+SFSI.soil.f2<-read_csv("../clean_data/Clean_filtered_SFSI_soil_data.csv")
+SS.coordinates<-read_delim("../raw_data/Spatial_study_coordinates.csv",delim = ";",col_types = list("c","n","n","f","f"))
+```
+
+##  Maps:
+```{r}
+sverige <- st_read("../gis/Sverige.shp", stringsAsFactors=FALSE) %>% 
+  st_transform(crs = "EPSG:3006")  # Is in coordinate system RT90, converts into SWEREF 99TM
+
+sjoar <- st_read("../gis/lakes_swe99.shp", stringsAsFactors=FALSE)
+
+```
+
+#   Wrangle data
+
+# Make the data into georeferenced object:
+```{r}
+data_sf_sfsi <- st_as_sf(SFSI.soil.f2, coords = c("Ost_Stord","Nord_Stord"),
+                    crs = "EPSG:3006", agr = "constant")
+data_sf_ss<- st_as_sf(SS.coordinates, coords = c("Longitude","Latitude"), agr = "constant")
+```
+
+# test:
+```{r}
+plot(data_sf_sfsi,max.plot = 39)
+plot(data_sf_ss)
+```
+
+
+#   Create map
+```{r}
+# tm_shape() for the object folowed by a tm_...() for the appropriate plotting tool
+#  for the data (eg polygon, dots, raster etc...) and then keep adding ontop of the
+#  previous.
+
+map1 <- tm_shape(sverige) +
+  tm_polygons(border.col = "black", col = "green", alpha = 0.1) +
+  tm_shape(sjoar) +
+  tm_fill(col = "lightblue") +
+  tm_shape(data_sf["Taxar"]) +
+  tm_dots(col = "Taxar", size = 0.3)+
+  tm_shape(data_sf_ss["Species"]) +
+  tm_dots(col = "Species", size = 0.3)+
+  tm_layout(legend.width = 0.5,legend.outside = TRUE)
+
+# ... + tm_layout() to format titles, legend, margins ...
+```
+
+
+# show in plot viewer:
+```{r}
+map1
+# All sizes are relative to the size of the plot so look at exported file (the
+#  step below) to see what needs adjusting. Don't try to make it look good in R/
+#  Rstudios plotting window but in the exported file that will be used.
+```
+
+#   Save data
+```{r}
+tmap_save(tm = map1, filename = "../clean_data/Sampling_map.png")
+```
+
+
+
