@@ -18,8 +18,8 @@ library(tidyr)
 #read in data
 ```{r}
 SFSI.soil<-read_delim("../raw_data/SFSI_soil_till_2022.csv",delim = ";",show_col_types = FALSE)
-datasetlist.rel.sfsi<-read_csv("../clean_data/SFSI_data_relabun_2perc.csv")
-datasetlist.rel.sfsi.ecm<-read_csv("../clean_data/SFSI_data_relabun_ECM_2perc.csv")
+datasetlist.rel.sfsi<-read_csv("../clean_data/SFSI_data_relabun_3perc.csv")
+datasetlist.rel.sfsi.ecm<-read_csv("../clean_data/SFSI_data_relabun_ECM_3perc.csv")
 ```
 
 #create CN, NC, mineral content and Cstocks
@@ -67,6 +67,7 @@ SFSI.soil.f1<-SFSI.soil.f1[which(SFSI.soil.f1$Agoslag == 1),]
 SFSI.soil.f1<-SFSI.soil.f1[-which(SFSI.soil.f1$Tallandel+SFSI.soil.f1$Granandel < 90),]
 SFSI.soil.f1<-SFSI.soil.f1[which(SFSI.soil.f1$CN < 200),]
 SFSI.soil.f1<-SFSI.soil.f1[which(between(SFSI.soil.f1$Temperatursumma,1100,1500)),]
+SFSI.soil.f1<-SFSI.soil.f1[-which(SFSI.soil.f1$pH_H2O > 6),]
 
 #SFSI.soil.f1<-SFSI.soil.f1[which(SFSI.soil.f1$H_form %in% c("1","2","3")),] 
  
@@ -79,7 +80,7 @@ SFSI.soil.f2<-SFSI.soil.f1[-which(SFSI.soil.f1$JordprovNr %in% setdiff(SFSI.soil
 datasetlist.rel.sfsi.f2<-datasetlist.rel.sfsi[-which(datasetlist.rel.sfsi$JordProvnr %in% setdiff(datasetlist.rel.sfsi$JordProvnr,SFSI.soil.f1$JordprovNr)),] #remove 6 
 datasetlist.rel.sfsi.ecm.f1<-datasetlist.rel.sfsi.ecm[-which(datasetlist.rel.sfsi.ecm$JordProvnr %in% setdiff(datasetlist.rel.sfsi.ecm$JordProvnr,SFSI.soil.f1$JordprovNr)),]
 #this removes samples which then means some taxa have zero relative abundances across the remaining samples
-datasetlist.rel.sfsi.ecm.f1<-datasetlist.rel.sfsi.ecm.f1[,-which(colSums(datasetlist.rel.sfsi.ecm.f1[-which(is.na(datasetlist.rel.sfsi.ecm.f1$scata5689_8)),-462])==0)]
+datasetlist.rel.sfsi.ecm.f1<-datasetlist.rel.sfsi.ecm.f1[,-which(colSums(datasetlist.rel.sfsi.ecm.f1[,-371])==0)]
 
 #now match the rows of species data to the order of sfsi
 datasetlist.rel.sfsi.f2<-datasetlist.rel.sfsi.f2[match(SFSI.soil.f2$JordprovNr,datasetlist.rel.sfsi.f2$JordProvnr),]
@@ -92,7 +93,7 @@ length(which(datasetlist.rel.sfsi.ecm.f1$JordProvnr != SFSI.soil.f2$JordprovNr))
 ```{r}
 write_csv(SFSI.soil,"../clean_data/Clean_SFSI_soil_data.csv")
 write_csv(SFSI.soil.f2,"../clean_data/Clean_filtered_SFSI_soil_data.csv")
-write_csv(datasetlist.rel.sfsi.f2, "../clean_data/SFSI_data_relabun_2perc_filtered.csv")
-write_csv(datasetlist.rel.sfsi.ecm.f1, "../clean_data/SFSI_data_relabun_ECM_2perc_filtered.csv")
+write_csv(datasetlist.rel.sfsi.f2, "../clean_data/SFSI_data_relabun_3perc_filtered.csv")
+write_csv(datasetlist.rel.sfsi.ecm.f1, "../clean_data/SFSI_data_relabun_ECM_3perc_filtered.csv")
 ```
 
