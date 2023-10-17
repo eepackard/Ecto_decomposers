@@ -35,11 +35,21 @@ SS.coordinates<-read_delim("../raw_data/Spatial_study_coordinates.csv",delim = "
 sverige <- st_read("../gis/Sverige.shp", stringsAsFactors=FALSE) %>% 
   st_transform(crs = "EPSG:3006")  # Is in coordinate system RT90, converts into SWEREF 99TM
 
+sverige_simp <- st_simplify(sverige, dTolerance = 2000) ## Simplifies the border of Sweden (possibly good to do if the resulting map is smaller(?))
+
 sjoar <- st_read("../gis/lakes_swe99.shp", stringsAsFactors=FALSE)
 
+sjoar <- st_intersection(st_geometry(sjoar), st_geometry(sverige)) ## Removes any lakes beyond the border of Sweden
 ```
 
 #   Wrangle data
+
+```{r}
+#create spruce pine variable
+SFSI.soil.f2<-SFSI.soil.f2[-which(SFSI.soil.f2$Granandel == 50),]
+SFSI.soil.f2$host<-if_else(SFSI.soil.f2$Granandel > 50,"Spruce","Pine")
+```
+
 
 # Make the data into georeferenced object:
 ```{r}
@@ -50,7 +60,7 @@ data_sf_ss<- st_as_sf(SS.coordinates, coords = c("Longitude","Latitude"), agr = 
 
 # test:
 ```{r}
-plot(data_sf_sfsi,max.plot = 39)
+plot(data_sf_sfsi,max.plot = 42)
 plot(data_sf_ss)
 ```
 
@@ -61,14 +71,14 @@ plot(data_sf_ss)
 #  for the data (eg polygon, dots, raster etc...) and then keep adding ontop of the
 #  previous.
 
-map1 <- tm_shape(sverige) +
-  tm_polygons(border.col = "black", col = "green", alpha = 0.1) +
+map1 <- tm_shape(sverige_simp) +
+  tm_polygons(border.col = "black", col = "white", alpha = 0.1) +
   tm_shape(sjoar) +
   tm_fill(col = "lightblue") +
-  tm_shape(data_sf["Taxar"]) +
-  tm_dots(col = "Taxar", size = 0.3)+
+  tm_shape(data_sf_sfsi["host"]) +
+  tm_dots(col = "host", size = 0.25,shape = 1,palette=c("yellowgreen","darkgreen"),title = "National samples")+
   tm_shape(data_sf_ss["Species"]) +
-  tm_dots(col = "Species", size = 0.3)+
+  tm_dots(col = "Species", size = 0.25,shape = 1,palette=c("tomato","darkred"),title = "Local samples")+
   tm_layout(legend.width = 0.5,legend.outside = TRUE)
 
 # ... + tm_layout() to format titles, legend, margins ...
