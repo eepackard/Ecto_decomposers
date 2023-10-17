@@ -44,17 +44,21 @@ Meta.data.spatial$MnP.res<-MnP.res
 
 #run CCA
 ```{r}
-#restrict permutations within sites 
+#restrict permutations within sites https://stats.stackexchange.com/questions/316385/how-to-perform-cca-with-block-design-in-r
 ctrl<-how(nperm = 1000, blocks = Meta.data.spatial$plot)
 
 set.seed(13)
-MnP.CCA.1<-cca(sqrt(datasetlist.rel.15[[1]])~Meta.data.spatial$MnP_gOM.log)
-MnP.CCA.2<-cca(sqrt(datasetlist.rel.15[[1]])~Meta.data.spatial$MnP.res)
+MnP.CCA.1<-cca(sqrt(datasetlist.rel.15[[1]])~Meta.data.spatial$MnP_gOM.log+Condition(Meta.data.spatial$plot))
+MnP.CCA.2<-cca(sqrt(datasetlist.rel.15[[2]])~Meta.data.spatial$MnP_gOM.log+Condition(Meta.data.spatial$plot))
+MnP.CCA.3<-cca(sqrt(datasetlist.rel.15[[3]])~Meta.data.spatial$MnP_gOM.log+Condition(Meta.data.spatial$plot))
+MnP.CCA.test<-cca(sqrt(datasetlist.rel.15[[3]])~sample(Meta.data.spatial$MnP_gOM.log,replace = FALSE)+Condition(Meta.data.spatial$plot))
 
-plot(MnP.CCA)
+plot(MnP.CCA.1)
 
 anova(MnP.CCA.1,permutations = ctrl)
 anova(MnP.CCA.2,permutations = ctrl)
+anova(MnP.CCA.3,permutations = ctrl)
+anova(MnP.CCA.test,permutations = ctrl)# this test just sees that if MnP is randomly resampled if it would still be significant - and reassuringly it is not
 ```
 
 
