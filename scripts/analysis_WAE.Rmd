@@ -38,7 +38,7 @@ taxsetlist.agar<-list(read_csv("../clean_data/clean_taxonimcdata_SFSI_SS_agar_2p
 ```{r}
 #using untransformed but scaled MnP activity per site.. everything is in same rows so can just multiply the matrix
 
-wae.15<-as.data.frame(colSums(Meta.data.spatial$MnP_gOM_scaled*datasetlist.rel.agar.15[[1]])/colSums(datasetlist.rel.agar.15[[1]]))
+wae.15<-as.data.frame(colSums(Meta.data.spatial$MnP_gOM_scaled*datasetlist.rel.agar.15[[2]])/colSums(datasetlist.rel.agar.15[[2]]))
 colnames(wae.15)<-c("Weight.aver")
 
 ```
@@ -63,34 +63,35 @@ permutation.test <- function(MnP, spec.data, test.stat, n){
 
 set.seed(13)
 
-permtest.results.15 <- permutation.test(MnP =  Meta.data.spatial$MnP_gOM_scaled, spec.data = datasetlist.rel.agar.15[[1]],test.stat = wae.15, 10000)
+permtest.results.15 <- permutation.test(MnP =  Meta.data.spatial$MnP_gOM_scaled, spec.data = datasetlist.rel.agar.15[[2]],test.stat = wae.15, 10000)
 
 #plot Cort semisan
 hist(as.numeric(as.data.frame(permtest.results.15[[2]])[16,]), breaks=50, col='grey', main="Permutation Distribution", las=1, xlab='')
-abline(v=wae.15[which(rownames(wae.15)== "scata5689_66"),], lwd=3, col="red")
+abline(v=wae.15[which(rownames(wae.15)== "scata5690_63"),], lwd=3, col="red")
 
 #plot suillus 
 hist(as.numeric(as.data.frame(permtest.results.15[[2]])[70,]), breaks=50, col='grey', main="Permutation Distribution", las=1, xlab='')
-abline(v=wae.15[which(rownames(wae.15)== "scata5689_294"),], lwd=3, col="red")
+abline(v=wae.15[which(rownames(wae.15)== "scata5690_267"),], lwd=3, col="red")
 
 
-wae.perm.results.15<-as.data.frame(cbind(colnames(datasetlist.rel.agar.15[[1]]),p.adjust(permtest.results.15[[1]],method = "fdr",length(permtest.results.15[[1]])),permtest.results.15[[1]]))
+wae.perm.results.15<-as.data.frame(cbind(colnames(datasetlist.rel.agar.15[[2]]),p.adjust(permtest.results.15[[1]],method = "fdr",length(permtest.results.15[[1]])),permtest.results.15[[1]]))
 wae.perm.results.15[which(wae.perm.results.15$V3 < 0.1),]
-wae.perm.results.15$ID<-taxsetlist.agar[[1]][match(wae.perm.results.15$V1,taxsetlist.agar[[1]]$`Cluster ID`),]$Reference
+wae.perm.results.15$ID<-taxsetlist.agar[[2]][match(wae.perm.results.15$V1,taxsetlist.agar[[2]]$`Cluster ID`),]$Reference
 colnames(wae.perm.results.15)<-c("Cluster_ID","adjusted_p","p","ID")
 
 
 wae.perm.results.15[match(sort(wae.perm.results.15$p),wae.perm.results.15$p),]
 
 ```
+
 ```{r}
-which(rownames(scores(MnP.CCA,choices = 1)$species) %in% taxsetlist.agar[[1]][which(taxsetlist.agar[[1]]$Class == "Agaricomycetes"),]$`Cluster ID`) #length139
+which(rownames(scores(MnP.CCA.2,choices = 1)$species) %in% taxsetlist.agar[[2]][which(taxsetlist.agar[[2]]$Class == "Agaricomycetes"),]$`Cluster ID`) #length139
 
 
-scores.MnP.agar<-as.data.frame(cbind(scores(MnP.CCA,choices = 1)$species,rownames(scores(MnP.CCA,choices = 1)$species)))
+scores.MnP.agar<-as.data.frame(cbind(scores(MnP.CCA.2,choices = 1)$species,rownames(scores(MnP.CCA.2,choices = 1)$species)))
 
 
-scores.MnP.agar<-scores.MnP.agar[which(scores.MnP.agar$V2 %in% taxsetlist.agar[[1]][which(taxsetlist.agar[[1]]$Class == "Agaricomycetes"),]$`Cluster ID`),]
+scores.MnP.agar<-scores.MnP.agar[which(scores.MnP.agar$V2 %in% taxsetlist.agar[[2]][which(taxsetlist.agar[[2]]$Class == "Agaricomycetes"),]$`Cluster ID`),]
 
 scores.MnP.agar<-scores.MnP.agar[match(scores.MnP.agar$V2,rownames(wae.15)),]
 
