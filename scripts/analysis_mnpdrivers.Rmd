@@ -26,7 +26,8 @@ library(ggrepel)
 
 #read in data
 ```{r}
-datasetlist.rel.15<-list(read_csv("../clean_data/SS_data_relabun_15_2perc.csv"),read_csv("../clean_data/SS_data_relabun_15_3perc.csv"),read_csv("../clean_data/SS_data_relabun_15_4perc.csv"))
+datasetlist.rel.15<-list(read_csv("../clean_data/SS_data_relabun_15_1.5perc.csv"),read_csv("../clean_data/SS_data_relabun_15_2perc.csv"),read_csv("../clean_data/SS_data_relabun_15_3perc.csv"))
+datasetlist.rel.agar.15<-list(read_csv("../clean_data/SS_data_relabun_agar_15_1.5perc.csv"),read_csv("../clean_data/SS_data_relabun_agar_15_2perc.csv"),read_csv("../clean_data/SS_data_relabun_agar_15_3perc.csv"))
 Meta.data.spatial<-read_csv("../clean_data/Clean_spatial_study_metadata.csv")
 ```
 
@@ -35,7 +36,6 @@ Meta.data.spatial<-read_csv("../clean_data/Clean_spatial_study_metadata.csv")
 
 #create detrended MnP 
 ```{r}
-
 MnP.v.NC<-lm(Meta.data.spatial$MnP_gOM.log~Meta.data.spatial$NC+Meta.data.spatial$ph)
 MnP.res<-residuals(MnP.v.NC)
 
@@ -59,6 +59,10 @@ anova(MnP.CCA.1,permutations = ctrl)
 anova(MnP.CCA.2,permutations = ctrl)
 anova(MnP.CCA.3,permutations = ctrl)
 anova(MnP.CCA.test,permutations = ctrl)# this test just sees that if MnP is randomly resampled if it would still be significant - and reassuringly it is not
+```
+#write CCA scores
+```{r}
+write.csv(scores(MnP.CCA.1,choices = 1)$species,"../clean_data/MNP.CCA.scores.1.5perc.csv")
 ```
 
 
