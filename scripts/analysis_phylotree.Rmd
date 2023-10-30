@@ -1,0 +1,83 @@
+---
+title: "Analysis_phylotree"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r include =FALSE}
+library(readr)
+library(car)
+library(Rlab)
+library(vegan)
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+library(ape)
+```
+
+##read in taxonomic data with ref sequnces
+
+```{r}
+taxsetlist<-list(read_csv("../clean_data/clean_taxonomicdata_SFSI_SS_1.5perc.csv"),read_csv("../clean_data/clean_taxonomicdata_SFSI_SS_2perc.csv"),read_csv("../clean_data/clean_taxonomicdata_SFSI_SS_3perc.csv"))
+taxsetlist.agar<-list(read_csv("../clean_data/clean_taxonimcdata_SFSI_SS_agar_1.5perc.csv"),read_csv("../clean_data/clean_taxonimcdata_SFSI_SS_agar_2perc.csv"),read_csv("../clean_data/clean_taxonimcdata_SFSI_SS_agar_3perc.csv"))
+datasetlist.rel.15<-list(read_csv("../clean_data/SS_data_relabun_15_1.5perc.csv"),read_csv("../clean_data/SS_data_relabun_15_2perc.csv"),read_csv("../clean_data/SS_data_relabun_15_3perc.csv"))
+```
+
+#make fasta format
+
+```{r}
+#pick out one non to be root in agario - TRemellales?? is in agaricomytina... 
+which(grepl("Tremellales",taxsetlist[[1]]$Reference))
+taxsetlist[[1]][160,]
+
+#select only 2% clustering
+#have to add the "class" column to the taxsetlist data set so I can rbind
+taxsetlist.1.5<-taxsetlist[[1]]##make only 1.5 percent dataset
+taxsetlist.1.5$Class<-rep("filler",11837) ## add filler column to make the agar df
+taxsetlist.1.5<-taxsetlist.1.5[,c(1:29,31,30)] #reorder so that 30 and 31 swtich orders
+taxsetlist.agar.1.5<-rbind(taxsetlist.agar[[1]],taxsetlist.1.5[160,])
+
+##pick out only the clusters that are in 15 or more cores... 
+taxsetlist.1.5<-taxsetlist.1.5[which(taxsetlist.agar[[1]]$`Cluster ID` %in% colnames(datasetlist.rel.15[[1]])),]
+taxsetlist.agar.1.5<-taxsetlist.agar.1.5[which(taxsetlist.agar.1.5$`Cluster ID` %in% colnames(datasetlist.rel.15[[1]])),]
+
+#should be > cluster_ID refernce \n sequence 1
+fasta.tax.1.5<-paste("\n",">",taxsetlist.1.5$`Cluster ID`,taxsetlist.1.5$Reference,"\n",taxsetlist.1.5$Sequence1,sep = "")
+fasta.tax.agar.1.5<-paste("\n",">",taxsetlist.agar.1.5$`Cluster ID`,taxsetlist.agar.1.5$Reference,"\n",taxsetlist.agar.1.5$Sequence1,sep = "")
+
+names(fasta.tax.1.5)<-taxsetlist.1.5$Reference
+names(fasta.tax.agar.1.5)<-taxsetlist.agar.1.5$Reference
+
+sink("../clean_data/fasta_agarico_1.5perc.txt")
+cat(fasta.tax.agar.1.5)
+sink()
+
+```
+
+
+##read in genetic distances and make dist matrix
+```{r}
+#import genetic distance from Mega
+dist<-read_csv("../raw_data/distances.fasta.agar.1.5.csv",col_types = cols(...1 = col_skip()))
+dist<-dist[-141,-141]
+dist[is.na(dist)]<-0
+
+dist.phylo<-dist(as.matrix(dist),diag=TRUE)
+names(dist.phylo)<-colnames(dist)
+```
+
+##make distance matrix of WAE
+```{r}
+wae.dist<-dist(wae.15,method = "euclidean",diag=TRUE)
+names(wae.dist)<-rownames(wae.15)
+```
+
+#run mantel test
+```{r}
+mantel.test(as.matrix(wae.dist),as.matrix(dist.phylo))
+
+plot(wae.dist,dist.phylo)
+```
