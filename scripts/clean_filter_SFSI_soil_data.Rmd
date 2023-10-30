@@ -18,8 +18,8 @@ library(tidyr)
 #read in data
 ```{r}
 SFSI.soil<-read_delim("../raw_data/SFSI_soil_till_2022.csv",delim = ";",show_col_types = FALSE)
-datasetlist.rel.sfsi<-read_csv("../clean_data/SFSI_data_relabun_3perc.csv")
-datasetlist.rel.sfsi.ecm<-read_csv("../clean_data/SFSI_data_relabun_ECM_3perc.csv")
+datasetlist.rel.sfsi<-read_csv("../clean_data/SFSI_data_relabun_1.5perc.csv")
+datasetlist.rel.sfsi.ecm<-read_csv("../clean_data/SFSI_data_relabun_ECM_1.5perc.csv")
 ```
 
 #create CN, NC, mineral content and Cstocks
@@ -93,7 +93,7 @@ length(which(datasetlist.rel.sfsi.ecm.f1$JordProvnr != SFSI.soil.f2$JordprovNr))
 ```{r}
 write_csv(SFSI.soil,"../clean_data/Clean_SFSI_soil_data.csv")
 write_csv(SFSI.soil.f2,"../clean_data/Clean_filtered_SFSI_soil_data.csv")
-write_csv(datasetlist.rel.sfsi.f2, "../clean_data/SFSI_data_relabun_3perc_filtered.csv")
-write_csv(datasetlist.rel.sfsi.ecm.f1, "../clean_data/SFSI_data_relabun_ECM_3perc_filtered.csv")
+write_csv(datasetlist.rel.sfsi.f2, "../clean_data/SFSI_data_relabun_1.5perc_filtered.csv")
+write_csv(datasetlist.rel.sfsi.ecm.f1, "../clean_data/SFSI_data_relabun_ECM_1.5perc_filtered.csv")
 ```
 
