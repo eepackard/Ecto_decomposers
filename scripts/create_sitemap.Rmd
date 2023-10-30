@@ -95,7 +95,7 @@ map1
 
 #   Save data
 ```{r}
-tmap_save(tm = map1, filename = "../clean_data/Sampling_map.png")
+tmap_save(tm = map1, filename = "../figures/Sampling_map.png")
 ```
 
 
