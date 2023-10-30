@@ -1,0 +1,191 @@
+---
+title: "figures_fungal_niche"
+output: html_document
+date: "2023-10-25"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#read in packages
+```{r}
+library(readr)
+library(ggplot2)
+library(patchwork)
+```
+
+#read in data
+```{r}
+sfsi.pine<-read_csv("../clean_data/SFSI_pine.csv")
+sfsi.spruce<-read_csv("../clean_data/SFSI_spruce.csv")
+```
+
+#Frequency plot overall 
+```{r}
+sfsi.pine$agebinned<-as.factor(if_else(between(sfsi.pine$unscaled_age,10,35),"10-35",if_else(between(sfsi.pine$unscaled_age,36,60),"36-60",if_else(between(sfsi.pine$unscaled_age,61,85),"61-85",if_else(between(sfsi.pine$unscaled_age,86,110),"86-110",if_else(between(sfsi.pine$unscaled_age,111,210),">111","miss"))))))
+
+sfsi.spruce$agebinned<-as.factor(if_else(between(sfsi.spruce$unscaled_age,10,35),"10-35",if_else(between(sfsi.spruce$unscaled_age,36,60),"36-60",if_else(between(sfsi.spruce$unscaled_age,61,85),"61-85",if_else(between(sfsi.spruce$unscaled_age,86,110),"86-110",if_else(between(sfsi.spruce$unscaled_age,111,210),">111","miss"))))))
+
+levellist<-list('10-35','36-60', '61-85', '86-110','>111')
+
+freq.pine<-c()
+for(i in 1:5){
+freq.pine[[i]]<-sum(sfsi.pine[which(sfsi.pine$agebinned == levellist[[i]]),which(colnames(sfsi.pine) =="miners.pres")])/nrow(sfsi.pine[which(sfsi.pine$agebinned == levellist[[i]]),which(colnames(sfsi.pine) =="miners.pres")])  
+}
+
+freq.pine<-data.frame(first_column= c(round(as.numeric(freq.pine[[1]]),digits = 2),round(as.numeric(freq.pine[[2]]),digits = 2),round(as.numeric(freq.pine[[3]]),digits = 2),round(as.numeric(freq.pine[[4]]),digits = 2),round(as.numeric(freq.pine[[5]]),digits = 2)),second_column=c('10-35','36-60', '61-85', '86-110','>111'))
+
+freq.pine$second_column<-factor(freq.pine$second_column,levels=c('10-35','36-60', '61-85', '86-110','>111'))
+
+numsites.p<-c(44,83,25,31,27)
+
+pine.freq<-ggplot(freq.pine, aes(x = second_column, y = first_column)) +
+  geom_bar(fill = "yellowgreen", stat = "identity") +
+  geom_text(aes(label = numsites.p), vjust = -0.3) + 
+  xlab("")+
+  ylab("Percent frequency")+
+  theme_classic()
+
+freq.spruce<-c()
+for(i in 1:5){
+freq.spruce[[i]]<-sum(sfsi.spruce[which(sfsi.spruce$agebinned == levellist[[i]]),which(colnames(sfsi.spruce) =="miners.pres")])/nrow(sfsi.spruce[which(sfsi.spruce$agebinned == levellist[[i]]),which(colnames(sfsi.spruce) =="miners.pres")])  
+}
+
+freq.spruce<-data.frame(first_column= c(round(as.numeric(freq.spruce[[1]]),digits = 2),round(as.numeric(freq.spruce[[2]]),digits = 2),round(as.numeric(freq.spruce[[3]]),digits = 2),round(as.numeric(freq.spruce[[4]]),digits = 2),round(as.numeric(freq.spruce[[5]]),digits = 2)),second_column=c('10-35','36-60', '61-85', '86-110','>111'))
+
+freq.spruce$second_column<-factor(freq.spruce$second_column,levels=c('10-35','36-60', '61-85', '86-110','>111'))
+
+numsites.s<-c(70,87,18,22,13)
+
+spruce.freq<-ggplot(freq.spruce, aes(x = second_column, y = first_column)) +
+  geom_bar(fill = "darkgreen", stat = "identity") +
+  scale_x_discrete(drop=FALSE)+
+  geom_text(aes(label = numsites.s), vjust = -0.3) + 
+  xlab("Forest age (years)")+
+  ylab("Percent frequency")+
+  theme_classic()
+
+pine.freq/spruce.freq
+```
+
+##frequency plot specific taxa
+```{r}
+freq.russ.spruce<-c()
+for(i in 1:5){
+freq.russ.spruce[[i]]<-sum(sfsi.spruce[which(sfsi.spruce$agebinned == levellist[[i]]),which(colnames(sfsi.spruce) =="p Russula_aquosa")])/nrow(sfsi.spruce[which(sfsi.spruce$agebinned == levellist[[i]]),which(colnames(sfsi.spruce) =="p Russula_aquosa")])  
+}
+
+freq.russ.spruce<-data.frame(first_column= c(round(as.numeric(freq.russ.spruce[[1]]),digits = 2),round(as.numeric(freq.russ.spruce[[2]]),digits = 2),round(as.numeric(freq.russ.spruce[[3]]),digits = 2),round(as.numeric(freq.russ.spruce[[4]]),digits = 2),round(as.numeric(freq.russ.spruce[[5]]),digits = 2)),second_column=c('10-35','36-60', '61-85', '86-110','>111'))
+
+freq.russ.spruce$second_column<-factor(freq.russ.spruce$second_column,levels=c('10-35','36-60', '61-85', '86-110','>111'))
+
+numsites.r<-c(2,6,2,1,1)
+
+russ.spruce.freq<-ggplot(freq.russ.spruce, aes(x = second_column, y = first_column)) +
+  geom_bar(fill = "darkred", stat = "identity") +
+  scale_x_discrete(drop=FALSE)+
+  geom_text(aes(label = numsites.r), vjust = -0.3) + 
+  xlab("Forest age (years)")+
+  scale_y_continuous(limits = c(0,1),breaks = c(0,0.25,0.5,0.75,1))+
+  theme_classic()
+
+freq.cort.pine<-c()
+for(i in 1:5){
+freq.cort.pine[[i]]<-sum(sfsi.pine[which(sfsi.pine$agebinned == levellist[[i]]),which(colnames(sfsi.pine) =="p Cortinarius_semisanguineus")])/nrow(sfsi.pine[which(sfsi.pine$agebinned == levellist[[i]]),which(colnames(sfsi.pine) =="p Cortinarius_semisanguineus")])  
+}
+
+freq.cort.pine<-data.frame(first_column= c(round(as.numeric(freq.cort.pine[[1]]),digits = 2),round(as.numeric(freq.cort.pine[[2]]),digits = 2),round(as.numeric(freq.cort.pine[[3]]),digits = 2),round(as.numeric(freq.cort.pine[[4]]),digits = 2),round(as.numeric(freq.cort.pine[[5]]),digits = 2)),second_column=c('10-35','36-60', '61-85', '86-110','>111'))
+
+freq.cort.pine$second_column<-factor(freq.cort.pine$second_column,levels=c('10-35','36-60', '61-85', '86-110','>111'))
+
+numsites.c<-c(17,36,11,10,10)
+
+cort.pine.freq<-ggplot(freq.cort.pine, aes(x = second_column, y = first_column)) +
+  geom_bar(fill = "darkred", stat = "identity") +
+  scale_x_discrete(drop=FALSE)+
+  geom_text(aes(label = numsites.c), vjust = -0.3) + 
+  xlab("Forest age (years)")+
+  scale_y_continuous(limits = c(0,1),breaks = c(0,0.25,0.5,0.75,1))+
+  theme_classic()
+```
+
+
+#read in data
+```{r}
+sfsi.pine.pres<-read_csv("../clean_data/SFSI_pine_guildpresent.csv")
+sfsi.spruce.pres<-read_csv("../clean_data/SFSI_spruce_guildpresent.csv")
+```
+
+#plot regression
+```{r}
+pine.plot<-ggplot(sfsi.pine.pres)+geom_point(aes(x=unscaled_age,y=miner.relecmlog))+
+  geom_smooth(aes(x=unscaled_age,y=miner.relecmlog),method = "lm")+
+  xlab("Forest age (years)")+
+  ylab("Potential miner guild \n relative  abundance amoung ECM (logged)")+
+  scale_x_continuous(breaks = c(0,50,100,150,200))+
+  annotate("text",x=155,y= -1.5,label= "p=0.032")+
+  theme_classic()
+
+spruce.plot<-ggplot(sfsi.spruce.pres)+geom_point(aes(x=unscaled_age,y=miner.relecmlog))+
+  geom_smooth(aes(x=unscaled_age,y=miner.relecmlog),method = "lm")+
+  xlab("Forest age (years)")+
+  ylab("")+
+  scale_x_continuous(limits=c(0,150),breaks = c(0,50,100,150,200))+
+  annotate("text",x=100,y= -1.5,label= "p=0.438")+
+  theme_classic()
+
+pine.plot+spruce.plot
+
+pine.plot
+ggsave("../figures/Pine_guild_niche.tiff",plot = pine.plot)
+
+
+pine.plot.cat<-ggplot(sfsi.pine.pres)+geom_jitter(aes(x=agecat,y=miner.relecmlog),position = position_jitter(0.08))+
+  stat_summary(aes(x=agecat,y=miner.relecmlog),fun.y =   "mean",geom = "point",colour="red")+
+  stat_summary(aes(x=agecat,y=miner.relecmlog),fun.data =   "mean_se",geom = "linerange",colour="red")+
+  xlab("Forest age")+
+  ylab("Potential guild \n relative abundance amoung ECM (logged)")+
+  scale_y_continuous(limits = c(-8,0))+
+  theme_classic()
+```
+
+##plot individual taxa
+```{r}
+pine.cort.plot<-ggplot(sfsi.pine.pres)+geom_point(aes(x=unscaled_age,y=log(`ecm Cortinarius_semisanguineus`)))+
+  geom_smooth(aes(x=unscaled_age,y=log(`ecm Cortinarius_semisanguineus`)),method = "lm")+
+  xlab("Forest age (years)")+
+  ylab("C.semi relative abundance \n amoung ECM (logged)")+
+  scale_x_continuous(breaks = c(0,50,100,150,200))+
+  #annotate("text",x=155,y= -1.5,label= "p=0.032")+
+  theme_classic()
+
+sfsi.pine.pres$agecat<-factor(sfsi.pine.pres$agecat,levels=c('young','old'))
+
+pine.cort.plot<-ggplot(sfsi.pine.pres[which(sfsi.pine.pres$`p Cortinarius_semisanguineus` == 1),])+geom_jitter(aes(x=agecat,y=log(`ecm Cortinarius_semisanguineus`)),position = position_jitter(0.08))+
+  stat_summary(aes(x=agecat,y=log(`ecm Cortinarius_semisanguineus`)),fun.y =   "mean",geom = "point",colour="red")+
+  stat_summary(aes(x=agecat,y=log(`ecm Cortinarius_semisanguineus`)),fun.data =   "mean_se",geom = "linerange",colour="red")+
+  xlab("Forest age")+
+  ylab("C.semisanguineus relative abundance \n amoung ECM (logged)")+
+  annotate(geom = "text",label="62",x="young",y= -1,hjust=-2)+
+  annotate(geom = "text",label="22",x="old",y=-1,hjust=-2)+
+  scale_y_continuous(limits = c(-7,0))+
+  theme_classic()
+
+pine.lact.plot<-ggplot(sfsi.pine.pres[which(sfsi.pine.pres$`p Lactarius_vietus` == 1),])+geom_jitter(aes(x=agecat,y=log(`ecm Lactarius_vietus`)),position = position_jitter(0.08))+
+  stat_summary(aes(x=agecat,y=log(`ecm Lactarius_vietus`)),fun.y =   "mean",geom = "point",colour="red")+
+  stat_summary(aes(x=agecat,y=log(`ecm Lactarius_vietus`)),fun.data =   "mean_se",geom = "linerange",colour="red")+
+  xlab("Forest age")+
+  ylab("L.vietus relative abundance \n amoung ECM (logged)")+
+  annotate(geom = "text",label="16",x="young",y= -1,hjust=-2)+
+  annotate(geom = "text",label="7",x="old",y=-1,hjust=-2)+
+  scale_y_continuous(limits = c(-7,0))+
+  theme_classic()
+
+pine.plot+pine.cort.plot+pine.lact.plot
+
+tiff("../figures/fungniche.pine.tiff",res = 1000,width = 12000,height = 8000,units = "px")
+pine.plot|(pine.cort.plot/pine.lact.plot)
+dev.off()
+```
+
