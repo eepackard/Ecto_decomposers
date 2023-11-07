@@ -47,7 +47,10 @@ sjoar <- st_intersection(st_geometry(sjoar), st_geometry(sverige)) ## Removes an
 ```{r}
 #create spruce pine variable
 SFSI.soil.f2<-SFSI.soil.f2[-which(SFSI.soil.f2$Granandel == 50),]
-SFSI.soil.f2$host<-if_else(SFSI.soil.f2$Granandel > 50,"Spruce","Pine")
+SFSI.soil.f2$host<-if_else(SFSI.soil.f2$Granandel > 50,"Spruce dominated","Pine dominated")
+
+#rename spruce pine variable 
+SS.coordinates$Species<-if_else(SS.coordinates$Species == "Spruce","Spruce dominated","Pine dominated")
 ```
 
 
@@ -78,8 +81,18 @@ map1 <- tm_shape(sverige_simp) +
   tm_shape(data_sf_sfsi["host"]) +
   tm_dots(col = "host", size = 0.25,shape = 1,palette=c("yellowgreen","darkgreen"),title = "National samples")+
   tm_shape(data_sf_ss["Species"]) +
-  tm_dots(col = "Species", size = 0.25,shape = 1,palette=c("tomato","darkred"),title = "Local samples")+
-  tm_layout(legend.width = 0.5,legend.outside = TRUE)
+  tm_dots(col = "Species", size = 0.25,shape = 1,palette=c("tomato","darkred"),title = "Regional samples")+
+  tm_layout(legend.width = 1,legend.outside = TRUE,legend.position = c(-0.15,0.1),frame = FALSE)
+
+map2 <- tm_shape(sverige_simp) +
+  tm_polygons(border.col = "black", col = "white", alpha = 0.1) +
+  tm_shape(sjoar) +
+  tm_fill(col = "lightblue") +
+  tm_shape(data_sf_sfsi["Bestandsalder"]) +
+  tm_dots(col = "Bestandsalder", size = 0.25,shape = 1,palette="YlGnBu",n = 5, contrast = c(0.36, 1),title = "National samples")+
+  tm_shape(data_sf_ss["Age"]) +
+  tm_dots(col = "Age", size = 0.25,shape = 1,palette=c("tomato","darkred"),title = "Regional samples")+
+  tm_layout(legend.width = 1,legend.outside = TRUE,legend.position = c(-0.15,0.1),frame = FALSE)
 
 # ... + tm_layout() to format titles, legend, margins ...
 ```
@@ -88,6 +101,7 @@ map1 <- tm_shape(sverige_simp) +
 # show in plot viewer:
 ```{r}
 map1
+map2
 # All sizes are relative to the size of the plot so look at exported file (the
 #  step below) to see what needs adjusting. Don't try to make it look good in R/
 #  Rstudios plotting window but in the exported file that will be used.
@@ -96,6 +110,7 @@ map1
 #   Save data
 ```{r}
 tmap_save(tm = map1, filename = "../figures/Sampling_map.png")
+tmap_save(tm = map2, filename = "../figures/Age_map.png")
 ```
 
 
