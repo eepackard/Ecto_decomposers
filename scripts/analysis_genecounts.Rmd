@@ -1,0 +1,308 @@
+---
+title: "analysis_genecounts"
+output: html_document
+date: "2023-11-02"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#load packages
+```{r include =FALSE}
+library(readr)
+library(car)
+library(dplyr)
+library(tidyr)
+```
+
+#read in data
+```{r}
+taxsetlist.agar<-list(read_csv("../clean_data/clean_taxonimcdata_SFSI_SS_agar_1.5perc.csv"),read_csv("../clean_data/clean_taxonimcdata_SFSI_SS_agar_2perc.csv"),read_csv("../clean_data/clean_taxonimcdata_SFSI_SS_agar_3perc.csv"))
+wae.15<-read_csv("../clean_data/wae.15.csv")
+```
+
+#bind taxanomic data with WAE
+```{r}
+taxsetlist.agar[[1]][which(taxsetlist.agar[[1]]$`Cluster ID` %in% wae.15$...1),]
+
+print(taxsetlist.agar[[1]][which(taxsetlist.agar[[1]]$`Cluster ID` %in% wae.15$ID),c(1,4,9)],n=150)
+
+wae.15$refernce_names<-cbind(taxsetlist.agar[[1]][which(taxsetlist.agar[[1]]$`Cluster ID` %in% wae.15$...1),]$Reference)
+colnames(wae.15)<-c("ID","WAE","Ref")
+
+#grab only genus names
+wae.15<-separate(wae.15, Ref, c("SI#","Genus","other"),sep = "_",extra = "merge")
+wae.15<-separate(wae.15, Genus, c("Genus","other2"),sep = ",",extra = "merge")#this cleans out a few that had , not _ after genus name
+wae.15<-wae.15[,-c(3,5,6)]##clean out extra info
+table(wae.15$Genus) #list of genera to get gene counts for 
+
+Genera<-unique(wae.15$Genus)#make list 
+sort(Genera)#check for typos
+
+Amanita.spec<-c("A.aff. conicoverrucosa","A.muscaria var. formosa","A.rubescens","A.muscaria","A.thiersii")#Amanitaceae - note A.thiersii is sapro not myco
+Amanita.counts<-c(0,0,0,0,0)
+Amanita<-data.frame(Amanita.spec,Amanita.counts)
+
+#no genomes Amphinema #Atheliaceae
+
+#no genomes Ampulloclitocybe - family Hygrophoraceae
+
+#no genomes Amylocorticiellum #Amylocorticiaceae
+
+Armillaria.spec<-c("A.novae-zelandiae","A.fumosa","A.mellea1","A.borealis","A.tabescens","A.luteobubalina","A.ectypa",	"A.nabsnona","A.ostoyae","A.cepistipes","A.solidipes","A.gallica","A.mellea2") #Physalacriaceae
+Armillaria.counts<-c(7,7,9,8,7,7,5,8,7,8,7,8,10) 
+Armillaria<-data.frame(Armillaria.spec,Armillaria.counts)
+#no genomes Athelia #Atheliaceae
+
+Boletus.spec<-c("B.coccyginus","B.edulis1","B.edulis2","B.reticuloceps") #Boletaceae
+Boletus.counts<-c(0,0,0,0)
+Boletus<-data.frame(Boletus.spec,Boletus.counts)
+
+Ceratobasidium.spec<-c("Ceratobasidium sp1","Ceratobasidium sp2","Ceratobasidium sp3","Ceratobasidium sp4","Ceratobasidium sp.anastomosis ") #Ceratobasidiaceae - family Cantharellales
+Ceratobasidium.counts<-c(0,0,0,0,0)
+Ceratobasidium<-data.frame(Ceratobasidium.spec,Ceratobasidium.counts)
+
+Chalciporus.spec<-c("C.piperatus") #Boletaceae
+Chalciporus.counts<-c(0)
+Chalciporus<-data.frame(Chalciporus.spec,Chalciporus.counts)
+
+Chroogomphus.spec<-c("C.vinicolor") #Gomphidiaceae
+Chroogomphus.counts<-c(0)
+Chroogomphus<-data.frame(Chroogomphus.spec,Chroogomphus.counts)
+
+#no genomes clavariaceae - the closest mathcing genus in blast is ramariopsis - in order agaricales
+
+Coprinellus.spec<-c("C.angulatus","C.pellucidus","C.micaceus") #Psathyrellaceae
+Coprinellus.counts<-c(2,1,3)
+Coprinellus<-data.frame(Coprinellus.spec,Coprinellus.counts)
+
+Cortinarius.spec<-c("C.archeri","C.saniosus","Cortinarius sp1","C.austrovenetus","C.aff.campbellae","P.glaucopus") #Cortinariaceae
+Cortinarius.counts<-c(8,4,5,8,13,9) #Miyauchi 9 in glaucopus (12)
+Cortinarius<-data.frame(Cortinarius.spec,Cortinarius.counts)
+
+#no genomes Craterellus -family Cantharellaceae
+
+#no genomes Cystoderma -family #Agaricaceae
+
+Entoloma.spec<-c("E.gasteromycetoides")#this is a truffle like species #Entolomataceae
+Entoloma.counts<-c(0)
+Entoloma<-data.frame(Entoloma.spec,Entoloma.counts)
+
+Ganoderma.spec<-c("G.boninense","G.lucidum","G.leucocontextum","G.sinense","Ganoderma sp1")#Ganodermataceae
+Ganoderma.counts<-c(13,9,10,10,9)
+Ganoderma<-data.frame(Ganoderma.spec,Ganoderma.counts)
+
+Gautieria.spec<-c("G.morchelliformis") #Gomphaceae
+Gautieria.counts<-c(25) #Miyauchi counts 25 (32)
+Gautieria<-data.frame(Gautieria.spec,Gautieria.counts)
+
+Gymnopilus.spec<-c("G.junonius","G.chrysopellus")#Hymenogastraceae
+Gymnopilus.counts<-c(15,20)
+Gymnopilus<-data.frame(Gymnopilus.spec,Gymnopilus.counts)
+
+Gymnopus.spec<-c("G.earleae","G.androsaceus","G.luxurians") #Omphalotaceae
+Gymnopus.counts<-c(8,9,5) #Miyauchi only count 9 in androsaceus (I saw 10)
+Gymnopus<-data.frame(Gymnopus.spec,Gymnopus.counts)
+
+Hebeloma.spec<-c("H.brunneifolium","H.cylindrosporum") #Hymenogastraceae
+Hebeloma.counts<-c(3,3)
+Hebeloma<-data.frame(Hebeloma.spec,Hebeloma.counts)
+
+Hygrophoropsis.spec<-c("H.aurantiaca")#Hygrophoropsidaceae
+Hygrophoropsis.counts<-c(0)
+Hygrophoropsis<-data.frame(Hygrophoropsis.spec,Hygrophoropsis.counts)
+
+#no genomes Hygrophorus - family Hygrophoraceae
+
+Hypholoma.spec<-c("H.sublateritium") #Strophariaceae
+Hypholoma.counts<-c(14)
+Hypholoma<-data.frame(Hypholoma.spec,Hypholoma.counts)
+
+Hysterangium.spec<-c("H.stoloniferum") #Hysterangiaceae #Hysterangiales
+Hysterangium.counts<-c(5)
+Hysterangium<-data.frame(Hysterangium.spec,Hysterangium.counts)
+
+#no genomes of Inocybe - family Inocybaceae
+
+Laccaria.spec<-c("L.bicolor","L.amethystina","Laccaria sp1") #Russulaceae
+Laccaria.counts<-c(1,1,9)#the seuqnces match to a MnP but I am still not confident these are correct
+Laccaria<-data.frame(Laccaria.spec,Laccaria.counts) #Miyauchi dont include Laccaria sp1
+
+Lactarius.spec<-c("L.controversus",	"L.subdulcis","L.indigo","L.hengduanensis","L.hatsudake","L.sanguifluus","L.deliciosus","L.vividus","L.akahatsu","L.pseudohatsudake","L.psammicola","L.quietus")
+Lactarius.counts<-c(9,1,3,3,3,3,3,3,3,3,3,1) 
+Lactarius<-data.frame(Lactarius.spec,Lactarius.counts)
+
+#no genomes Leccicum - family Boletaceae
+
+Leucogyrophana.spec<-c("L.mollusca") #Hygrophoropsidaceae
+Leucogyrophana.counts<-c(0)
+Leucogyrophana<-data.frame(Leucogyrophana.spec,Leucogyrophana.counts)
+
+#no genomes Luellia #Hydnodontaceae
+
+Lycoperdon.spec<-c("L.perlatum") #Agaricaceae
+Lycoperdon.counts<-c(2)
+Lycoperdon<-data.frame(Lycoperdon.spec,Lycoperdon.counts)
+
+Mycena.spec<-c("Mycena olivaceomarginata","Mycena pura","Mycena vulgaris","Mycena leptocephala","Mycena polygramma","Mycena galericulata","Mycena metata","Mycena maculata","Mycena latifolia","Mycena albidolilacea","Mycena rebaudengoi","Mycena floridula","Mycena amicta","Mycena filopes","Mycena belliae","Mycena sanguinolenta","Mycena vitilis","Mycena alexandri","Mycena crocata","Mycena epipterygia","Mycena sp1","Mycena rosella","Mycena haematopus","Mycena capillaripes","Mycena galopus")
+Mycena.counts<-c(43,8,16,43,23,27,14,10,24,18,17,13,12,7,11,12,12,13,9,30,19,10,1,21,17)
+Mycena<-data.frame(Mycena.spec,Mycena.counts) #Miyauchi count 17 in galopus (19)
+
+Paxillus.spec<-c("P.adelphus","P.ammoniavirescens","P.involutus") #Paxillaceae
+Paxillus.counts<-c(0,0,0)
+Paxillus<-data.frame(Paxillus.spec,Paxillus.counts)
+
+Piloderma.spec<-c("P.byssinum","P.sphaerosporum","P.olivaceum","P.croceum") # family Atheliaceae
+Piloderma.counts<-c(1,2,1,0) #Miyauchi counts 0 in croceum I didnt even see this genome...
+Piloderma<-data.frame(Piloderma.spec,Piloderma.counts)
+
+Postia.spec<-c("P.stiptica","P.placenta1","P.placenta2") #Fomitopsidaceae
+Postia.counts<-c(1,0,0)#this likely isn't acutally a peroxidase #Miyauchi count 0 in placenta (1)
+Postia<-data.frame(Postia.spec,Postia.counts)
+
+#no genomes Pseudotomentella #Thelephoraceae
+
+Resinicium.spec<-c("R.bicolor") #incertae sedis in Agarciomycetes
+Resinicium.counts<-c(15)
+Resinicium<-data.frame(Resinicium.spec,Resinicium.counts)
+
+Rhizopogon.spec<-c("R.vulgaris","R.truncatus","R.vesiculosus","R.salebrosus","R.vinicolor") #Rhizopogonaceae
+Rhizopogon.counts<-c(0,0,0,0,0)
+Rhizopogon<-data.frame(Rhizopogon.spec,Rhizopogon.counts)
+
+Rhodocollybia.spec<-c("R.butyracea1","R.butyracea2") #Omphalotaceae
+Rhodocollybia.counts<-c(2,2)
+Rhodocollybia<-data.frame(Rhodocollybia.spec,Rhodocollybia.counts)
+
+Rickenella.spec<-c("R.fibula","R.mellea") #Repetobasidiaceae
+Rickenella.counts<-c(22,25)
+Rickenella<-data.frame(Rickenella.spec,Rickenella.counts)
+
+Roridomyces.spec<-c("R.roridus") #Mycenaceae
+Roridomyces.counts<-c(22)
+Roridomyces<-data.frame(Roridomyces.spec,Roridomyces.counts)
+
+Russula.spec<-c("Russula sp1","Russula sp2","R.emetica1","Russula sp3","R.earlei","R.emetica2","R.seminuda","R.ochroleuca","R.vinacea","R.compacta","R.rugulosa","R.brevipes","R.dissimulans")
+Russula.counts<-c(2,1,2,6,1,2,2,2,2,1,2,2,1)
+Russula<-data.frame(Russula.spec,Russula.counts)
+
+Russulales.spec<-c("Vararia minispora")##the closest match in genebank is to this genus but not great #Lachnocladiaceae
+Russulales.counts<-c(4)
+Russulales<-data.frame(Russulales.spec,Russulales.counts)
+
+Serendipita.spec<-c("Serendipita sp1","S.vermifera","Serendipita sp2","Serendipita sp3","Serendipita sp4") #Serendipitaceae
+Serendipita.counts<-c(0,0,0,0,0)
+Serendipita<-data.frame(Serendipita.spec,Serendipita.counts)
+
+Serpula.spec<-c("S.himantioides","S.lacrymans1","S.lacrymans2")#Serpulaceae
+Serpula.counts<-c(0,0,0)
+Serpula<-data.frame(Serpula.spec,Serpula.counts)
+
+Sistotrema.spec<-c("S.brinkmannii","S.sernanderi","S.muscicola","S.raduloides","Sistotrema sp1")
+Sistotrema.counts<-c(0,0,0,0,0)
+Sistotrema<-data.frame(Sistotrema.spec,Sistotrema.counts)
+
+#no genomes Squamanita - family Squamanitaceae - in order agaricales
+
+Suillus.spec<-c("S.brunnescens","S.granulatus","S.quiescens1","S.quiescens2","S.acidus","S.glandulosipes","S.quiescens3","S.kaibabensis","S.viscidus","S.punctipes",	"S.pungens","S.ochraceoroseus","Suillussp1","S.collinitus","S.cf.sibiricus","S.quiescens4","S.elbensis","S.pseudogranulatus",	"S.placidus1","S.plorans","S.cf.variegatus","S.discolor","S.cf.subluteus","S.fuscotomentosus","S.placidus2","S.variegatus","S.paluster","S.lakei","S.bovinus","S.occidentalis","S.clintonianus","S.ampliporus","S.subalutaceus","S.cothurnatus","S.subaureus","S.tomentosus","S.luteus1","S.spraguei","S.americanus","S.brevipes","S.decipiens","S.weaverae","S.hirtellus","S.grisellus","S.luteus2","S.quiescens5") #suilliaceae
+Suillus.counts<-c(rep(0,46))
+Suillus<-data.frame(Suillus.spec,Suillus.counts)
+
+Thelephora.spec<-c("T.terrestris","T.ganbajun") #Thelephoraceae
+Thelephora.counts<-c(0,0)
+Thelephora<-data.frame(Thelephora.spec,Thelephora.counts)
+
+#no genomes Tomentella - family Thelephoraceae
+
+#no genomes Tomentellopsis - family Thelephoraceae?
+
+#no genomes Trechispora -family Hydnodontaceae, in Techisporales Sistotremastrum niveocremeum 15, Sistotremastrum suecicum 17, Porpomyces mucidus 12
+
+#no genomes Tylopilus - family Boletaceae
+
+#no genomes Tylospora - family Atheliaceae
+
+#no genomes Xeromphalina - family Mycenaceae 
+```
+
+#merge
+```{r}
+Genera.data<-data.frame(c(Amanita$Amanita.spec,Armillaria$Armillaria.spec,Boletus$Boletus.spec,Ceratobasidium$Ceratobasidium.spec,Chalciporus$Chalciporus.spec,Chroogomphus$Chroogomphus.spec,Coprinellus$Coprinellus.spec,Cortinarius$Cortinarius.spec,Entoloma$Entoloma.spec,Ganoderma$Ganoderma.spec,Gautieria$Gautieria.spec,Gymnopilus$Gymnopilus.spec,Gymnopus$Gymnopus.spec,Hebeloma$Hebeloma.spec,Hygrophoropsis$Hygrophoropsis.spec,Hypholoma$Hypholoma.spec,Hysterangium$Hysterangium.spec,Laccaria$Laccaria.spec,Lactarius$Lactarius.spec,Leucogyrophana$Leucogyrophana.spec,Lycoperdon$Lycoperdon.spec,Mycena$Mycena.spec,Paxillus$Paxillus.spec,Piloderma$Piloderma.spec,Postia$Postia.spec,Resinicium$Resinicium.spec,Rhizopogon$Rhizopogon.spec,Rhodocollybia$Rhodocollybia.spec,Rickenella$Rickenella.spec,Roridomyces$Roridomyces.spec,Russula$Russula.spec,Russulales$Russulales.spec,Serendipita$Serendipita.spec,Serpula$Serpula.spec,Sistotrema$Sistotrema.spec,Suillus$Suillus.spec,Thelephora$Thelephora.spec),c(Amanita$Amanita.counts,Armillaria$Armillaria.counts,Boletus$Boletus.counts,Ceratobasidium$Ceratobasidium.counts,Chalciporus$Chalciporus.counts,Chroogomphus$Chroogomphus.counts,Coprinellus$Coprinellus.counts,Cortinarius$Cortinarius.counts,Entoloma$Entoloma.counts,Ganoderma$Ganoderma.counts,Gautieria$Gautieria.counts,Gymnopilus$Gymnopilus.counts,Gymnopus$Gymnopus.counts,Hebeloma$Hebeloma.counts,Hygrophoropsis$Hygrophoropsis.counts,Hypholoma$Hypholoma.counts,Hysterangium$Hysterangium.counts,Laccaria$Laccaria.counts,Lactarius$Lactarius.counts,Leucogyrophana$Leucogyrophana.counts,Lycoperdon$Lycoperdon.counts,Mycena$Mycena.counts,Paxillus$Paxillus.counts,Piloderma$Piloderma.counts,Postia$Postia.counts,Resinicium$Resinicium.counts,Rhizopogon$Rhizopogon.counts,Rhodocollybia$Rhodocollybia.counts,Rickenella$Rickenella.counts,Roridomyces$Roridomyces.counts,Russula$Russula.counts,Russulales$Russulales.counts,Serendipita$Serendipita.counts,Serpula$Serpula.counts,Sistotrema$Sistotrema.counts,Suillus$Suillus.counts,Thelephora$Thelephora.counts))
+colnames(Genera.data)<-c("Species","Counts")
+Genera.data$Genus<-c(rep("Amanita",nrow(Amanita)),rep("Armillaria",nrow(Armillaria)),rep("Boletus",nrow(Boletus)),rep("Ceratobasidium",nrow(Ceratobasidium)),rep("Chalciporus",nrow(Chalciporus)),rep("Chroogomphus",nrow(Chroogomphus)) ,rep("Coprinellus",nrow(Coprinellus)),rep("Cortinarius",nrow(Cortinarius)) ,rep("Entoloma",nrow(Entoloma)),rep("Ganoderma",nrow(Ganoderma)),rep("Gautieria",nrow(Gautieria)),rep("Gymnopilus",nrow(Gymnopilus)),rep("Gymnopus",nrow(Gymnopus)),rep("Hebeloma",nrow(Hebeloma)),rep("Hygrophoropsis",nrow(Hygrophoropsis)) ,rep("Hypholoma",nrow(Hypholoma)),rep("Hysterangium",nrow(Hysterangium)),rep("Laccaria",nrow(Laccaria))        ,rep("Lactarius",nrow(Lactarius)),rep("Leucogyrophana",nrow(Leucogyrophana)) ,rep("Lycoperdon",nrow(Lycoperdon))      ,rep("Mycena",nrow(Mycena)),rep("Paxillus",nrow(Paxillus)),rep("Piloderma",nrow(Piloderma)),rep("Postia",nrow(Postia))  ,rep("Resinicium",nrow(Resinicium)),rep("Rhizopogon",nrow(Rhizopogon)) ,rep("Rhodocollybia",nrow(Rhodocollybia))   ,rep("Rickenella",nrow(Rickenella)) ,rep("Roridomyces",nrow(Roridomyces)),rep("Russula",nrow(Russula)),rep("Russulales",nrow(Russulales)),rep("Serendipita",nrow(Serendipita)),rep("Serpula",nrow(Serpula)),rep("Sistotrema",nrow(Sistotrema)),rep( "Suillus",nrow(Suillus)),rep("Thelephora",nrow(Thelephora)))
+
+genus.average<-Genera.data %>% group_by(Genus) %>% summarize(Mean=mean(Counts))
+genus.average[,c(3,4)]<-Genera.data %>% group_by(Genus) %>% summarize(SE = sd(Counts)/length(Counts))
+```
+
+
+#family level
+```{r}
+Agaricaceae.taxa<-c("Clavogaster virescens","Clavogaster sp1","Leucoagaricus gongylophorus1","Leucoagaricus gongylophorus2","Leucoagaricus gongylophorus3","Coprinopsis sp.","Leucoagaricus gongylophorus4","Macrolepiota fuliginosa","Agaricus bisporus var. burnettii","Agaricus bisporus var bisporus") #littel unclear about Clavogaster virescens - it says strophariaceae but ncbi says agariaceae
+Agaricaceae.counts<-c(14,19,1,0,0,1,0,1,2,2)
+
+Amylocorticiaceae.taxa<-c("Anomoporia kamtschatica","Serpulomyces borealis","Amylocorticium subincarnatum","Anomoporia myceliosa","Anomoloma albolutescens","Anomoporia bombycina","Plicaturopsis crispa")
+Amylocorticiaceae.counts<-c(2,7,1,10,8,1,7)
+
+Atheliaceae.taxa<-c("Fibulorhizoctonia psychrophila","Piloderma byssinum","Piloderma sphaerosporum","Piloderma olivaceum","Piloderma croceum")
+Atheliaceae.counts<-c(0,1,2,1,0)
+
+Boletaceae.taxa<-c("Boletus coccyginus","Boletus edulis1","Boletus edulis2","Boletus reticuloceps","Chalciporus piperatus","Butyriboletus roseoflavus","Xerocomus badius","Lanmaoa asiatica","Chiua virens")
+Boletaceae.counts<-c(0,0,0,0,0,0,0,0,0)
+
+Cantharellaceae.taxa<-c("Cantharellus anzutake")
+Cantharellaceae.counts<-c(0)
+
+Hydnodontaceae.taxa<-c("Porpomyces mucidus")
+Hydnodontaceae.counts<-c(12)
+
+Hygrophoraceae.taxa<-c("Hygrocybe coccinea")
+Hygrophoraceae.counts<-c(0)
+
+Inocybaceae.taxa<-c("Inosperma lanatodiscum")
+Inocybaceae.counts<-c(0)
+
+Mycenaceae.taxa<-c("Mycena olivaceomarginata","Mycena pura","Mycena vulgaris","Mycena leptocephala","Mycena polygramma","Mycena galericulata","Mycena metata","Mycena maculata","Mycena latifolia","Mycena albidolilacea","Mycena rebaudengoi","Mycena floridula","Mycena amicta","Mycena filopes","Mycena belliae","Mycena sanguinolenta","Mycena vitilis","Mycena alexandri","Mycena crocata","Mycena epipterygia","Mycena sp1","Mycena rosella","Mycena haematopus","Mycena capillaripes","Mycena galopus","Roridomyces roridus","Favolaschia claudopus","Panellus stipticus1","Panellus stipticus2")
+Mycenaceae.counts<-c(43,8,16,43,23,27,14,10,24,18,17,13,12,7,11,12,12,13,9,30,19,10,1,21,17,22,15,10,9)
+
+Thelephoraceae.taxa<-c("T.terrestris","T.ganbajun")
+Thelephoraceae.counts<-c(0,0)
+
+family.data<-data.frame(c(Agaricaceae.taxa,Amylocorticiaceae.taxa,Atheliaceae.taxa,Boletaceae.taxa,Cantharellaceae.taxa,Hydnodontaceae.taxa,Hygrophoraceae.taxa,Inocybaceae.taxa,Mycenaceae.taxa,Thelephoraceae.taxa),c(Agaricaceae.counts,Amylocorticiaceae.counts,Atheliaceae.counts,Boletaceae.counts,Cantharellaceae.counts,Hydnodontaceae.counts,Hygrophoraceae.counts,Inocybaceae.counts,Mycenaceae.counts,Thelephoraceae.counts))
+colnames(family.data)<-c("Species","Counts")
+
+family.data$family<-c(rep("Agaricaceae",length(Agaricaceae.counts)),rep("Amylocorticiaceae",length(Amylocorticiaceae.counts)),rep("Atheliaceae",length(Atheliaceae.counts)),rep("Boletaceae",length(Boletaceae.counts)),rep("Cantharellaceae",length(Cantharellaceae.counts)),rep("Hydnodontaceae",length(Hydnodontaceae.counts)),rep("Hygrophoraceae",length(Hygrophoraceae.counts)),rep("Inocybaceae",length(Inocybaceae.counts)),rep("Mycenaceae",length(Mycenaceae.counts)),rep("Thelephoraceae",length(Thelephoraceae.counts)))
+
+family.average<-family.data %>% group_by(family) %>% summarize(Mean=mean(Counts))
+family.average[,c(3,4)]<-family.data %>% group_by(family) %>% summarize(SE = sd(Counts)/length(Counts))
+
+family.average<-family.average[c(1,2,3,3,3,4,4,5,6,6,7,7,8,9,10,10,10),]
+family.average$Genus<-c("Cystoderma","Amylocorticiellum","Amphinema","Athelia","Tylospora","Tylopilus","Leccinum","Craterellus","Luellia","Trechispora","Ampulloclitocybe","Hygrophorus","Inocybe","Xeromphalina","Tomentella","Tomentellopsis","Pseudotomentella")
+```
+
+#add the genera with family averages to the genus average dataset
+```{r}
+Gene.counts<-rbind(genus.average[,c(1,2,4)],family.average[,c(5,2,4)])
+
+##need to add Clavariaceae and Squamanita as missing data 
+Gene.counts[55,1]<-"Clavariaceae"
+Gene.counts[56,1]<-"Squamanita"
+```
+
+#add the gene count to wae table
+```{r}
+Gene.metach<-Gene.counts[match(wae.15$Genus,Gene.counts$Genus),]
+
+wae.15$counts<-Gene.metach$Mean
+wae.15$SE<-Gene.metach$SE
+
+#order and add rank to wae
+wae.15<-wae.15[match(sort(wae.15$WAE,decreasing = TRUE),wae.15$WAE),]
+wae.15$rank<-rank(wae.15$WAE,na.last = F,ties.method = c("min"))
+wae.15$count_rank<-rank(wae.15$counts,na.last = F,ties.method = c("min"))
+wae.15 #the top of the list is highest value and highest gen count is also highest - postive direction would be expect 
+
+cor.test(wae.15$rank,wae.15$count_rank,method = "kendall")#not significant
+```
+
