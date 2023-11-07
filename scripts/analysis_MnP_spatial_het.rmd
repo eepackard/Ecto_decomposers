@@ -1,0 +1,119 @@
+---
+title: "spatial.MnP.autocorrelation"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#load packages
+```{r include=FALSE}
+library(readr)
+library(car)
+library(vegan)
+library(ggpubr)
+library(ggplot2)
+library(dplyr)
+library(lmerTest)
+library(segmented)
+```
+
+
+#read in metdata
+```{r inlcude= FALSE}
+Meta.data.spatial<-read_csv("../clean_data/Clean_spatial_study_metadata.csv")
+```
+
+#Standardization using Zscores 
+In excel MnP dependant activity per gOM (or per m2) is taken to create a data set where there is a measurement for each corner of each triangle. These means that samples where they are corners of overlapping triables the values are repreated twice. Values below zero are already converted to zero each sample is assessed to a triangle by a letter where sharing a letter means it is part of the same triangle, there should be three values for each triangle per site except for Q and R where it is the 10m samples in a rectangle.
+
+```{r echo = FALSE}
+##add column indicating which should be repeated and how many times
+Meta.data.spatial$ntimes<-if_else(Meta.data.spatial$core %in% c(2,4,6,8,9,10,12,14,16,18,19,21,23,25,27,28,29,31,33,35,37,38),1,2)
+Meta.data.spatial<-as.data.frame(lapply(Meta.data.spatial,rep,Meta.data.spatial$ntimes))
+
+#add triangle label
+Meta.data.spatial$triangle<-rep(c("Q",rep("A",3),rep("B",3),rep("C",3),rep("D",3),"Q","R",rep("E",3),rep("F",3),rep("G",3),rep("H",3),"R",rep("I",3),rep("J",3),rep("K",3),rep("L",3),"R","Q",rep("M",3),rep("N",3),rep("O",3),rep("P",3)),12)
+
+##triangle size relates to letters as follows: 0.1 m = D,H,L,P; 0.3m = C,G,K,O; 1m = B,F,J,N; 3m = A,E,I,M; 10m = Q ,R
+
+
+#scale by site and compare 
+Meta.data.spatial<- Meta.data.spatial %>% group_by(plot)%>% mutate_at(c("MnP_gOM.log"),list(MnP_gOM.log_scaled = scale))#this will over write the scaled MnP that was done when the values were not repeated - but it should be the same anyways
+
+sd(Meta.data.spatial[Meta.data.spatial$plot == "Gimo",]$MnP_gOM.log_scaled) #should equal one 
+
+hist(Meta.data.spatial$MnP_gOM.log_scaled)
+```
+
+#Create variance per triangle 
+The variance of each triangle will be calculated as the standard deviation of the three points on already standardized data 
+
+```{r echo =FALSE }
+
+Meta.data.spatial$plot.tri<-as.factor(paste(Meta.data.spatial$plot,Meta.data.spatial$triangle)) # make site triangle combined factor
+is.factor(Meta.data.spatial$plot.tri)
+
+Meta.data.spatial<-Meta.data.spatial %>% group_by(plot.tri) %>% mutate(variance = sd(MnP_gOM.log_scaled)) 
+
+hist(Meta.data.spatial$variance)
+
+##triangle size relates to letters as follows: 0.1 m = D,H,L,P; 0.3m = C,G,K,O; 1m = B,F,J,N; 3m = A,E,I,M; 10m = Q, R
+
+#create variable of triangle size 
+Meta.data.spatial$tri.size <- if_else(Meta.data.spatial$triangle %in% c('D','H','L','P'), '0.1m',if_else(Meta.data.spatial$triangle %in% c('C','G','K','O'),'0.3m',if_else(Meta.data.spatial$triangle %in% c('B','F','J','N'),'1m',if_else(Meta.data.spatial$triangle %in% c('A','E','I','M'),'3m','10m'))))
+Meta.data.spatial$tri.size<- as.factor(Meta.data.spatial$tri.size)
+Meta.data.spatial$tri.size<-ordered(Meta.data.spatial$tri.size, levels=c("0.1m","0.3m","1m","3m","10m")) #order so that when plotted it is always in order of increasing triangle size 
+
+#seperate variables site, site.triangle, size and variance into one dataset then remove the repeated values 
+
+MnP.var<- as.data.frame(Meta.data.spatial[,c(3,4,5,30,32,31)])
+MnP.var<- unique(MnP.var) 
+length(MnP.var$plot.tri) # now the data set should only be 216 in length 18 triangles x 12 sites 
+
+plot(MnP.var$tri.size,MnP.var$variance)
+
+#visualize the differences in MnP by age and species
+ggplot(MnP.var, aes(x=tri.size, y=variance, colour=age))+geom_boxplot()+theme_classic()
+ggplot(MnP.var, aes(x=tri.size, y=variance, colour=species))+geom_boxplot()+theme_classic()
+ggplot(MnP.var, aes(x=tri.size, y=variance, colour=species,shape=age))+geom_jitter(position = position_jitterdodge(0.3) )+theme_classic()
+```
+
+#Test linear model with the MnP first transformed before z_score and SD
+```{r}
+#test model
+lm.log.var<-lm(variance ~tri.size +age + species + tri.size*age+ tri.size*species, data=MnP.var)
+
+summary(lm.log.var)
+plot(lm.log.var)
+#not terrible 
+
+anova(lm.log.var) # nothing is significant
+
+## now repeat running model with the size log as the explanatory rather than as a discrete variable 
+#MnP.var$tri.size.num<- ifelse(MnP.var$tri.size == '0.1m',0.1,ifelse(MnP.var$tri.size == '0.3m',0.3,ifelse(MnP.var$tri.size == '1m',1,ifelse(MnP.var$tri.size == '3m',3,10))))
+#MnP.var$tri.size.num<-as.numeric(MnP.var$tri.size.num)
+
+#MnP.var$tri.size.log<-log(MnP.var$tri.size.num)#log the contiuous variable
+
+#ggplot(MnP.var, aes(x=tri.size.log, y=variance, colour=species,shape=age))+geom_jitter(position = position_jitterdodge(0.3))+theme_classic()+stat_summary_bin(data=MnP.var, aes(x=tri.size.log, y=variance, shape =age,group=species, color=species),fun.data = "mean_se",fun.args = list(mult=1),geom="errorbar",position = position_dodge(0.6),width=0.4,tri.size=0.5)+stat_summary_bin(data=MnP.var, aes(x=tri.size.log, y=variance, shape =age,group=species ,color=species),fun = "mean",geom="point",position = position_dodge(0.6),tri.size=3,shape=1)+ labs(x="Triangle tri.size logged",y="Standard deviation of MnP/gOM logged")
+
+#test model
+#lm.log.var.2<-lm(variance ~tri.size.log  +age+ species + tri.size.log*age+ tri.size.log*species, data=MnP.var)
+
+#summary(lm.log.var.2)
+#plot(lm.log.var.2)
+#not terrible 
+
+#anova(lm.log.var.2) # not significant
+
+```
+```{r echo = FALSE}
+#plot the size logged and variance (logged MnP) as a regression with host interactation
+# Add regression lines
+ggplot(MnP.var, aes(x=tri.size.log, y=variance, color=species)) +geom_point(position = position_dodge(0.3)) + geom_smooth(method=NULL,se=TRUE,level=0.95) + theme_classic()+ labs(x="Triangle tri.size logged",y="Standard deviation of MnP/gOM logged")
+
+ggplot(MnP.var, aes(x=tri.size.log, y=variance)) +geom_point(position = position_dodge(0.3)) + geom_smooth(method=NULL,se=TRUE,level=0.95) + theme_classic()
+
+```
