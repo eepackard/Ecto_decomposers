@@ -137,7 +137,7 @@ sfsi.spruce$fert.age.pca<-c(pca.sfsi.fert.age.spruce$x[,1]*-1)
 #compare presence of guild between pine and spruce
 ```{r}
 #make a pine/spruce categorical variable 
-sfsi.fungniche$tree_dom<-if_else(sfsi.fungniche$spruce > 0,"spruce","pine") 
+sfsi.fungniche$tree_dom<-if_else(sfsi.fungniche$spruce > 0,"Spruce","Pine") 
 sfsi.fungniche<-sfsi.fungniche[-which(between(sfsi.fungniche$spruce, -0.01,0 )),]
 table(sfsi.fungniche$tree_dom)
 
@@ -147,7 +147,7 @@ fisher.test(as.matrix(table(sfsi.fungniche[,which(colnames(sfsi.fungniche) %in% 
 
 ##GLMM of presence absence
 ```{r}
-glm.pa.spruce<-glmer(miners.pres~age+fert.pca+(1|Seqplat),family = binomial(),data = sfsi.spruce)
+glm.pa.spruce<-glmer(miners.pres~age+fert.pca+(1|Seqplat),family = binomial(),data = sfsi.spruce)#
 #glm.pa.spruce<-glmer(miners.pres~fert.age.pca+(1|year),family = binomial(),data = sfsi.spruce) #this one tests that fer age combined...
 summary(glm.pa.spruce)
 Anova(glm.pa.spruce)
@@ -200,16 +200,18 @@ hist(sfsi.pine.pres$miner.relecmlog)
 ```{r}
 #linear model with relecmative abun of guild to only ectomycorrhizal
 #pine
-lm.relecm.pine<-lmer(miner.relecmlog~age+fert.pca+(1|Seqplat),data = sfsi.pine.pres)
+lm.relecm.pine<-lmer(miner.relecmlog~fert.pca+(1|Seqplat),data = sfsi.pine.pres)#age+
+#lm.relecm.pine<-lmer(miner.relecmlog~fert.age.pca+(1|Seqplat),data = sfsi.pine.pres)
 summary(lm.relecm.pine)
-summary(aov(miner.relecmlog~age+fert.pca+(1|Seqplat),data = sfsi.pine.pres))
+summary(aov(miner.relecmlog~fert.pca+(1|Seqplat),data = sfsi.pine.pres))#age+
 #summary(aov(miner.relecmlog~fert.age.pca+(1|year),data = sfsi.pine.pres))
 plot(lm.relecm.pine)
 
 #spruce
-lm.relecm.spruce<-lmer(miner.relecmlog~age+fert.pca+(1|Seqplat),data = sfsi.spruce.pres)# change to lmer then add 
+lm.relecm.spruce<-lmer(miner.relecmlog~age+fert.pca+(1|Seqplat),data = sfsi.spruce.pres)#
+#lm.relecm.spruce<-lmer(miner.relecmlog~fert.age.pca+(1|Seqplat),data = sfsi.spruce.pres)
 summary(lm.relecm.spruce)
-summary(aov(miner.relecmlog~age+fert.pca+(1|Seqplat),data = sfsi.spruce.pres))
+summary(aov(miner.relecmlog~age+fert.pca+(1|Seqplat),data = sfsi.spruce.pres))#
 #summary(aov(miner.relecmlog~fert.age.pca+(1|year),data = sfsi.spruce.pres))
 plot(lm.relecm.spruce)
 
@@ -237,22 +239,14 @@ fisher.results.spruce
 #Rel abun - wilcox
 list.rel.miners.ecm<-list(c(colnames(sfsi.pine[,7:12])))
 col.num<-list(13:18)
-wilcox.results.spruce.ecm<-list()
-wilcox.results.pine.ecm<-list()
 pearson.results.pine.ecm<-list()
 pearson.results.spruce.ecm<-list()
 for (i in 1:6){
- wilcox.results.spruce.ecm[[i]]<- wilcox.test(as.numeric(unlist(log(sfsi.spruce[which(sfsi.spruce[, col.num[[1]][i]] == "1" & sfsi.spruce$agecat == "old"),which(colnames(sfsi.spruce) == list.rel.miners.ecm[[1]][[i]])]))),as.numeric(unlist(log(sfsi.spruce[which(sfsi.spruce[,col.num[[1]][i]] == "1" & sfsi.spruce$agecat == "young"),which(colnames(sfsi.spruce) == list.rel.miners.ecm[[1]][[i]])]))))
-
- wilcox.results.pine.ecm[[i]]<- wilcox.test(as.numeric(unlist(log(sfsi.pine[which(sfsi.pine[, col.num[[1]][i]] == "1" & sfsi.pine$agecat == "old"),which(colnames(sfsi.pine) == list.rel.miners.ecm[[1]][[i]])]))),as.numeric(unlist(log(sfsi.pine[which(sfsi.pine[,col.num[[1]][i]] == "1" & sfsi.pine$agecat == "young"),which(colnames(sfsi.pine) == list.rel.miners.ecm[[1]][[i]])]))))
-
 pearson.results.pine.ecm[[i]]<-cor.test(as.numeric(unlist(sfsi.pine[which(sfsi.pine[, col.num[[1]][i]] == "1"),which(colnames(sfsi.pine) == "unscaled_age")])),as.numeric(unlist(log(sfsi.pine[which(sfsi.pine[, col.num[[1]][i]] == "1"),which(colnames(sfsi.pine) == list.rel.miners.ecm[[1]][[i]])])))) 
 
 pearson.results.spruce.ecm[[i]]<-cor.test(as.numeric(unlist(sfsi.spruce[which(sfsi.spruce[, col.num[[1]][i]] == "1"),which(colnames(sfsi.spruce) == "unscaled_age")])),as.numeric(unlist(log(sfsi.spruce[which(sfsi.spruce[, col.num[[1]][i]] == "1"),which(colnames(sfsi.spruce) == list.rel.miners.ecm[[1]][[i]])])))) 
  }
 
-wilcox.results.pine.ecm
-wilcox.results.spruce.ecm
 pearson.results.pine.ecm
 pearson.results.spruce.ecm
 ```
@@ -261,26 +255,20 @@ pearson.results.spruce.ecm
 ```{r}
 p.value.pine.list.pearson<-list()
 p.value.spruce.list.pearson<-list()
-p.value.pine.list.wilcox<-list()
-p.value.spruce.list.wilcox<-list()
 p.value.pine.list.fisher<-list()
 p.value.spruce.list.fisher<-list()
 
 #extract p values
 for( i in 1:6){
 p.value.pine.list.pearson[[i]]<-pearson.results.pine.ecm[[i]]$p.value
-p.value.pine.list.wilcox[[i]]<-wilcox.results.pine.ecm[[i]]$p.value
 p.value.pine.list.fisher[[i]]<-fisher.results.pine[[i]]$p.value
 p.value.spruce.list.pearson[[i]]<-pearson.results.spruce.ecm[[i]]$p.value
-p.value.spruce.list.wilcox[[i]]<-wilcox.results.spruce.ecm[[i]]$p.value
 p.value.spruce.list.fisher[[i]]<-fisher.results.spruce[[i]]$p.value
 }
 
 p.adjust(unlist(p.value.pine.list.pearson),method = "fdr")
-p.adjust(unlist(p.value.pine.list.wilcox),method = "fdr")
 p.adjust(unlist(p.value.pine.list.fisher),method = "fdr")
 p.adjust(unlist(p.value.spruce.list.pearson),method = "fdr")
-p.adjust(unlist(p.value.spruce.list.wilcox),method = "fdr")
 p.adjust(unlist(p.value.spruce.list.fisher),method = "fdr")
 ```
 
