@@ -71,7 +71,7 @@ spruce.freq<-ggplot(freq.spruce, aes(x = second_column, y = first_column)) +
   theme_classic()
 
 #tiff("../figures/guild_frequencyplot.tiff",width = 8000,height = 10000,res = 1000)
-pine.freq+spruce.freq+plot_layout(nrow = 2)
+pine.freq+spruce.freq+plot_layout(nrow = 2)+ plot_annotation(tag_levels = "A")
 ```
 
 ###frequency plot specific taxa
@@ -152,8 +152,8 @@ hyst.pine.freq<-ggplot(freq.hyst.pine, aes(x = second_column, y = first_column))
 
 russ.spruce.freq+cort.pine.freq+cort.c.spruce.freq+hyst.pine.freq
 
-#tiff("../figures/frequencyplots.tiff",width = 10000,height = 8000,res = 1000)
-pine.freq+cort.c.spruce.freq+spruce.freq+hyst.pine.freq+plot_layout(nrow = 2)+plot_annotation(tag_levels = "A")
+#tiff("../figures/frequencyplots_indivdualtaxa.tiff",width = 10000,height = 8000,res = 1000)
+hyst.pine.freq+cort.c.spruce.freq+plot_layout(nrow = 2)+plot_annotation(tag_levels = "A")
 ```
 
 
@@ -169,14 +169,16 @@ sfsi.spruce.pres<-read_csv("../clean_data/SFSI_spruce_guildpresent.csv")
 pine.plot<-ggplot(sfsi.pine.pres)+geom_point(aes(x=unscaled_age,y=log10(sfsi.pine.pres$miners.relecm)))+
   geom_smooth(aes(x=unscaled_age,y=log10(sfsi.pine.pres$miners.relecm)),method = "lm",se=FALSE)+
   xlab("Forest age (years)")+
-  ylab("Potential miner guild \n relative  abundance amoung ECM (logged)")+
+  ylab("Relative abundance of collective potential ectomycorrhizal decomposers \n amoung ectomycorrhizal fungi (logged)")+
   scale_x_continuous(breaks = c(10,50,100,150,200))+
   annotate("text",x=0,y=0,label="100 %")+
   annotate("text",x=0,y=-1,label="10 %")+
   annotate("text",x=0,y=-2,label="1 %")+
   annotate("text",x=0,y=-3,label="0.1 %")+
   annotate("text",x=155,y= -0.1,label= "p=0.032")+
-  theme_classic()
+  theme_classic()+
+  theme(axis.title=element_text(size = 15))
+  
 
 spruce.plot<-ggplot(sfsi.spruce.pres)+geom_point(aes(x=unscaled_age,y=log10(miners.relecm)))+
   geom_smooth(aes(x=unscaled_age,y=log10(miners.relecm)),method = "lm",se=FALSE)+
@@ -259,19 +261,20 @@ sfsi.pres<-read_csv("../clean_data/SFSI_present.csv")
 
 ###frequncey plot spruce vs pine
 ```{r}
-freq.guild.pine<-sum(sfsi.fungniche[which(sfsi.fungniche$tree_dom == "pine"),which(colnames(sfsi.fungniche) =="miners.pres")])/210  
-freq.guild.spruce<-sum(sfsi.fungniche[which(sfsi.fungniche$tree_dom == "spruce"),which(colnames(sfsi.fungniche) =="miners.pres")])/210 
+freq.guild.pine<-sum(sfsi.fungniche[which(sfsi.fungniche$tree_dom == "Pine"),which(colnames(sfsi.fungniche) =="miners.pres")])/210  
+freq.guild.spruce<-sum(sfsi.fungniche[which(sfsi.fungniche$tree_dom == "Spruce"),which(colnames(sfsi.fungniche) =="miners.pres")])/210 
 
 freq.guild.p.v.s<-c(freq.guild.pine,freq.guild.spruce)
-species<-c("pine","spruce")
+species<-c("Pine","Spruce")
 freq.guild.p.v.s<-data.frame(freq.guild.p.v.s,species)
 
 spr.v.pine.freq<-ggplot(freq.guild.p.v.s, aes(x = species, y = freq.guild.p.v.s)) +
-  geom_bar(fill = "lightgreen", stat = "identity") +
-  xlab("Host species")+
+  geom_bar(fill = "seagreen", stat = "identity") +
+  xlab("Dominant host species")+
   ylab("Percent frequency")+
   scale_y_continuous(limits = c(0,1))+
-  theme_classic()
+  theme_classic()+
+  theme(axis.title=element_text(size = 12))
 
 spr.v.pine.freq
 ```
@@ -281,14 +284,15 @@ spr.v.pine.freq
 spr.v.pine.plot.categ<-ggplot(sfsi.pres)+geom_jitter(aes(x=tree_dom,y=log10(miners.relecm)),position = position_jitter(0.08))+
   stat_summary(aes(x=tree_dom,y=log10(miners.relecm)),fun.y =   "mean",geom = "point",colour="red")+
   stat_summary(aes(x=tree_dom,y=log10(miners.relecm)),fun.data =   "mean_se",geom = "linerange",colour="red")+
-  xlab("Host species")+
-  ylab("Potential guild \n relative abundance amoung ECM (logged)")+
+  xlab("Dominant host species")+
+  ylab("Relative abundance of collective potential ectomycorrhizal decomposers \n amoung ectomycorrhizal fungi (logged)")+
   annotate("text",x=0.5,y=0,label="100 %")+
   annotate("text",x=0.5,y=-1,label="10 %")+
   annotate("text",x=0.5,y=-2,label="1 %")+
   annotate("text",x=0.5,y=-3,label="0.1 %")+
   scale_y_continuous(limits = c(-3.2,0))+
-  theme_classic()
+  theme_classic()+
+  theme(axis.title=element_text(size = 12))
 
 #tiff("../figures/fungniche.pine.vs.spruce.tiff",res = 1000,width = 12000,height = 6000,units = "px")
 spr.v.pine.freq+spr.v.pine.plot.categ+plot_annotation(tag_levels = "A")
