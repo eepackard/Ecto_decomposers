@@ -13,7 +13,9 @@ knitr::opts_chunk$set(echo = TRUE)
 library(readr)
 library(dplyr)
 library(ggplot2)
+library(ggforce)
 library(patchwork)
+library(extrafont)
 ```
 
 #read in data
@@ -65,13 +67,66 @@ spruce.freq<-ggplot(freq.spruce, aes(x = second_column, y = first_column)) +
   geom_bar(fill = "darkgreen", stat = "identity") +
   scale_x_discrete(drop=FALSE)+
   geom_text(aes(label = numsites.s), vjust = -0.3) + 
-  xlab("Forest age (years)")+
+  xlab("Forest age")+
   ylab("Percent frequency")+
   scale_y_continuous(limits = c(0,1))+
   theme_classic()
 
 #tiff("../figures/guild_frequencyplot.tiff",width = 8000,height = 10000,res = 1000)
 pine.freq+spruce.freq+plot_layout(nrow = 2)+ plot_annotation(tag_levels = "A")
+
+##binary age category of young and old 
+
+sfsi.pine$agecat<-factor(sfsi.pine$agecat,levels=c('young','old'))
+sfsi.spruce$agecat<-factor(sfsi.spruce$agecat,levels=c('young','old'))
+
+levellist.p.b<-list('young','old')
+levellist.s.b<-list('young','old')
+
+binary.freq.pine<-c()
+for(i in 1:2){
+binary.freq.pine[[i]]<-sum(sfsi.pine[which(sfsi.pine$agecat == levellist.p.b[[i]]),which(colnames(sfsi.pine) =="miners.pres")])/nrow(sfsi.pine[which(sfsi.pine$agecat == levellist.p.b[[i]]),which(colnames(sfsi.pine) =="miners.pres")])  
+}
+
+binary.freq.pine<-data.frame(first_column= c(round(as.numeric(binary.freq.pine[[1]]),digits = 2),round(as.numeric(binary.freq.pine[[2]]),digits = 2)),second_column=c('young','old'))
+
+binary.freq.pine$second_column<-factor(binary.freq.pine$second_column,levels=c('young','old'))
+
+numsites.p.b<-c(142,68)
+
+pine.binary.freq<-ggplot(binary.freq.pine, aes(x = second_column, y = first_column)) +
+  geom_bar(fill = "yellowgreen", stat = "identity") +
+  geom_text(aes(label = numsites.p.b), vjust = -0.3,) + 
+  xlab("Forest age")+
+  ylab("Percent frequency")+
+  scale_y_continuous(limits = c(0,1))+
+  theme_classic()+
+  theme(text = element_text(size=12,family="Times New Roman"))
+
+binary.freq.spruce<-c()
+for(i in 1:2){
+binary.freq.spruce[[i]]<-sum(sfsi.spruce[which(sfsi.spruce$agecat == levellist.s.b[[i]]),which(colnames(sfsi.spruce) =="miners.pres")])/nrow(sfsi.spruce[which(sfsi.spruce$agecat == levellist.s.b[[i]]),which(colnames(sfsi.spruce) =="miners.pres")])  
+}
+
+binary.freq.spruce<-data.frame(first_column= c(round(as.numeric(binary.freq.spruce[[1]]),digits = 2),round(as.numeric(binary.freq.spruce[[2]]),digits = 2)),second_column=c('young','old'))
+
+binary.freq.spruce$second_column<-factor(binary.freq.spruce$second_column,levels=c('young','old'))
+
+numsites.s.b<-c(166,44)
+
+spruce.binary.freq<-ggplot(binary.freq.spruce, aes(x = second_column, y = first_column)) +
+  geom_bar(fill = "darkgreen", stat = "identity") +
+  scale_x_discrete(drop=FALSE)+
+  geom_text(aes(label = numsites.s.b), vjust = -0.3) + 
+  xlab("Forest age")+
+  ylab("Percent frequency")+
+  scale_y_continuous(limits = c(0,1))+
+  theme_classic()+
+  theme(text = element_text(size=12,family="Times New Roman"))
+
+
+#tiff("../figures/guild_binaryage_frequencyplot_pine.tiff",width = 85,height = 100,res = 1000,units = "mm")
+pine.binary.freq+spruce.binary.freq+plot_layout(nrow = 2)+ plot_annotation(tag_levels = "A")
 ```
 
 ###frequency plot specific taxa
@@ -155,6 +210,217 @@ russ.spruce.freq+cort.pine.freq+cort.c.spruce.freq+hyst.pine.freq
 #tiff("../figures/frequencyplots_indivdualtaxa.tiff",width = 10000,height = 8000,res = 1000)
 hyst.pine.freq+cort.c.spruce.freq+plot_layout(nrow = 2)+plot_annotation(tag_levels = "A")
 ```
+##frequency plot overall fertility
+```{r}
+sfsi.pine$fertbinned<-as.factor(if_else(between(sfsi.pine$unscaled_CN,15,27.45420),"lowest CN",if_else(between(sfsi.pine$unscaled_CN,27.45420,31.41984),"low CN",if_else(between(sfsi.pine$unscaled_CN,31.41984,34.37980),"mid-CN",if_else(between(sfsi.pine$unscaled_CN,34.37980,36.72222),"high CN",if_else(between(sfsi.pine$unscaled_CN,36.72222,82),"highest CN","miss"))))))
+
+sfsi.spruce$fertbinned<-as.factor(if_else(between(sfsi.spruce$unscaled_CN,12,23.36001),"lowest CN",if_else(between(sfsi.spruce$unscaled_CN,23.36001,26.33226),"low CN",if_else(between(sfsi.spruce$unscaled_CN,26.33226,28.99983),"mid-CN",if_else(between(sfsi.spruce$unscaled_CN,28.99983,31.57737),"high CN",if_else(between(sfsi.spruce$unscaled_CN,31.57737,64),"highest CN","miss"))))))
+
+levellist.p<-list('lowest CN','low CN','mid-CN','high CN','highest CN')
+levellist.s<-list('lowest CN','low CN','mid-CN','high CN','highest CN')
+
+freq.pine<-c()
+for(i in 1:5){
+freq.pine[[i]]<-sum(sfsi.pine[which(sfsi.pine$fertbinned == levellist.p[[i]]),which(colnames(sfsi.pine) =="miners.pres")])/nrow(sfsi.pine[which(sfsi.pine$fertbinned == levellist.p[[i]]),which(colnames(sfsi.pine) =="miners.pres")])
+}
+
+freq.pine<-data.frame(first_column= c(round(as.numeric(freq.pine[[1]]),digits = 2),round(as.numeric(freq.pine[[2]]),digits = 2),round(as.numeric(freq.pine[[3]]),digits = 2),round(as.numeric(freq.pine[[4]]),digits = 2),round(as.numeric(freq.pine[[5]]),digits = 2)),second_column=c('lowest CN','low CN','mid-CN','high CN','highest CN'))
+
+freq.pine$second_column<-factor(freq.pine$second_column,levels=c('lowest CN','low CN','mid-CN','high CN','highest CN'))
+
+numsites.p<-c(42,42,42,42,42)
+
+pine.freq<-ggplot(freq.pine, aes(x = second_column, y = first_column)) +
+  geom_bar(fill = "yellowgreen", stat = "identity") +
+  geom_text(aes(label = numsites.p), vjust = -0.3) + 
+  xlab("")+
+  ylab("Percent frequency")+
+  scale_y_continuous(limits = c(0,1))+
+  theme_classic()
+
+freq.spruce<-c()
+for(i in 1:5){
+freq.spruce[[i]]<-sum(sfsi.spruce[which(sfsi.spruce$fertbinned == levellist.s[[i]]),which(colnames(sfsi.spruce) =="miners.pres")])/nrow(sfsi.spruce[which(sfsi.spruce$fertbinned == levellist.s[[i]]),which(colnames(sfsi.spruce) =="miners.pres")])  
+}
+
+freq.spruce<-data.frame(first_column= c(round(as.numeric(freq.spruce[[1]]),digits = 2),round(as.numeric(freq.spruce[[2]]),digits = 2),round(as.numeric(freq.spruce[[3]]),digits = 2),round(as.numeric(freq.spruce[[4]]),digits = 2),round(as.numeric(freq.spruce[[5]]),digits = 2)),second_column=c('lowest CN','low CN','mid-CN','high CN','highest CN'))
+
+freq.spruce$second_column<-factor(freq.spruce$second_column,levels=c('lowest CN','low CN','mid-CN','high CN','highest CN'))
+
+numsites.s<-c(42,42,42,42,42)
+
+spruce.freq<-ggplot(freq.spruce, aes(x = second_column, y = first_column)) +
+  geom_bar(fill = "darkgreen", stat = "identity") +
+  scale_x_discrete(drop=FALSE)+
+  geom_text(aes(label = numsites.s), vjust = -0.3) + 
+  xlab("NC")+
+  ylab("Percent frequency")+
+  scale_y_continuous(limits = c(0,1))+
+  theme_classic()
+
+#tiff("../figures/guild_frequencyplot_fert.tiff",width = 8000,height = 10000,res = 1000)
+pine.freq+spruce.freq+plot_layout(nrow = 2)+ plot_annotation(tag_levels = "A")
+```
+
+
+##frequency plot specific taxa soil fertility
+```{r}
+gaut.freq.pine<-c()
+for(i in 1:5){
+gaut.freq.pine[[i]]<-sum(sfsi.pine[which(sfsi.pine$fertbinned == levellist.p[[i]]),which(colnames(sfsi.pine) =="p Gautieria_monticola")])/nrow(sfsi.pine[which(sfsi.pine$fertbinned == levellist.p[[i]]),which(colnames(sfsi.pine) =="p Gautieria_monticola")])
+}
+
+gaut.freq.pine<-data.frame(first_column= c(round(as.numeric(gaut.freq.pine[[1]]),digits = 2),round(as.numeric(gaut.freq.pine[[2]]),digits = 2),round(as.numeric(gaut.freq.pine[[3]]),digits = 2),round(as.numeric(gaut.freq.pine[[4]]),digits = 2),round(as.numeric(gaut.freq.pine[[5]]),digits = 2)),second_column=c('lowest CN','low CN','mid-CN','high CN','highest CN'))
+
+gaut.freq.pine$second_column<-factor(gaut.freq.pine$second_column,levels=c('lowest CN','low CN','mid-CN','high CN','highest CN'))
+
+numsites.p<-c(42,42,42,42,42)
+
+gaut.pine.freq<-ggplot(gaut.freq.pine, aes(x = second_column, y = first_column)) +
+  geom_bar(fill = "yellowgreen", stat = "identity") +
+  geom_text(aes(label = numsites.p), vjust = -0.3) + 
+  xlab("")+
+  ylab("Percent frequency")+
+  annotate("text",x=0.6,y=-0.24,label="0.0123 \n minimum")+
+  annotate("text",x=1.5,y=-0.23,label="0.0272")+
+  annotate("text",x=2.5,y=-0.23,label="0.0291")+
+  annotate("text",x=3.5,y=-0.23,label="0.0318")+
+  annotate("text",x=4.5,y=-0.23,label="0.0364")+
+  annotate("text",x=5.4,y=-0.24,label="0.0612 \n maximum")+
+  #scale_y_continuous(limits = c(-0.05,1))+
+  coord_cartesian(ylim = c(0,1),clip = "off")+
+  theme_classic()+
+  theme(text = element_text(size=9))#plot.margin = unit(c(1,1,5,2),"cm")
+
+hsyt.freq.pine<-c()
+for(i in 1:5){
+hsyt.freq.pine[[i]]<-sum(sfsi.pine[which(sfsi.pine$fertbinned == levellist.p[[i]]),which(colnames(sfsi.pine) =="p Hysterangium")])/nrow(sfsi.pine[which(sfsi.pine$fertbinned == levellist.p[[i]]),which(colnames(sfsi.pine) =="p Hysterangium")])
+}
+
+hsyt.freq.pine<-data.frame(first_column= c(round(as.numeric(hsyt.freq.pine[[1]]),digits = 2),round(as.numeric(hsyt.freq.pine[[2]]),digits = 2),round(as.numeric(hsyt.freq.pine[[3]]),digits = 2),round(as.numeric(hsyt.freq.pine[[4]]),digits = 2),round(as.numeric(hsyt.freq.pine[[5]]),digits = 2)),second_column=c('lowest CN','low CN','mid-CN','high CN','highest CN'))
+
+hsyt.freq.pine$second_column<-factor(hsyt.freq.pine$second_column,levels=c('lowest CN','low CN','mid-CN','high CN','highest CN'))
+
+hsyt.freq.pine$second_column<-ordered(hsyt.freq.pine$second_column,levels=c('highest CN','high CN','mid-CN','low CN','lowest CN'))
+
+numsites.p<-c(42,42,42,42,42)
+
+hsyt.pine.freq<-ggplot(hsyt.freq.pine, aes(x = second_column, y = first_column)) +
+  geom_bar(fill = "yellowgreen", stat = "identity") +
+  #geom_text(aes(label = numsites.p), vjust = -0.3,size=3) + 
+  xlab("")+
+  ylab("")+
+  annotate("text",x=0.6,y=-0.24,label="81.41 \n max",size=1.5)+
+  annotate("text",x=1.5,y=-0.23,label="36.72",size=1.5)+
+  annotate("text",x=2.5,y=-0.23,label="34.38",size=1.5)+
+  annotate("text",x=3.5,y=-0.23,label="31.42",size=1.5)+
+  annotate("text",x=4.5,y=-0.23,label="27.45",size=1.5)+
+  annotate("text",x=5.4,y=-0.24,label="16.34 \n min",size=1.5)+
+  #scale_y_continuous(limits = c(-0.05,1))+
+  coord_cartesian(ylim = c(0,1),clip = "off")+
+  theme_classic()+
+  theme(text = element_text(size=9))#plot.margin = unit(c(1,1,5,2),"cm")
+
+cort.se.freq.pine<-c()
+for(i in 1:5){
+cort.se.freq.pine[[i]]<-sum(sfsi.pine[which(sfsi.pine$fertbinned == levellist.p[[i]]),which(colnames(sfsi.pine) =="p Cortinarius_semisanguineus")])/nrow(sfsi.pine[which(sfsi.pine$fertbinned == levellist.p[[i]]),which(colnames(sfsi.pine) =="p Cortinarius_semisanguineus")])
+}
+
+cort.se.freq.pine<-data.frame(first_column= c(round(as.numeric(cort.se.freq.pine[[1]]),digits = 2),round(as.numeric(cort.se.freq.pine[[2]]),digits = 2),round(as.numeric(cort.se.freq.pine[[3]]),digits = 2),round(as.numeric(cort.se.freq.pine[[4]]),digits = 2),round(as.numeric(cort.se.freq.pine[[5]]),digits = 2)),second_column=c('lowest CN','low CN','mid-CN','high CN','highest CN'))
+
+cort.se.freq.pine$second_column<-factor(cort.se.freq.pine$second_column,levels=c('lowest CN','low CN','mid-CN','high CN','highest CN'))
+
+cort.se.freq.pine$second_column<-ordered(cort.se.freq.pine$second_column,levels=c('highest CN','high CN','mid-CN','low CN','lowest CN'))
+
+numsites.p<-c(42,42,42,42,42)
+
+cort.se.pine.freq<-ggplot(cort.se.freq.pine, aes(x = second_column, y = first_column)) +
+  geom_bar(fill = "yellowgreen", stat = "identity") +
+  #geom_text(aes(label = numsites.p), vjust = -0.3,size=3) + 
+  xlab("")+
+  ylab("Percent frequency")+
+  annotate("text",x=0.6,y=-0.24,label="81.41 \n max",size=1.5)+
+  annotate("text",x=1.5,y=-0.23,label="36.72",size=1.5)+
+  annotate("text",x=2.5,y=-0.23,label="34.38",size=1.5)+
+  annotate("text",x=3.5,y=-0.23,label="31.42",size=1.5)+
+  annotate("text",x=4.5,y=-0.23,label="27.45",size=1.5)+
+  annotate("text",x=5.4,y=-0.24,label="16.34 \n min",size=1.5)+
+  #scale_y_continuous(limits = c(-0.05,1))+
+  coord_cartesian(ylim = c(0,1),clip = "off")+
+  theme_classic()+
+  theme(text = element_text(size=9))#plot.margin = unit(c(1,1,5,2),"cm")
+
+hsyt.freq.spruce<-c()
+for(i in 1:5){
+hsyt.freq.spruce[[i]]<-sum(sfsi.spruce[which(sfsi.spruce$fertbinned == levellist.s[[i]]),which(colnames(sfsi.spruce) =="p Hysterangium")])/nrow(sfsi.spruce[which(sfsi.spruce$fertbinned == levellist.s[[i]]),which(colnames(sfsi.spruce) =="p Hysterangium")])  
+}
+
+hsyt.freq.spruce<-data.frame(first_column= c(round(as.numeric(hsyt.freq.spruce[[1]]),digits = 2),round(as.numeric(hsyt.freq.spruce[[2]]),digits = 2),round(as.numeric(hsyt.freq.spruce[[3]]),digits = 2),round(as.numeric(hsyt.freq.spruce[[4]]),digits = 2),round(as.numeric(hsyt.freq.spruce[[5]]),digits = 2)),second_column=c('lowest CN','low CN','mid-CN','high CN','highest CN'))
+
+hsyt.freq.spruce$second_column<-factor(hsyt.freq.spruce$second_column,levels=c('lowest CN','low CN','mid-CN','high CN','highest CN'))
+
+hsyt.freq.spruce$second_column<-ordered(hsyt.freq.spruce$second_column,levels=c('highest CN','high CN','mid-CN','low CN','lowest CN'))
+
+numsites.s<-c(42,42,42,42,42)
+
+hsyt.spruce.freq<-ggplot(hsyt.freq.spruce, aes(x = second_column, y = first_column)) +
+  geom_bar(fill = "darkgreen", stat = "identity") +
+  scale_x_discrete(drop=FALSE)+
+  #geom_text(aes(label = numsites.s), vjust = -0.3,size=3) + 
+  xlab("CN")+
+  ylab("")+
+  annotate("text",x=0.6,y=-0.24,label="63.10 \n max",size=1.5)+
+  annotate("text",x=1.5,y=-0.23,label="31.58",size=1.5)+
+  annotate("text",x=2.5,y=-0.23,label="29.00",size=1.5)+
+  annotate("text",x=3.5,y=-0.23,label="26.33",size=1.5)+
+  annotate("text",x=4.5,y=-0.23,label="23.36",size=1.5)+
+  annotate("text",x=5.4,y=-0.24,label="13.33 \n min",size=1.5)+
+  #scale_y_continuous(limits = c(-0.05,1))+
+  coord_cartesian(ylim = c(0,1),clip = "off")+
+  theme_classic()+
+  theme(text = element_text(size=9))#plot.margin = unit(c(1,1,5,2),"cm")
+  
+
+cort.se.freq.spruce<-c()
+for(i in 1:5){
+cort.se.freq.spruce[[i]]<-sum(sfsi.spruce[which(sfsi.spruce$fertbinned == levellist.s[[i]]),which(colnames(sfsi.spruce) =="p Cortinarius_semisanguineus")])/nrow(sfsi.spruce[which(sfsi.spruce$fertbinned == levellist.s[[i]]),which(colnames(sfsi.spruce) =="p Cortinarius_semisanguineus")])  
+}
+
+cort.se.freq.spruce<-data.frame(first_column= c(round(as.numeric(cort.se.freq.spruce[[1]]),digits = 2),round(as.numeric(cort.se.freq.spruce[[2]]),digits = 2),round(as.numeric(cort.se.freq.spruce[[3]]),digits = 2),round(as.numeric(cort.se.freq.spruce[[4]]),digits = 2),round(as.numeric(cort.se.freq.spruce[[5]]),digits = 2)),second_column=c('lowest CN','low CN','mid-CN','high CN','highest CN'))
+
+cort.se.freq.spruce$second_column<-factor(cort.se.freq.spruce$second_column,levels=c('lowest CN','low CN','mid-CN','high CN','highest CN'))
+
+cort.se.freq.spruce$second_column<-ordered(cort.se.freq.spruce$second_column,levels=c('highest CN','high CN','mid-CN','low CN','lowest CN'))
+
+numsites.s<-c(42,42,42,42,42)
+
+cort.se.spruce.freq<-ggplot(cort.se.freq.spruce, aes(x = second_column, y = first_column)) +
+  geom_bar(fill = "darkgreen", stat = "identity") +
+  scale_x_discrete(drop=FALSE)+
+  #geom_text(aes(label = numsites.s), vjust = -0.3,size=3) + 
+  xlab("CN")+
+  ylab("Percent frequency")+
+  #geom_link(aes(x=0.6,xend=5.4,y=-0.1,yend=-0.1,color="red"),arrow = arrow(),show.legend = FALSE)+
+  #scale_color_gradient(low = "yellow",high = "red")+
+  annotate("text",x=0.6,y=-0.24,label="63.10 \n max",size=1.5)+
+  annotate("text",x=1.5,y=-0.23,label="31.58",size=1.5)+
+  annotate("text",x=2.5,y=-0.23,label="29.00",size=1.5)+
+  annotate("text",x=3.5,y=-0.23,label="26.33",size=1.5)+
+  annotate("text",x=4.5,y=-0.23,label="23.36",size=1.5)+
+  annotate("text",x=5.4,y=-0.24,label="13.33 \n min",size=1.5)+
+  #scale_y_continuous(limits = c(-0.1,1))+
+  coord_cartesian(ylim = c(0,1),clip = "off")+
+  theme_classic()+
+  theme(text = element_text(size=9))#plot.margin = unit(c(1,1,5,2),"cm")
+
+
+gaut.pine.freq
+
+cort.se.pine.freq+hsyt.pine.freq+cort.se.spruce.freq+hsyt.spruce.freq
+
+#tiff("../figures/freq_hsyt_cort_fert.tiff",res = 1000,width = 175,height = 120,units = "mm")
+cort.se.pine.freq+hsyt.pine.freq+cort.se.spruce.freq+hsyt.spruce.freq+plot_annotation(tag_levels = "A")
+```
 
 
 
@@ -169,15 +435,17 @@ sfsi.spruce.pres<-read_csv("../clean_data/SFSI_spruce_guildpresent.csv")
 pine.plot<-ggplot(sfsi.pine.pres)+geom_point(aes(x=unscaled_age,y=log10(sfsi.pine.pres$miners.relecm)))+
   geom_smooth(aes(x=unscaled_age,y=log10(sfsi.pine.pres$miners.relecm)),method = "lm",se=FALSE)+
   xlab("Forest age (years)")+
-  ylab("Relative abundance of collective potential ectomycorrhizal decomposers \n amoung ectomycorrhizal fungi (logged)")+
+  ylab("Relative abundance of potential ectomycorrhizal decomposers \n amoung ectomycorrhizal fungi (logged) \n \n ")+
   scale_x_continuous(breaks = c(10,50,100,150,200))+
-  annotate("text",x=0,y=0,label="100 %")+
-  annotate("text",x=0,y=-1,label="10 %")+
-  annotate("text",x=0,y=-2,label="1 %")+
-  annotate("text",x=0,y=-3,label="0.1 %")+
-  annotate("text",x=155,y= -0.1,label= "p=0.032")+
+  annotate("text",x=-25,y=0,label="100 %",size=3)+
+  annotate("text",x=-25,y=-1,label="10 %",size=3)+
+  annotate("text",x=-25,y=-2,label="1 %",size=3)+
+  annotate("text",x=-25,y=-3,label="0.1 %",size=3)+
+  #annotate("text",x=155,y= -0.1,label= "p=0.032")+
+  scale_y_continuous(limits = c(-3.3,0))+
+  coord_cartesian(clip = "off",xlim = c(0,210))+
   theme_classic()+
-  theme(axis.title=element_text(size = 15))
+  theme(text=element_text(size = 12,family="Times New Roman"),axis.text.y = element_blank())
   
 
 spruce.plot<-ggplot(sfsi.spruce.pres)+geom_point(aes(x=unscaled_age,y=log10(miners.relecm)))+
@@ -197,14 +465,41 @@ pine.plot+spruce.plot
 #tiff("../figures/guild_niche_age.tiff",res = 1000,width = 16000,height = 8000)
 pine.plot+spruce.plot+plot_annotation(tag_levels = "A")
 
+sfsi.pine.pres$agecat<-factor(sfsi.pine.pres$agecat,levels=c('young','old'))
+sfsi.spruce.pres$agecat<-factor(sfsi.spruce.pres$agecat,levels=c('young','old'))
 
 pine.plot.categ<-ggplot(sfsi.pine.pres)+geom_jitter(aes(x=agecat,y=log10(miners.relecm)),position = position_jitter(0.08))+
+  stat_summary(aes(x=agecat,y=log10(miners.relecm)),fun.y =   "mean",geom = "point",colour="red",size=3)+
+  stat_summary(aes(x=agecat,y=log10(miners.relecm)),fun.data =   "mean_se",geom = "linerange",colour="red",lwd=1)+
+  xlab("Forest age")+
+  ylab("")+
+  annotate("text",x=-0,y=0,label="100 %",size=3)+
+  annotate("text",x=-0.0001,y=-1,label="10 %",size=3)+
+  annotate("text",x=-0.0001,y=-2,label="1 %",size=3)+
+  annotate("text",x=-0.0001,y=-3,label="0.1 %",size=3)+
+  coord_cartesian(clip = "off",xlim = c(1,2))+
+  scale_y_continuous(limits = c(-3.3,0))+
+  theme_classic()+
+  theme(text =element_text(size = 12,family="Times New Roman"),axis.text.y = element_blank())
+
+spruce.plot.categ<-ggplot(sfsi.spruce.pres)+geom_jitter(aes(x=agecat,y=log10(miners.relecm)),position = position_jitter(0.08))+
   stat_summary(aes(x=agecat,y=log10(miners.relecm)),fun.y =   "mean",geom = "point",colour="red")+
   stat_summary(aes(x=agecat,y=log10(miners.relecm)),fun.data =   "mean_se",geom = "linerange",colour="red")+
   xlab("Forest age")+
-  ylab("Potential guild \n relative abundance amoung ECM (logged)")+
-  scale_y_continuous(limits = c(-3.2,0))+
-  theme_classic()
+  ylab("Potential guild \n relative abundance amoung ECM (logged) \n ")+
+  annotate("text",x=-0.1,y=0,label="100 %",size=1.5)+
+  annotate("text",x=-0.1,y=-1,label="10 %")+
+  annotate("text",x=-0.1,y=-2,label="1 %")+
+  annotate("text",x=-0.1,y=-3,label="0.1 %")+
+  scale_y_continuous(limits = c(-3.3,0))+
+  coord_cartesian(clip = "off")+
+  theme_classic()+
+  theme(axis.title=element_text(size = 12,family="Times New Roman"),axis.text.y = element_blank())
+
+#tiff("../figures/guild_niche_age_pine.tiff",res = 1000,width = 175,height = 120,units="mm")
+pine.plot+pine.plot.categ+plot_layout(widths = c(4,2))
+
+spruce.plot.categ
 ```
 
 ###relative abundance plot specific taxa
@@ -227,7 +522,7 @@ pine.cort.plot<-ggplot(sfsi.pine.pres[which(sfsi.pine.pres$`p Cortinarius_semisa
   stat_summary(aes(x=agecat,y=log10(`ecm Cortinarius_semisanguineus`)),fun.y =   "mean",geom = "point",colour="red")+
   stat_summary(aes(x=agecat,y=log10(`ecm Cortinarius_semisanguineus`)),fun.data =   "mean_se",geom = "linerange",colour="red")+
   xlab("Forest age")+
-  ylab("C.semisanguineus relative abundance \n amoung ECM (logged)")+
+  ylab("C.semisanguineus sl. relative abundance \n amoung ECM (logged)")+
   annotate("text",x=0.5,y=0,label="100 %")+
   annotate("text",x=0.5,y=-1,label="10 %")+
   annotate("text",x=0.5,y=-2,label="1 %")+
@@ -235,7 +530,8 @@ pine.cort.plot<-ggplot(sfsi.pine.pres[which(sfsi.pine.pres$`p Cortinarius_semisa
   annotate(geom = "text",label="62",x="young",y= -1,hjust=-2)+
   annotate(geom = "text",label="22",x="old",y=-1,hjust=-2)+
   #scale_y_continuous(limits = c(-3.2,0))+
-  theme_classic()
+  theme_classic()+
+  theme(text = element_text(size = 14),)
 
 pine.lact.plot<-ggplot(sfsi.pine.pres[which(sfsi.pine.pres$`p Lactarius_vietus` == 1),])+geom_jitter(aes(x=agecat,y=log(`ecm Lactarius_vietus`)),position = position_jitter(0.08))+
   stat_summary(aes(x=agecat,y=log(`ecm Lactarius_vietus`)),fun.y =   "mean",geom = "point",colour="red")+
@@ -251,6 +547,9 @@ pine.cort.plot+pine.lact.plot
 
 #tiff("../figures/fungniche.pine.tiff",res = 1000,width = 12000,height = 8000,units = "px")
 pine.plot+pine.cort.plot+plot_layout(ncol = 2)+plot_annotation(tag_levels = "A")
+
+#tiff("../figures/guild_niche_age_pine.tiff",res = 1000,width = 18000,height = 10000)
+pine.plot+pine.plot.categ+pine.cort.plot+plot_layout(nrow = 1,widths = c(3,2,2))
 ```
 
 #read in data
@@ -285,16 +584,17 @@ spr.v.pine.plot.categ<-ggplot(sfsi.pres)+geom_jitter(aes(x=tree_dom,y=log10(mine
   stat_summary(aes(x=tree_dom,y=log10(miners.relecm)),fun.y =   "mean",geom = "point",colour="red")+
   stat_summary(aes(x=tree_dom,y=log10(miners.relecm)),fun.data =   "mean_se",geom = "linerange",colour="red")+
   xlab("Dominant host species")+
-  ylab("Relative abundance of collective potential ectomycorrhizal decomposers \n amoung ectomycorrhizal fungi (logged)")+
-  annotate("text",x=0.5,y=0,label="100 %")+
-  annotate("text",x=0.5,y=-1,label="10 %")+
-  annotate("text",x=0.5,y=-2,label="1 %")+
-  annotate("text",x=0.5,y=-3,label="0.1 %")+
+  ylab("Relative abundance of collective potential ectomycorrhizal decomposers \n amoung ectomycorrhizal fungi (logged) \n \n")+
+  annotate("text",x=0.20,y=0,label="100 %",size=3)+
+  annotate("text",x=0.20,y=-1,label="10 %",size=3)+
+  annotate("text",x=0.20,y=-2,label="1 %",size=3)+
+  annotate("text",x=0.20,y=-3,label="0.1 %",size=3)+
   scale_y_continuous(limits = c(-3.2,0))+
+  coord_cartesian(clip = "off",xlim = c(1,2))+
   theme_classic()+
-  theme(axis.title=element_text(size = 12))
+  theme(axis.title=element_text(size = 12),axis.text.y = element_blank())
 
-#tiff("../figures/fungniche.pine.vs.spruce.tiff",res = 1000,width = 12000,height = 6000,units = "px")
+#tiff("../figures/fungniche.pine.vs.spruce.tiff",res = 1000,width = 8000,height = 6000,units = "px")
 spr.v.pine.freq+spr.v.pine.plot.categ+plot_annotation(tag_levels = "A")
 ```
 
