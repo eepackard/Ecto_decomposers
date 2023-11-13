@@ -24,6 +24,7 @@ library(splitstackshape)
 library(DHARMa)
 library(ggfortify)
 library(ggrepel)
+library(MuMIn)
 ```
 
 
@@ -90,8 +91,8 @@ miner.guild.sqrt.sfsi.ecm<-sqrt(miner.guild.sfsi.ecm)#hellinger transformation o
 # niche variables
 ```{r}
 #bind together soil data and guild data
-sfsi.fungniche<-as.data.frame(cbind(miner.taxa.sfsi,miner.taxa.sfsi.ecm,miner.taxa.p.sfsi,miner.guild.p.sfsi,miner.guild.sfsi,miner.guild.sfsi.ecm,miner.guild.sqrt.sfsi,miner.guild.sqrt.sfsi.ecm,SFSI.soil.sel$Bestandsalder_scaled,SFSI.soil.sel$Bestandsalder_log_scaled,SFSI.soil.sel$Granandel_scaled,SFSI.soil.sel$pH_H2O_log_scaled,SFSI.soil.sel$NC_scaled,SFSI.soil.sel$Temperatursumma_scaled,SFSI.soil.sel$Taxar,SFSI.soil.sel$Bestandsaldercat,SFSI.soil.sel$Cstock_log_scaled,SFSI.soil.sel$Cstock_scaled,SFSI.soil.sel$seqplat,SFSI.soil.sel$Bestandsalder))
-colnames(sfsi.fungniche)<-c(colnames(miner.taxa.sfsi),paste("ecm",colnames(miner.taxa.p.sfsi)),paste("p",colnames(miner.taxa.p.sfsi)),"miners.pres","miners.rel","miners.relecm","miners.relsqrt","miners.relsqrtecm","age","age_log","spruce","pH","NC","temp","year","agecat","Cstock_log","Cstock","Seqplat","unscaled_age")
+sfsi.fungniche<-as.data.frame(cbind(miner.taxa.sfsi,miner.taxa.sfsi.ecm,miner.taxa.p.sfsi,miner.guild.p.sfsi,miner.guild.sfsi,miner.guild.sfsi.ecm,miner.guild.sqrt.sfsi,miner.guild.sqrt.sfsi.ecm,SFSI.soil.sel$Bestandsalder_scaled,SFSI.soil.sel$Bestandsalder_log_scaled,SFSI.soil.sel$Granandel_scaled,SFSI.soil.sel$pH_H2O_log_scaled,SFSI.soil.sel$NC_scaled,SFSI.soil.sel$Temperatursumma_scaled,SFSI.soil.sel$Taxar,SFSI.soil.sel$Bestandsaldercat,SFSI.soil.sel$Cstock_log_scaled,SFSI.soil.sel$Cstock_scaled,SFSI.soil.sel$seqplat,SFSI.soil.sel$Bestandsalder,SFSI.soil.sel$NC,SFSI.soil.sel$CN))
+colnames(sfsi.fungniche)<-c(colnames(miner.taxa.sfsi),paste("ecm",colnames(miner.taxa.p.sfsi)),paste("p",colnames(miner.taxa.p.sfsi)),"miners.pres","miners.rel","miners.relecm","miners.relsqrt","miners.relsqrtecm","age","age_log","spruce","pH","NC","temp","year","agecat","Cstock_log","Cstock","Seqplat","unscaled_age","unscaled_NC","unscaled_CN")
 
 corrgram(sfsi.fungniche[,which(colnames(sfsi.fungniche) %in% c("miners.pres","age","pH","NC","spruce","temp"))],upper.panel = panel.conf,lower.panel = panel.fill)
 
@@ -147,12 +148,14 @@ fisher.test(as.matrix(table(sfsi.fungniche[,which(colnames(sfsi.fungniche) %in% 
 
 ##GLMM of presence absence
 ```{r}
-glm.pa.spruce<-glmer(miners.pres~age+fert.pca+(1|Seqplat),family = binomial(),data = sfsi.spruce)#
+#glm.pa.spruce<-glmer(miners.pres~age+fert.pca+(1|Seqplat),family = binomial(),data = sfsi.spruce)#
+glm.pa.spruce<-glmer(miners.pres~agecat+fert.pca+(1|Seqplat),family = binomial(),data = sfsi.spruce)
 #glm.pa.spruce<-glmer(miners.pres~fert.age.pca+(1|year),family = binomial(),data = sfsi.spruce) #this one tests that fer age combined...
 summary(glm.pa.spruce)
 Anova(glm.pa.spruce)
 
-glm.pa.pine<-glmer(miners.pres~age+fert.pca+(1|Seqplat),family = binomial(),data = sfsi.pine)
+#glm.pa.pine<-glmer(miners.pres~age+fert.pca+(1|Seqplat),family = binomial(),data = sfsi.pine)
+glm.pa.pine<-glmer(miners.pres~agecat+fert.pca+(1|Seqplat),family = binomial(),data = sfsi.pine)
 #glm.pa.pine<-glmer(miners.pres~fert.age.pca+(1|year),family = binomial(),data = sfsi.pine)
 summary(glm.pa.pine)
 Anova(glm.pa.pine)
@@ -200,20 +203,29 @@ hist(sfsi.pine.pres$miner.relecmlog)
 ```{r}
 #linear model with relecmative abun of guild to only ectomycorrhizal
 #pine
-lm.relecm.pine<-lmer(miner.relecmlog~fert.pca+(1|Seqplat),data = sfsi.pine.pres)#age+
+#lm.relecm.pine<-lmer(miner.relecmlog~age+fert.pca+(1|Seqplat),data = sfsi.pine.pres)#
+lm.relecm.pine<-lmer(miner.relecmlog~agecat+fert.pca+(1|Seqplat),data = sfsi.pine.pres)
 #lm.relecm.pine<-lmer(miner.relecmlog~fert.age.pca+(1|Seqplat),data = sfsi.pine.pres)
 summary(lm.relecm.pine)
-summary(aov(miner.relecmlog~fert.pca+(1|Seqplat),data = sfsi.pine.pres))#age+
+#summary(aov(miner.relecmlog~age+fert.pca+(1|Seqplat),data = sfsi.pine.pres))
+summary(aov(miner.relecmlog~agecat+fert.pca+(1|Seqplat),data = sfsi.pine.pres))#
 #summary(aov(miner.relecmlog~fert.age.pca+(1|year),data = sfsi.pine.pres))
 plot(lm.relecm.pine)
+r.squaredGLMM(lmer(miner.relecmlog~agecat+fert.pca+(1|Seqplat),data = sfsi.pine.pres))
+r.squaredGLMM(lm.relecm.pine<-lmer(miner.relecmlog~age+fert.pca+(1|Seqplat),data = sfsi.pine.pres))
 
 #spruce
 lm.relecm.spruce<-lmer(miner.relecmlog~age+fert.pca+(1|Seqplat),data = sfsi.spruce.pres)#
+#lm.relecm.spruce<-lmer(miner.relecmlog~agecat+fert.pca+(1|Seqplat),data = sfsi.spruce.pres)#
 #lm.relecm.spruce<-lmer(miner.relecmlog~fert.age.pca+(1|Seqplat),data = sfsi.spruce.pres)
 summary(lm.relecm.spruce)
 summary(aov(miner.relecmlog~age+fert.pca+(1|Seqplat),data = sfsi.spruce.pres))#
+#summary(aov(miner.relecmlog~agecat+fert.pca+(1|Seqplat),data = sfsi.spruce.pres))#
 #summary(aov(miner.relecmlog~fert.age.pca+(1|year),data = sfsi.spruce.pres))
 plot(lm.relecm.spruce)
+r.squaredGLMM(lmer(miner.relecmlog~agecat+fert.pca+(1|Seqplat),data = sfsi.spruce.pres))
+r.squaredGLMM(lmer(miner.relecmlog~age+fert.pca+(1|Seqplat),data = sfsi.spruce.pres))
+
 
 test.varpart<-varpart(sfsi.spruce.pres$miner.relecmlog, ~age, ~ fert.pca ,data = sfsi.spruce.pres[,which(colnames(sfsi.spruce.pres) %in% c("miner.relecmlog","age","fert.pca"))])
 summary(test.varpart)
@@ -226,50 +238,85 @@ plot(test.varpart,cutoff=-Inf)
 ```{r}
 #presence/absence - fisher exact test
 list.pres.abs.miners<-list(c(colnames(sfsi.pine[,13:18])))
-fisher.results.pine<-list()
-fisher.results.spruce<-list()
+glm.fert.results.pine<-list()
+glm.fert.results.spruce<-list()
+glm.fert.sum.pine<-list()
+glm.fert.sum.spruce<-list()
+fisher.age.results.pine<-list()
+fisher.age.results.spruce<-list()
+
 for (i in 1:6){
-fisher.results.pine[[i]]<-fisher.test(as.matrix(table(sfsi.pine[,which(colnames(sfsi.pine) %in% c("agecat",list.pres.abs.miners[[1]][[i]]))])),or=1)
-fisher.results.spruce[[i]]<-fisher.test(as.matrix(table(sfsi.spruce[,which(colnames(sfsi.spruce) %in% c("agecat",list.pres.abs.miners[[1]][[i]]))])),or=1)
+fisher.age.results.pine[[i]]<-fisher.test(as.matrix(table(sfsi.pine[,which(colnames(sfsi.pine) %in% c("agecat",list.pres.abs.miners[[1]][[i]]))])),or=1)
+fisher.age.results.spruce[[i]]<-fisher.test(as.matrix(table(sfsi.spruce[,which(colnames(sfsi.spruce) %in% c("agecat",list.pres.abs.miners[[1]][[i]]))])),or=1)
+  
+glm.fert.results.pine[[i]]<-Anova(glm(unlist(sfsi.pine[,which(colnames(sfsi.pine) %in% list.pres.abs.miners[[1]][[i]])]) ~ fert.pca, family = "binomial", data= sfsi.pine[,which(colnames(sfsi.spruce) %in% c("fert.pca",list.pres.abs.miners[[1]][[i]]))]))
+glm.fert.results.spruce[[i]]<-Anova(glm(unlist(sfsi.spruce[,which(colnames(sfsi.spruce) %in% list.pres.abs.miners[[1]][[i]])]) ~ fert.pca, family = "binomial", data= sfsi.spruce[,which(colnames(sfsi.spruce) %in% c("fert.pca",list.pres.abs.miners[[1]][[i]]))]))
+glm.fert.sum.pine[[i]]<-summary(glm(unlist(sfsi.pine[,which(colnames(sfsi.pine) %in% list.pres.abs.miners[[1]][[i]])]) ~ fert.pca, family = "binomial", data= sfsi.pine[,which(colnames(sfsi.spruce) %in% c("fert.pca",list.pres.abs.miners[[1]][[i]]))]))
+glm.fert.sum.spruce[[i]]<-summary(glm(unlist(sfsi.spruce[,which(colnames(sfsi.spruce) %in% list.pres.abs.miners[[1]][[i]])]) ~ fert.pca, family = "binomial", data= sfsi.spruce[,which(colnames(sfsi.spruce) %in% c("fert.pca",list.pres.abs.miners[[1]][[i]]))]))
 }
 
-fisher.results.pine
-fisher.results.spruce
+fisher.age.results.pine
+fisher.age.results.spruce
+glm.fert.results.pine
+glm.fert.results.spruce
 
 #Rel abun - wilcox
 list.rel.miners.ecm<-list(c(colnames(sfsi.pine[,7:12])))
 col.num<-list(13:18)
-pearson.results.pine.ecm<-list()
-pearson.results.spruce.ecm<-list()
-for (i in 1:6){
-pearson.results.pine.ecm[[i]]<-cor.test(as.numeric(unlist(sfsi.pine[which(sfsi.pine[, col.num[[1]][i]] == "1"),which(colnames(sfsi.pine) == "unscaled_age")])),as.numeric(unlist(log(sfsi.pine[which(sfsi.pine[, col.num[[1]][i]] == "1"),which(colnames(sfsi.pine) == list.rel.miners.ecm[[1]][[i]])])))) 
+wilcox.age.results.pine.ecm<-list()
+pearson.age.results.spruce.ecm<-list()
+pearson.fert.results.pine.ecm<-list()
+pearson.fert.results.spruce.ecm<-list()
 
-pearson.results.spruce.ecm[[i]]<-cor.test(as.numeric(unlist(sfsi.spruce[which(sfsi.spruce[, col.num[[1]][i]] == "1"),which(colnames(sfsi.spruce) == "unscaled_age")])),as.numeric(unlist(log(sfsi.spruce[which(sfsi.spruce[, col.num[[1]][i]] == "1"),which(colnames(sfsi.spruce) == list.rel.miners.ecm[[1]][[i]])])))) 
+for (i in 1:6){
+wilcox.age.results.pine.ecm[[i]]<- wilcox.test(as.numeric(unlist(log(sfsi.pine[which(sfsi.pine[, col.num[[1]][i]] == "1" & sfsi.pine$agecat == "old"),which(colnames(sfsi.pine) == list.rel.miners.ecm[[1]][[i]])]))),as.numeric(unlist(log(sfsi.pine[which(sfsi.pine[,col.num[[1]][i]] == "1" & sfsi.pine$agecat == "young"),which(colnames(sfsi.pine) == list.rel.miners.ecm[[1]][[i]])]))),exact = FALSE,conf.int = TRUE) 
+
+pearson.age.results.spruce.ecm[[i]]<-cor.test(as.numeric(unlist(sfsi.spruce[which(sfsi.spruce[, col.num[[1]][i]] == "1"),which(colnames(sfsi.spruce) == "unscaled_age")])),as.numeric(unlist(log(sfsi.spruce[which(sfsi.spruce[, col.num[[1]][i]] == "1"),which(colnames(sfsi.spruce) == list.rel.miners.ecm[[1]][[i]])])))) 
+
+pearson.fert.results.pine.ecm[[i]]<-cor.test(as.numeric(unlist(sfsi.pine[which(sfsi.pine[, col.num[[1]][i]] == "1"),which(colnames(sfsi.pine) == "fert.pca")])),as.numeric(unlist(log(sfsi.pine[which(sfsi.pine[, col.num[[1]][i]] == "1"),which(colnames(sfsi.pine) == list.rel.miners.ecm[[1]][[i]])])))) 
+
+pearson.fert.results.spruce.ecm[[i]]<-cor.test(as.numeric(unlist(sfsi.spruce[which(sfsi.spruce[, col.num[[1]][i]] == "1"),which(colnames(sfsi.spruce) == "fert.pca")])),as.numeric(unlist(log(sfsi.spruce[which(sfsi.spruce[, col.num[[1]][i]] == "1"),which(colnames(sfsi.spruce) == list.rel.miners.ecm[[1]][[i]])])))) 
  }
 
-pearson.results.pine.ecm
-pearson.results.spruce.ecm
+wilcox.age.results.pine.ecm
+pearson.age.results.spruce.ecm
+pearson.fert.results.pine.ecm
+pearson.fert.results.spruce.ecm
+
+
 ```
 
 ##correct p_values
 ```{r}
-p.value.pine.list.pearson<-list()
-p.value.spruce.list.pearson<-list()
-p.value.pine.list.fisher<-list()
-p.value.spruce.list.fisher<-list()
+p.value.pine.list.pearson.fert<-list()
+p.value.spruce.list.pearson.fert<-list()
+p.value.pine.list.wilcox.age<-list()
+p.value.spruce.list.pearson.age<-list()
+p.value.pine.list.glm.fert<-list()
+p.value.spruce.list.glm.fert<-list()
+p.value.pine.list.fisher.age<-list()
+p.value.spruce.list.fisher.age<-list()
 
 #extract p values
 for( i in 1:6){
-p.value.pine.list.pearson[[i]]<-pearson.results.pine.ecm[[i]]$p.value
-p.value.pine.list.fisher[[i]]<-fisher.results.pine[[i]]$p.value
-p.value.spruce.list.pearson[[i]]<-pearson.results.spruce.ecm[[i]]$p.value
-p.value.spruce.list.fisher[[i]]<-fisher.results.spruce[[i]]$p.value
+p.value.pine.list.wilcox.age[[i]]<-wilcox.age.results.pine.ecm[[i]]$p.value
+p.value.spruce.list.pearson.age[[i]]<-pearson.age.results.spruce.ecm[[i]]$p.value
+p.value.pine.list.pearson.fert[[i]]<-pearson.fert.results.pine.ecm[[i]]$p.value
+p.value.spruce.list.pearson.fert[[i]]<-pearson.fert.results.spruce.ecm[[i]]$p.value
+p.value.pine.list.fisher.age[[i]]<-fisher.age.results.pine[[i]]$p.value
+p.value.spruce.list.fisher.age[[i]]<-fisher.age.results.spruce[[i]]$p.value
+p.value.pine.list.glm.fert[[i]]<-glm.fert.results.pine[[i]]$`Pr(>Chisq)`
+p.value.spruce.list.glm.fert[[i]]<-glm.fert.results.spruce[[i]]$`Pr(>Chisq)`
 }
 
-p.adjust(unlist(p.value.pine.list.pearson),method = "fdr")
-p.adjust(unlist(p.value.pine.list.fisher),method = "fdr")
-p.adjust(unlist(p.value.spruce.list.pearson),method = "fdr")
-p.adjust(unlist(p.value.spruce.list.fisher),method = "fdr")
+p.adjust(unlist(p.value.pine.list.wilcox.age),method = "fdr")
+p.adjust(unlist(p.value.spruce.list.pearson.age),method = "fdr")
+p.adjust(unlist(p.value.pine.list.pearson.fert),method = "fdr")
+p.adjust(unlist(p.value.spruce.list.pearson.fert),method = "fdr")
+p.adjust(unlist(p.value.pine.list.fisher.age),method = "fdr")
+p.adjust(unlist(p.value.spruce.list.fisher.age),method = "fdr")
+p.adjust(unlist(p.value.pine.list.glm.fert),method = "fdr")
+p.adjust(unlist(p.value.spruce.list.glm.fert),method = "fdr")
 ```
 
 
