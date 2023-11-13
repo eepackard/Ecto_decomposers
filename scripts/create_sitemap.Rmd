@@ -89,7 +89,7 @@ map2 <- tm_shape(sverige_simp) +
   tm_shape(sjoar) +
   tm_fill(col = "lightblue") +
   tm_shape(data_sf_sfsi["Bestandsalder"]) +
-  tm_dots(col = "Bestandsalder", size = 0.25,shape = 1,palette="YlGnBu",n = 5, contrast = c(0.36, 1),title = "National samples")+
+  tm_dots(col = "Bestandsalder", size = 0.25,shape = 1,palette="Greens",n = 5, contrast = c(0.36, 1),title = "National samples")+
   tm_shape(data_sf_ss["Age"]) +
   tm_dots(col = "Age", size = 0.25,shape = 1,palette=c("tomato","darkred"),title = "Regional samples")+
   tm_layout(legend.width = 1,legend.outside = TRUE,legend.position = c(-0.15,0.1),frame = FALSE)
