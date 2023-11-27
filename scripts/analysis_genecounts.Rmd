@@ -77,8 +77,8 @@ Coprinellus.spec<-c("C.angulatus","C.pellucidus","C.micaceus") #Psathyrellaceae
 Coprinellus.counts<-c(2,1,3)
 Coprinellus<-data.frame(Coprinellus.spec,Coprinellus.counts)
 
-Cortinarius.spec<-c("C.archeri","C.saniosus","Cortinarius sp1","C.austrovenetus","C.aff.campbellae","P.glaucopus") #Cortinariaceae
-Cortinarius.counts<-c(8,4,5,8,13,9) #Miyauchi 9 in glaucopus (12)
+Cortinarius.spec<-c("P.glaucopus") #Cortinariaceae
+Cortinarius.counts<-c(9) #Miyauchi 9 in glaucopus (12) #8,4,5,8,13,"C.archeri","C.saniosus","Cortinarius sp1","C.austrovenetus","C.aff.campbellae", these are unpublished
 Cortinarius<-data.frame(Cortinarius.spec,Cortinarius.counts)
 
 #no genomes Craterellus -family Cantharellaceae
@@ -129,8 +129,8 @@ Laccaria.spec<-c("L.bicolor","L.amethystina","Laccaria sp1") #Russulaceae
 Laccaria.counts<-c(1,1,9)#the seuqnces match to a MnP but I am still not confident these are correct
 Laccaria<-data.frame(Laccaria.spec,Laccaria.counts) #Miyauchi dont include Laccaria sp1
 
-Lactarius.spec<-c("L.controversus",	"L.subdulcis","L.indigo","L.hengduanensis","L.hatsudake","L.sanguifluus","L.deliciosus","L.vividus","L.akahatsu","L.pseudohatsudake","L.psammicola","L.quietus")
-Lactarius.counts<-c(9,1,3,3,3,3,3,3,3,3,3,1) 
+Lactarius.spec<-c("L.indigo","L.hengduanensis","L.hatsudake","L.sanguifluus","L.deliciosus","L.vividus","L.akahatsu","L.pseudohatsudake","L.psammicola","L.quietus")
+Lactarius.counts<-c(3,3,3,3,3,3,3,3,3,1) #,9,1"L.controversus",	"L.subdulcis", These are unpublished
 Lactarius<-data.frame(Lactarius.spec,Lactarius.counts)
 
 #no genomes Leccicum - family Boletaceae
@@ -183,8 +183,8 @@ Roridomyces.spec<-c("R.roridus") #Mycenaceae
 Roridomyces.counts<-c(22)
 Roridomyces<-data.frame(Roridomyces.spec,Roridomyces.counts)
 
-Russula.spec<-c("Russula sp1","Russula sp2","R.emetica1","Russula sp3","R.earlei","R.emetica2","R.seminuda","R.ochroleuca","R.vinacea","R.compacta","R.rugulosa","R.brevipes","R.dissimulans")
-Russula.counts<-c(2,1,2,6,1,2,2,2,2,1,2,2,1)
+Russula.spec<-c("R.earlei","R.emetica2","R.ochroleuca","R.vinacea","R.compacta","R.rugulosa","R.brevipes","R.dissimulans")
+Russula.counts<-c(1,2,2,2,1,2,2,1)#2,1,2,6,2,"Russula sp1","Russula sp2","R.emetica1","Russula sp3","R.seminuda" unpublished
 Russula<-data.frame(Russula.spec,Russula.counts)
 
 Russulales.spec<-c("Vararia minispora")##the closest match in genebank is to this genus but not great #Lachnocladiaceae
@@ -239,8 +239,8 @@ genus.average[,c(3,4)]<-Genera.data %>% group_by(Genus) %>% summarize(SE = sd(Co
 
 #family level
 ```{r}
-Agaricaceae.taxa<-c("Clavogaster virescens","Clavogaster sp1","Leucoagaricus gongylophorus1","Leucoagaricus gongylophorus2","Leucoagaricus gongylophorus3","Coprinopsis sp.","Leucoagaricus gongylophorus4","Macrolepiota fuliginosa","Agaricus bisporus var. burnettii","Agaricus bisporus var bisporus") #littel unclear about Clavogaster virescens - it says strophariaceae but ncbi says agariaceae
-Agaricaceae.counts<-c(14,19,1,0,0,1,0,1,2,2)
+Agaricaceae.taxa<-c("Clavogaster virescens","Clavogaster sp1","Leucoagaricus gongylophorus1","Leucoagaricus gongylophorus2","Leucoagaricus gongylophorus3","Coprinopsis sp.","Coprinopsis sclerotiger","Coprinopsis marcescibilis","Coprinopsis cinera","Leucoagaricus gongylophorus4","Macrolepiota fuliginosa","Agaricus bisporus var. burnettii","Agaricus bisporus var bisporus") #littel unclear about Clavogaster virescens - it says strophariaceae but ncbi says agariaceae
+Agaricaceae.counts<-c(14,19,1,0,0,1,0,7,1,0,1,2,2)
 
 Amylocorticiaceae.taxa<-c("Anomoporia kamtschatica","Serpulomyces borealis","Amylocorticium subincarnatum","Anomoporia myceliosa","Anomoloma albolutescens","Anomoporia bombycina","Plicaturopsis crispa")
 Amylocorticiaceae.counts<-c(2,7,1,10,8,1,7)
