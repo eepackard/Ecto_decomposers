@@ -19,12 +19,11 @@ library(splitstackshape)
 #read in files
 scata6318_tax<-read_delim("../raw_data/all_clusters_scata6318.txt",delim = "\t",col_names = FALSE,show_col_types = FALSE) #it doesnt work to simply use ; as delim
 scata6318_tax<-cSplit(scata6318_tax,'X1',sep = ";",type.convert = FALSE)
-scata5689_tax<-read_delim("../raw_data/all_clusters_scata5689.txt",delim = "\t",col_names = FALSE,show_col_types = FALSE) #it doesnt work to simply use ; as delim
-scata5689_tax<-cSplit(scata5689_tax,'X1',sep = ";",type.convert = FALSE)
-scata5690_tax<-read_delim("../raw_data/all_clusters_scata5690.txt",delim = "\t",col_names = FALSE,show_col_types = FALSE) #it doesnt work to simply use ; as delim
-scata5690_tax<-cSplit(scata5690_tax,'X1',sep = ";",type.convert = FALSE)
+scata6353_tax<-read_delim("../raw_data/all_clusters_scata6353.txt",delim = "\t",col_names = FALSE,show_col_types = FALSE) #it doesnt work to simply use ; as delim
+scata6353_tax<-cSplit(scata6353_tax,'X1',sep = ";",type.convert = FALSE)
 
-taxsetlist.SFSI<-list(scata6318_tax,scata5689_tax,scata5690_tax)
+
+taxsetlist.SFSI<-list(scata6318_tax,scata6353_tax)
 
 ##now I can split the taxonomy data out
 for (i in 1:length(taxsetlist.SFSI)) {
@@ -58,7 +57,7 @@ taxsetlist.SFSI[[i]]$Ecology<-ifelse(grepl(ecm.genera,taxsetlist.SFSI[[i]]$Refer
 
 #all SS and SFSI clusters cleaned
 
-perc<-list("1.5","2","3")
+perc<-list("1.5","5")
 for(x in 1:length(taxsetlist.SFSI)){
    write.csv(taxsetlist.SFSI[[x]],file = paste('../clean_data/','clean_taxonomicdata_SFSI_SS','_',perc[x],'perc','.csv',sep=""), row.names = F)
 }
