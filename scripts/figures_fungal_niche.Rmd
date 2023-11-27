@@ -92,13 +92,13 @@ binary.freq.pine<-data.frame(first_column= c(round(as.numeric(binary.freq.pine[[
 
 binary.freq.pine$second_column<-factor(binary.freq.pine$second_column,levels=c('young','old'))
 
-numsites.p.b<-c(142,68)
+numsites.p.b<-c("n=142","n=68")
 
 pine.binary.freq<-ggplot(binary.freq.pine, aes(x = second_column, y = first_column)) +
   geom_bar(fill = "yellowgreen", stat = "identity") +
   geom_text(aes(label = numsites.p.b), vjust = -0.3,) + 
   xlab("Forest age")+
-  ylab("Percent frequency")+
+  ylab("Frequency")+
   scale_y_continuous(limits = c(0,1))+
   theme_classic()+
   theme(text = element_text(size=12,family="Times New Roman"))
@@ -112,14 +112,14 @@ binary.freq.spruce<-data.frame(first_column= c(round(as.numeric(binary.freq.spru
 
 binary.freq.spruce$second_column<-factor(binary.freq.spruce$second_column,levels=c('young','old'))
 
-numsites.s.b<-c(166,44)
+numsites.s.b<-c("n=166","n=44")
 
 spruce.binary.freq<-ggplot(binary.freq.spruce, aes(x = second_column, y = first_column)) +
   geom_bar(fill = "darkgreen", stat = "identity") +
   scale_x_discrete(drop=FALSE)+
   geom_text(aes(label = numsites.s.b), vjust = -0.3) + 
   xlab("Forest age")+
-  ylab("Percent frequency")+
+  ylab("Frequency")+
   scale_y_continuous(limits = c(0,1))+
   theme_classic()+
   theme(text = element_text(size=12,family="Times New Roman"))
@@ -310,12 +310,13 @@ hsyt.pine.freq<-ggplot(hsyt.freq.pine, aes(x = second_column, y = first_column))
   #geom_text(aes(label = numsites.p), vjust = -0.3,size=3) + 
   xlab("")+
   ylab("")+
-  annotate("text",x=0.6,y=-0.24,label="81.41 \n max",size=1.5)+
-  annotate("text",x=1.5,y=-0.23,label="36.72",size=1.5)+
-  annotate("text",x=2.5,y=-0.23,label="34.38",size=1.5)+
-  annotate("text",x=3.5,y=-0.23,label="31.42",size=1.5)+
-  annotate("text",x=4.5,y=-0.23,label="27.45",size=1.5)+
-  annotate("text",x=5.4,y=-0.24,label="16.34 \n min",size=1.5)+
+  annotate("text",x=0.6,y=-0.23,label="81.41",size=3)+
+  annotate("text",x=1.5,y=-0.23,label="36.72",size=3)+
+  annotate("text",x=2.5,y=-0.23,label="34.38",size=3)+
+  annotate("text",x=3.5,y=-0.23,label="31.42",size=3)+
+  annotate("text",x=4.5,y=-0.23,label="27.45",size=3)+
+  annotate("text",x=5.4,y=-0.23,label="16.34",size=3)+
+  annotate("text",x=3,y=1.1,label="Hysterangium aff. stoloniferum",size=4)+
   #scale_y_continuous(limits = c(-0.05,1))+
   coord_cartesian(ylim = c(0,1),clip = "off")+
   theme_classic()+
@@ -338,13 +339,14 @@ cort.se.pine.freq<-ggplot(cort.se.freq.pine, aes(x = second_column, y = first_co
   geom_bar(fill = "yellowgreen", stat = "identity") +
   #geom_text(aes(label = numsites.p), vjust = -0.3,size=3) + 
   xlab("")+
-  ylab("Percent frequency")+
-  annotate("text",x=0.6,y=-0.24,label="81.41 \n max",size=1.5)+
-  annotate("text",x=1.5,y=-0.23,label="36.72",size=1.5)+
-  annotate("text",x=2.5,y=-0.23,label="34.38",size=1.5)+
-  annotate("text",x=3.5,y=-0.23,label="31.42",size=1.5)+
-  annotate("text",x=4.5,y=-0.23,label="27.45",size=1.5)+
-  annotate("text",x=5.4,y=-0.24,label="16.34 \n min",size=1.5)+
+  ylab("Frequency")+
+  annotate("text",x=0.6,y=-0.23,label="81.41",size=3)+
+  annotate("text",x=1.5,y=-0.23,label="36.72",size=3)+
+  annotate("text",x=2.5,y=-0.23,label="34.38",size=3)+
+  annotate("text",x=3.5,y=-0.23,label="31.42",size=3)+
+  annotate("text",x=4.5,y=-0.23,label="27.45",size=3)+
+  annotate("text",x=5.4,y=-0.23,label="16.34",size=3)+
+  annotate("text",x=3,y=1.1,label="Cortinarius semisanguineus sl.",size=4)+
   #scale_y_continuous(limits = c(-0.05,1))+
   coord_cartesian(ylim = c(0,1),clip = "off")+
   theme_classic()+
@@ -369,12 +371,12 @@ hsyt.spruce.freq<-ggplot(hsyt.freq.spruce, aes(x = second_column, y = first_colu
   #geom_text(aes(label = numsites.s), vjust = -0.3,size=3) + 
   xlab("CN")+
   ylab("")+
-  annotate("text",x=0.6,y=-0.24,label="63.10 \n max",size=1.5)+
-  annotate("text",x=1.5,y=-0.23,label="31.58",size=1.5)+
-  annotate("text",x=2.5,y=-0.23,label="29.00",size=1.5)+
-  annotate("text",x=3.5,y=-0.23,label="26.33",size=1.5)+
-  annotate("text",x=4.5,y=-0.23,label="23.36",size=1.5)+
-  annotate("text",x=5.4,y=-0.24,label="13.33 \n min",size=1.5)+
+  annotate("text",x=0.6,y=-0.23,label="63.10",size=3)+
+  annotate("text",x=1.5,y=-0.23,label="31.58",size=3)+
+  annotate("text",x=2.5,y=-0.23,label="29.00",size=3)+
+  annotate("text",x=3.5,y=-0.23,label="26.33",size=3)+
+  annotate("text",x=4.5,y=-0.23,label="23.36",size=3)+
+  annotate("text",x=5.4,y=-0.23,label="13.33",size=3)+
   #scale_y_continuous(limits = c(-0.05,1))+
   coord_cartesian(ylim = c(0,1),clip = "off")+
   theme_classic()+
@@ -399,15 +401,15 @@ cort.se.spruce.freq<-ggplot(cort.se.freq.spruce, aes(x = second_column, y = firs
   scale_x_discrete(drop=FALSE)+
   #geom_text(aes(label = numsites.s), vjust = -0.3,size=3) + 
   xlab("CN")+
-  ylab("Percent frequency")+
+  ylab("Frequency")+
   #geom_link(aes(x=0.6,xend=5.4,y=-0.1,yend=-0.1,color="red"),arrow = arrow(),show.legend = FALSE)+
   #scale_color_gradient(low = "yellow",high = "red")+
-  annotate("text",x=0.6,y=-0.24,label="63.10 \n max",size=1.5)+
-  annotate("text",x=1.5,y=-0.23,label="31.58",size=1.5)+
-  annotate("text",x=2.5,y=-0.23,label="29.00",size=1.5)+
-  annotate("text",x=3.5,y=-0.23,label="26.33",size=1.5)+
-  annotate("text",x=4.5,y=-0.23,label="23.36",size=1.5)+
-  annotate("text",x=5.4,y=-0.24,label="13.33 \n min",size=1.5)+
+  annotate("text",x=0.6,y=-0.23,label="63.10",size=3)+
+  annotate("text",x=1.5,y=-0.23,label="31.58",size=3)+
+  annotate("text",x=2.5,y=-0.23,label="29.00",size=3)+
+  annotate("text",x=3.5,y=-0.23,label="26.33",size=3)+
+  annotate("text",x=4.5,y=-0.23,label="23.36",size=3)+
+  annotate("text",x=5.4,y=-0.23,label="13.33",size=3)+
   #scale_y_continuous(limits = c(-0.1,1))+
   coord_cartesian(ylim = c(0,1),clip = "off")+
   theme_classic()+
@@ -482,6 +484,20 @@ pine.plot.categ<-ggplot(sfsi.pine.pres)+geom_jitter(aes(x=agecat,y=log10(miners.
   theme_classic()+
   theme(text =element_text(size = 12,family="Times New Roman"),axis.text.y = element_blank())
 
+pine.plot.categ.box<-ggplot(sfsi.pine.pres)+geom_boxplot(aes(x=agecat,y=log10(miners.relecm)))+
+  stat_summary(aes(x=agecat,y=log10(miners.relecm)),fun.y =   "mean",geom = "point",colour="red",size=3)+
+  stat_summary(aes(x=agecat,y=log10(miners.relecm)),fun.data =   "mean_se",geom = "linerange",colour="red",lwd=1)+
+  xlab("Forest age")+
+  ylab("")+
+  annotate("text",x=-0,y=0,label="100 %",size=3)+
+  annotate("text",x=-0.0001,y=-1,label="10 %",size=3)+
+  annotate("text",x=-0.0001,y=-2,label="1 %",size=3)+
+  annotate("text",x=-0.0001,y=-3,label="0.1 %",size=3)+
+  coord_cartesian(clip = "off",xlim = c(1,2))+
+  scale_y_continuous(limits = c(-3.3,0))+
+  theme_classic()+
+  theme(text =element_text(size = 12,family="Times New Roman"),axis.text.y = element_blank())
+
 spruce.plot.categ<-ggplot(sfsi.spruce.pres)+geom_jitter(aes(x=agecat,y=log10(miners.relecm)),position = position_jitter(0.08))+
   stat_summary(aes(x=agecat,y=log10(miners.relecm)),fun.y =   "mean",geom = "point",colour="red")+
   stat_summary(aes(x=agecat,y=log10(miners.relecm)),fun.data =   "mean_se",geom = "linerange",colour="red")+
@@ -497,7 +513,7 @@ spruce.plot.categ<-ggplot(sfsi.spruce.pres)+geom_jitter(aes(x=agecat,y=log10(min
   theme(axis.title=element_text(size = 12,family="Times New Roman"),axis.text.y = element_blank())
 
 #tiff("../figures/guild_niche_age_pine.tiff",res = 1000,width = 175,height = 120,units="mm")
-pine.plot+pine.plot.categ+plot_layout(widths = c(4,2))
+pine.plot+pine.plot.categ+plot_layout(widths = c(4,2))+plot_annotation(tag_levels = "A")
 
 spruce.plot.categ
 ```
