@@ -91,8 +91,8 @@ miner.guild.sqrt.sfsi.ecm<-sqrt(miner.guild.sfsi.ecm)#hellinger transformation o
 # niche variables
 ```{r}
 #bind together soil data and guild data
-sfsi.fungniche<-as.data.frame(cbind(miner.taxa.sfsi,miner.taxa.sfsi.ecm,miner.taxa.p.sfsi,miner.guild.p.sfsi,miner.guild.sfsi,miner.guild.sfsi.ecm,miner.guild.sqrt.sfsi,miner.guild.sqrt.sfsi.ecm,SFSI.soil.sel$Bestandsalder_scaled,SFSI.soil.sel$Bestandsalder_log_scaled,SFSI.soil.sel$Granandel_scaled,SFSI.soil.sel$pH_H2O_log_scaled,SFSI.soil.sel$NC_scaled,SFSI.soil.sel$Temperatursumma_scaled,SFSI.soil.sel$Taxar,SFSI.soil.sel$Bestandsaldercat,SFSI.soil.sel$Cstock_log_scaled,SFSI.soil.sel$Cstock_scaled,SFSI.soil.sel$seqplat,SFSI.soil.sel$Bestandsalder,SFSI.soil.sel$NC,SFSI.soil.sel$CN))
-colnames(sfsi.fungniche)<-c(colnames(miner.taxa.sfsi),paste("ecm",colnames(miner.taxa.p.sfsi)),paste("p",colnames(miner.taxa.p.sfsi)),"miners.pres","miners.rel","miners.relecm","miners.relsqrt","miners.relsqrtecm","age","age_log","spruce","pH","NC","temp","year","agecat","Cstock_log","Cstock","Seqplat","unscaled_age","unscaled_NC","unscaled_CN")
+sfsi.fungniche<-as.data.frame(cbind(miner.taxa.sfsi,miner.taxa.sfsi.ecm,miner.taxa.p.sfsi,miner.guild.p.sfsi,miner.guild.sfsi,miner.guild.sfsi.ecm,miner.guild.sqrt.sfsi,miner.guild.sqrt.sfsi.ecm,SFSI.soil.sel$Bestandsalder_scaled,SFSI.soil.sel$Bestandsalder_log_scaled,SFSI.soil.sel$Granandel_scaled,SFSI.soil.sel$pH_H2O_log_scaled,SFSI.soil.sel$NC_scaled,SFSI.soil.sel$Temperatursumma_scaled,SFSI.soil.sel$Taxar,SFSI.soil.sel$Bestandsaldercat,SFSI.soil.sel$Cstock_log_scaled,SFSI.soil.sel$Cstock_scaled,SFSI.soil.sel$seqplat,SFSI.soil.sel$Bestandsalder,SFSI.soil.sel$NC,SFSI.soil.sel$CN,SFSI.soil.sel$Bjorkandel,SFSI.soil.sel$Granandel,SFSI.soil.sel$Tallandel))
+colnames(sfsi.fungniche)<-c(colnames(miner.taxa.sfsi),paste("ecm",colnames(miner.taxa.p.sfsi)),paste("p",colnames(miner.taxa.p.sfsi)),"miners.pres","miners.rel","miners.relecm","miners.relsqrt","miners.relsqrtecm","age","age_log","spruce","pH","NC","temp","year","agecat","Cstock_log","Cstock","Seqplat","unscaled_age","unscaled_NC","unscaled_CN","unscaled_birch","unscaled_spruce","unscaled_pine")
 
 corrgram(sfsi.fungniche[,which(colnames(sfsi.fungniche) %in% c("miners.pres","age","pH","NC","spruce","temp"))],upper.panel = panel.conf,lower.panel = panel.fill)
 
@@ -133,6 +133,12 @@ fviz_pca_biplot(pca.sfsi.fert.age.spruce,axes = c(1,2))#,invisible = "ind"
 sfsi.spruce$fert.age.pca<-c(pca.sfsi.fert.age.spruce$x[,1]*-1)
 
 #fert.age.pca axis goes in direction that more positive is older and less fertile... 
+
+pca.sfsi.fert<-prcomp(sfsi.fungniche[,which(colnames(sfsi.fungniche) %in% c("NC","pH","age"))]) 
+
+#tiff("../figures/PCA_age_NC_pH.tiff",width = 100,height = 100,res = 1000,units = "mm")
+fviz_pca_biplot(pca.sfsi.fert,axes = c(1,2),geom = "point",repel = T)#,invisible = "ind"
+
 ```
 
 #compare presence of guild between pine and spruce
@@ -212,7 +218,7 @@ summary(aov(miner.relecmlog~agecat+fert.pca+(1|Seqplat),data = sfsi.pine.pres))#
 #summary(aov(miner.relecmlog~fert.age.pca+(1|year),data = sfsi.pine.pres))
 plot(lm.relecm.pine)
 r.squaredGLMM(lmer(miner.relecmlog~agecat+fert.pca+(1|Seqplat),data = sfsi.pine.pres))
-r.squaredGLMM(lm.relecm.pine<-lmer(miner.relecmlog~age+fert.pca+(1|Seqplat),data = sfsi.pine.pres))
+r.squaredGLMM(lmer(miner.relecmlog~age+fert.pca+(1|Seqplat),data = sfsi.pine.pres))
 
 #spruce
 lm.relecm.spruce<-lmer(miner.relecmlog~age+fert.pca+(1|Seqplat),data = sfsi.spruce.pres)#
