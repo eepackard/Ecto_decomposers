@@ -9,8 +9,8 @@ Two datasets are assessed:
 The scripts should be run in the following order:
 
 - clean_spatial_study_metadata.Rmd
-- clean_speciesdata_SFSI_SS.Rmd
 - clean_taxonmicdata_SFSI_SS.Rmd
+- clean_speciesdata_SFSI_SS.Rmd
 - clean_filter_SFSI_soil_data.Rmd
 - analysis_MnP_spatial_het.Rmd
 - analysis_mnpdrivers.Rmd
