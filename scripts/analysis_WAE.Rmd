@@ -28,9 +28,9 @@ library(ggrepel)
 
 #read in data
 ```{r}
-datasetlist.rel.agar.15<-list(read_csv("../clean_data/SS_data_relabun_agar_15_1.5perc.csv"),read_csv("../clean_data/SS_data_relabun_agar_15_2perc.csv"),read_csv("../clean_data/SS_data_relabun_agar_15_3perc.csv"))
+datasetlist.rel.agar.15<-list(read_csv("../clean_data/SS_data_relabun_agar_15_1.5perc.csv"),read_csv("../clean_data/SS_data_relabun_agar_15_5perc.csv"))
 Meta.data.spatial<-read_csv("../clean_data/Clean_spatial_study_metadata.csv")
-taxsetlist.agar<-list(read_csv("../clean_data/clean_taxonimcdata_SFSI_SS_agar_1.5perc.csv"),read_csv("../clean_data/clean_taxonimcdata_SFSI_SS_agar_2perc.csv"),read_csv("../clean_data/clean_taxonimcdata_SFSI_SS_agar_3perc.csv"))
+taxsetlist.agar<-list(read_csv("../clean_data/clean_taxonimcdata_SFSI_SS_agar_1.5perc.csv"),read_csv("../clean_data/clean_taxonimcdata_SFSI_SS_agar_5perc.csv"))
 ```
 
 
@@ -40,6 +40,9 @@ taxsetlist.agar<-list(read_csv("../clean_data/clean_taxonimcdata_SFSI_SS_agar_1.
 
 wae.15<-as.data.frame(colSums(Meta.data.spatial$MnP_gOM_scaled*datasetlist.rel.agar.15[[1]])/colSums(datasetlist.rel.agar.15[[1]]))
 colnames(wae.15)<-c("Weight.aver")
+
+wae.15.genera<-as.data.frame(colSums(Meta.data.spatial$MnP_gOM_scaled*datasetlist.rel.agar.15[[2]])/colSums(datasetlist.rel.agar.15[[2]]))
+colnames(wae.15.genera)<-c("Weight.aver")
 
 ```
 
@@ -59,8 +62,10 @@ permutation.test <- function(MnP, spec.data, test.stat, n){
   } #not the abs value because I want only one side test... 
   return(list(result, distribution))#result,
 }
+```
 
-
+#species level
+```{r}
 set.seed(13)
 
 permtest.results.15 <- permutation.test(MnP =  Meta.data.spatial$MnP_gOM_scaled, spec.data = datasetlist.rel.agar.15[[1]],test.stat = wae.15, 10000)
@@ -83,6 +88,23 @@ colnames(wae.perm.results.15)<-c("Cluster_ID","adjusted_p","p","ID")
 wae.perm.results.15[match(sort(wae.perm.results.15$p),wae.perm.results.15$p),]
 
 ```
+
+#genus level WAE
+```{r}
+set.seed(13)
+
+permtest.results.15.genera <- permutation.test(MnP =  Meta.data.spatial$MnP_gOM_scaled, spec.data = datasetlist.rel.agar.15[[2]],test.stat = wae.15.genera, 10000)
+
+wae.perm.results.15.genera<-as.data.frame(cbind(colnames(datasetlist.rel.agar.15[[2]]),p.adjust(permtest.results.15.genera[[1]],method = "fdr",length(permtest.results.15.genera[[1]])),permtest.results.15.genera[[1]]))
+wae.perm.results.15.genera[which(wae.perm.results.15.genera$V3 < 0.1),]
+wae.perm.results.15.genera$ID<-taxsetlist.agar[[1]][match(wae.perm.results.15.genera$V1,taxsetlist.agar[[2]]$`Cluster ID`),]$Reference
+colnames(wae.perm.results.15.genera)<-c("Cluster_ID","adjusted_p","p","ID")
+
+
+wae.perm.results.15.genera[match(sort(wae.perm.results.15.genera$p),wae.perm.results.15.genera$p),]
+
+```
+
 
 #check consistency of CCA and WAE results 
 ```{r}
