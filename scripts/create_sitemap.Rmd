@@ -79,9 +79,11 @@ map1 <- tm_shape(sverige_simp) +
   tm_shape(sjoar) +
   tm_fill(col = "lightblue") +
   tm_shape(data_sf_sfsi["host"]) +
-  tm_dots(col = "host", size = 0.25,shape = 1,palette=c("yellowgreen","darkgreen"),title = "National samples")+
+  tm_dots(col = "host", size = 0.25,shape = 1,palette=c("green2","darkgreen"),title = "National samples",legend.show = FALSE)+
   tm_shape(data_sf_ss["Species"]) +
-  tm_dots(col = "Species", size = 0.25,shape = 1,palette=c("tomato","darkred"),title = "Regional samples")+
+  tm_dots(col = "Species", size = 0.25,shape = 1,palette=c("orange","darkred"),title = "Regional samples",legend.show = FALSE)+
+  tm_add_legend(type = "fill",col = c("green2","darkgreen"),labels = c("Pine dominated", "Spruce dominated"),title = "Large-scale samples")+
+  tm_add_legend(type = "fill",col = c("orange","darkred"),labels = c("Pine dominated", "Spruce dominated"),title = "Small-scale samples")+
   tm_layout(legend.width = 1,legend.outside = TRUE,legend.position = c(-0.15,0.1),frame = FALSE)
 
 map2 <- tm_shape(sverige_simp) +
@@ -89,9 +91,11 @@ map2 <- tm_shape(sverige_simp) +
   tm_shape(sjoar) +
   tm_fill(col = "lightblue") +
   tm_shape(data_sf_sfsi["Bestandsalder"]) +
-  tm_dots(col = "Bestandsalder", size = 0.25,shape = 1,palette="Greens",n = 5, contrast = c(0.36, 1),title = "National samples")+
+  tm_dots(col = "Bestandsalder", size = 0.25,shape = 1,palette="OrRd",n = 5,contrast = c(0.2, 1),title = "National samples",legend.show = F)+
   tm_shape(data_sf_ss["Age"]) +
-  tm_dots(col = "Age", size = 0.25,shape = 1,palette=c("tomato","darkred"),title = "Regional samples")+
+  tm_dots(col = "Age", size = 0.25,shape = 1,palette=c("navy","dodgerblue"),title = "Regional samples",legend.show = F)+
+  tm_add_legend(type = "fill",col=c(tmaptools::get_brewer_pal("OrRd", 5, plot = FALSE)),labels = c("10-50", "50-100","100-150","150-200","200+"),title = "Large-scale samples")+
+  tm_add_legend(type = "fill",col = c("navy","dodgerblue"),labels = c("Old", "Young"),title = "Small-scale samples")+
   tm_layout(legend.width = 1,legend.outside = TRUE,legend.position = c(-0.15,0.1),frame = FALSE)
 
 # ... + tm_layout() to format titles, legend, margins ...
