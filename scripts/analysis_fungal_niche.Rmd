@@ -292,6 +292,20 @@ pearson.fert.results.spruce.ecm
 
 ```
 
+#compare the individual species in pine or spruce 
+```{r}
+list.pres.abs.miners.all<-list(c(colnames(sfsi.pres[,13:18])))
+fisher.age.results.all<-list()
+
+for (i in 1:6){
+fisher.age.results.all[[i]]<-fisher.test(as.matrix(table(sfsi.pres[,which(colnames(sfsi.pres) %in% c("tree_dom",list.pres.abs.miners.all[[1]][[i]]))])),or=1)
+}
+
+fisher.age.results.all
+```
+
+
+
 ##correct p_values
 ```{r}
 p.value.pine.list.pearson.fert<-list()
