@@ -138,6 +138,7 @@ datasetlist.rel.sfsi$JordProvnr<-datasetlist.SFSI[[1]]$tag1
 ```{r}
 ##read in data
 taxsetlist.IDed<-read_csv('../clean_data/clean_taxonomicdata_SFSI_SS_genus.csv')
+spec_database19<-read_delim("../raw_data/Speciesdatabase_19.txt",delim = "\t",col_names = TRUE,show_col_types = FALSE)
 
 #first filter the rel abun data to exlcude the unclassfied and NF (aka. matched the TAaxsetlist.IDed which has the clean genus data)
 datasetlist.rel.genus<-datasetlist.rel[[1]][,which(colnames(datasetlist.rel[[1]]) %in% taxsetlist.IDed$`Cluster ID`)]
@@ -152,6 +153,9 @@ colnames(datasetlist.rel.genus)<-taxsetlist.IDed$Genus
 #remove columns where the colsums are zero (not present...)
 datasetlist.rel.genus<-datasetlist.rel.genus[,-which(colSums(datasetlist.rel.genus) == 0)]
 colnames(datasetlist.rel.genus)<-gsub("\\.[0-9]*","",colnames(datasetlist.rel.genus)) #this returns the column names to be repeated (not with .##)
+
+genera.list<-c(unique(spec_database19$Genus))
+genera.list<-genera.list[-3]#these remove the NA
 
 #remove if not classfied to genus level 
 datasetlist.rel.genus<-datasetlist.rel.genus[,which(colnames(datasetlist.rel.genus) %in% genera.list)]
@@ -231,8 +235,7 @@ datasetlist.rel.agar.genus<- do.call(cbind.data.frame,datasetlist.rel.agar.genus
 colnames(datasetlist.rel.agar.genus)<-unique(colnames(several.species))
 
 #now just double check that the values are as I would expect - these values shold match
-sum(rowSums(datasetlist.rel.agar[[1]][,which(colnames(datasetlist.rel.agar[[1]]) == "Suillus")]))
-sum(datasetlist.rel.agar.genus$Suillus)
+sum(rowSums(datasetlist.rel.agar[[1]][,which(colnames(datasetlist.rel.agar[[1]]) == "Suillus")])) == sum(datasetlist.rel.agar.genus$Suillus)
 
 #now add back the single species with cbind
 datasetlist.rel.agar.genus<-cbind(datasetlist.rel.agar.genus,single.species)
