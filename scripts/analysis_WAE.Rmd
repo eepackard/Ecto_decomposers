@@ -16,14 +16,6 @@ library(vegan)
 library(ggplot2)
 library(dplyr)
 library(tidyr)
-library(factoextra)
-library(beepr)
-library(corrgram)
-library(lme4)
-library(splitstackshape)
-library(DHARMa)
-library(ggfortify)
-library(ggrepel)
 ```
 
 #read in data
@@ -85,7 +77,6 @@ wae.perm.results.15[which(wae.perm.results.15$V3 < 0.1),]
 wae.perm.results.15$ID<-taxsetlist.agar[[1]][match(wae.perm.results.15$V1,taxsetlist.agar[[1]]$`Cluster ID`),]$Reference
 colnames(wae.perm.results.15)<-c("Cluster_ID","adjusted_p","p","ID")
 
-
 wae.perm.results.15[match(sort(wae.perm.results.15$p),wae.perm.results.15$p),]
 
 ```
@@ -133,5 +124,6 @@ species_list<-sorted.perm.results[c(2,4,5,7,9,12),]$ID
 #write WAE list
 ```{r}
 write.csv(wae.15,"../clean_data/wae.15.csv")
+write.csv(wae.15.genera,"../clean_data/wae.15.genera.csv")
 ```
 
