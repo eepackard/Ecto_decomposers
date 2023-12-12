@@ -21,6 +21,8 @@ library(DBI)        # Handle database connections and SQL-code
 library(odbc)       # Handle the local computers ODBC-connections
 library(sf)         # Simple Features, handle .shp-filer, geographical data and coordinates
 library(tmap)       # Like ggplot2 but specifically for creating maps
+library(patchwork)
+library(ggplot2)
 ```
 
 #   Read in data 
@@ -51,6 +53,11 @@ SFSI.soil.f2$host<-if_else(SFSI.soil.f2$Granandel > 50,"Spruce dominated","Pine 
 
 #rename spruce pine variable 
 SS.coordinates$Species<-if_else(SS.coordinates$Species == "Spruce","Spruce dominated","Pine dominated")
+#Hade, 17472,17646 overlap to much to distinguish add a manual jitter to 17472 and 17646
+SS.coordinates[2,2]<-60.30000
+SS.coordinates[2,3]<-17.04000
+SS.coordinates[12,3]<-17.09000
+SS.coordinates[12,2]<-60.28000
 ```
 
 
@@ -80,8 +87,8 @@ map1 <- tm_shape(sverige_simp) +
   tm_fill(col = "lightblue") +
   tm_shape(data_sf_sfsi["host"]) +
   tm_dots(col = "host", size = 0.25,shape = 1,palette=c("green2","darkgreen"),title = "National samples",legend.show = FALSE)+
-  tm_shape(data_sf_ss["Species"]) +
-  tm_dots(col = "Species", size = 0.25,shape = 1,palette=c("orange","darkred"),title = "Regional samples",legend.show = FALSE)+
+  #tm_shape(data_sf_ss["Species"]) +
+  #tm_dots(col = "Species", size = 0.25,shape = 1,palette=c("orange","darkred"),title = "Regional samples",legend.show = FALSE)+
   tm_add_legend(type = "fill",col = c("green2","darkgreen"),labels = c("Pine dominated", "Spruce dominated"),title = "Large-scale samples")+
   tm_add_legend(type = "fill",col = c("orange","darkred"),labels = c("Pine dominated", "Spruce dominated"),title = "Small-scale samples")+
   tm_layout(legend.width = 1,legend.outside = TRUE,legend.position = c(-0.15,0.1),frame = FALSE)
@@ -98,6 +105,14 @@ map2 <- tm_shape(sverige_simp) +
   tm_add_legend(type = "fill",col = c("navy","dodgerblue"),labels = c("Old", "Young"),title = "Small-scale samples")+
   tm_layout(legend.width = 1,legend.outside = TRUE,legend.position = c(-0.15,0.1),frame = FALSE)
 
+map3 <- tm_shape(sverige_simp,bbox = c(xmin=540000,ymin=6553368,xmax=739000,ymax=6750000)) +
+  tm_polygons(border.col = "black", col = "white", alpha = 0.1)+ 
+  tm_shape(sjoar,bbox = c(xmin=540000,ymin=6553368,xmax=739000,ymax=6750000)) +
+  tm_fill(col = "lightblue")+
+  tm_shape(data_sf_ss["Species"]) +
+  tm_dots(col = "Species", size = 0.5,shape = 1,palette=c("orange","darkred"),title = "Regional samples",legend.show = FALSE) 
+
+map3<-tmap_grob(map3)
 # ... + tm_layout() to format titles, legend, margins ...
 ```
 
@@ -106,6 +121,12 @@ map2 <- tm_shape(sverige_simp) +
 ```{r}
 map1
 map2
+map3
+
+tmap_arrange(map1,map3)
+
+map1
+print(map3,vp=viewport(x=0.5,y=0.5,width = 0.2,height = 0.2))
 # All sizes are relative to the size of the plot so look at exported file (the
 #  step below) to see what needs adjusting. Don't try to make it look good in R/
 #  Rstudios plotting window but in the exported file that will be used.
