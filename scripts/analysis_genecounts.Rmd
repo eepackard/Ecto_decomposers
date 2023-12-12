@@ -18,17 +18,19 @@ library(tidyr)
 
 #read in data
 ```{r}
-taxsetlist.agar<-list(read_csv("../clean_data/clean_taxonimcdata_SFSI_SS_agar_1.5perc.csv"),read_csv("../clean_data/clean_taxonimcdata_SFSI_SS_agar_2perc.csv"),read_csv("../clean_data/clean_taxonimcdata_SFSI_SS_agar_3perc.csv"))
+taxsetlist.agar<-read_csv("../clean_data/clean_taxonimcdata_SFSI_SS_agar_1.5perc.csv")
 wae.15<-read_csv("../clean_data/wae.15.csv")
+
+wae.15.genera<-read_csv("../clean_data/wae.15.genera.csv")
 ```
 
 #bind taxanomic data with WAE
 ```{r}
-taxsetlist.agar[[1]][which(taxsetlist.agar[[1]]$`Cluster ID` %in% wae.15$...1),]
+taxsetlist.agar[which(taxsetlist.agar$`Cluster ID` %in% wae.15$...1),]
 
-print(taxsetlist.agar[[1]][which(taxsetlist.agar[[1]]$`Cluster ID` %in% wae.15$ID),c(1,4,9)],n=150)
+print(taxsetlist.agar[which(taxsetlist.agar$`Cluster ID` %in% wae.15$ID),c(1,4,9)],n=150)
 
-wae.15$refernce_names<-cbind(taxsetlist.agar[[1]][which(taxsetlist.agar[[1]]$`Cluster ID` %in% wae.15$...1),]$Reference)
+wae.15$refernce_names<-cbind(taxsetlist.agar[which(taxsetlist.agar$`Cluster ID` %in% wae.15$...1),]$Reference)
 colnames(wae.15)<-c("ID","WAE","Ref")
 
 #grab only genus names
@@ -293,9 +295,13 @@ Gene.counts[56,1]<-"Squamanita"
 #add the gene count to wae table
 ```{r}
 Gene.metach<-Gene.counts[match(wae.15$Genus,Gene.counts$Genus),]
+Gene.metach.genus<-Gene.counts[match(wae.15.genera$...1,Gene.counts$Genus),]
 
 wae.15$counts<-Gene.metach$Mean
 wae.15$SE<-Gene.metach$SE
+
+wae.15.genera$counts<-Gene.metach.genus$Mean
+wae.15.genera$SE<-Gene.metach.genus$SE
 
 #order and add rank to wae
 wae.15<-wae.15[match(sort(wae.15$WAE,decreasing = TRUE),wae.15$WAE),]
@@ -304,5 +310,14 @@ wae.15$count_rank<-rank(wae.15$counts,na.last = F,ties.method = c("min"))
 wae.15 #the top of the list is highest value and highest gen count is also highest - postive direction would be expect 
 
 cor.test(wae.15$rank,wae.15$count_rank,method = "kendall")#not significant
+
+#order and add rank to wae
+colnames(wae.15.genera)<-c("Genus","WAE","counts","se")
+wae.15.genera<-wae.15.genera[match(sort(wae.15.genera$WAE,decreasing = TRUE),wae.15.genera$WAE),]
+wae.15.genera$rank<-rank(wae.15.genera$WAE,na.last = F,ties.method = c("min"))
+wae.15.genera$count_rank<-rank(wae.15.genera$counts,na.last = F,ties.method = c("min"))
+wae.15.genera #the top of the list is highest value and highest gen count is also highest - postive direction would be expect 
+
+cor.test(wae.15.genera$rank,wae.15.genera$count_rank,method = "kendall")#not significant
 ```
 

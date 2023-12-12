@@ -19,12 +19,11 @@ library(splitstackshape)
 #read in files
 scata6318_tax<-read_delim("../raw_data/all_clusters_scata6318.txt",delim = "\t",col_names = FALSE,show_col_types = FALSE) #it doesnt work to simply use ; as delim
 scata6318_tax<-cSplit(scata6318_tax,'X1',sep = ";",type.convert = FALSE)
-scata5689_tax<-read_delim("../raw_data/all_clusters_scata5689.txt",delim = "\t",col_names = FALSE,show_col_types = FALSE) #it doesnt work to simply use ; as delim
-scata5689_tax<-cSplit(scata5689_tax,'X1',sep = ";",type.convert = FALSE)
-scata5690_tax<-read_delim("../raw_data/all_clusters_scata5690.txt",delim = "\t",col_names = FALSE,show_col_types = FALSE) #it doesnt work to simply use ; as delim
-scata5690_tax<-cSplit(scata5690_tax,'X1',sep = ";",type.convert = FALSE)
+#scata6354_tax<-read_delim("../raw_data/all_clusters_scata6354.txt",delim = "\t",col_names = FALSE,show_col_types = FALSE) #it doesnt work to simply use ; as delim
+#scata6354_tax<-cSplit(scata6354_tax,'X1',sep = ";",type.convert = FALSE)
 
-taxsetlist.SFSI<-list(scata6318_tax,scata5689_tax,scata5690_tax)
+
+taxsetlist.SFSI<-list(scata6318_tax)#,scata6354_tax
 
 ##now I can split the taxonomy data out
 for (i in 1:length(taxsetlist.SFSI)) {
@@ -52,13 +51,74 @@ taxsetlist.SFSI[[i]]$Ecology<-ifelse(grepl(ecm.genera,taxsetlist.SFSI[[i]]$Refer
 
 ```
 
+
+#combine OTUS identified to same genus
+```{r}
+genera.list<-c(unique(spec_database19$Genus))
+genera.list<-genera.list[-3]#these remove the NA
+
+fam.list<-c(unique(spec_database19$Family))
+fam.list<-fam.list[-5]#these remove the NA
+
+class.list<-c(unique(spec_database19$Class),"Chaetothyriomycetidae")
+class.list<-class.list[-10]#these remove the NA
+
+order.list<-c(unique(spec_database19$Order))
+order.list<-order.list[-13] #these remove the NA
+
+#I will need to remove ones that have no ID..
+taxsetlist.IDed<-taxsetlist[[1]][-which(is.na(taxsetlist[[1]]$Reference)),]
+taxsetlist.IDed<-taxsetlist.IDed[!grepl("NF_",taxsetlist.IDed$Reference),]
+
+matches.1<-character(nrow(taxsetlist.IDed[!grepl("NF_",taxsetlist.IDed$Reference),]))
+
+for (i in seq_along(genera.list)){
+  matches.1<-if_else(grepl(genera.list[i], taxsetlist.IDed$Reference),genera.list[i],matches.1)
+}
+ for (j in seq_along(class.list)){
+  matches.1<-if_else(grepl(class.list[j],taxsetlist.IDed$Reference),class.list[j],matches.1)
+}
+ for (i in seq_along(fam.list)){
+  matches.1<-if_else(grepl(fam.list[i],taxsetlist.IDed$Reference),fam.list[i],matches.1)
+}#
+
+for (i in seq_along(order.list)){
+  matches.1<-if_else(grepl(order.list[i],taxsetlist.IDed$Reference),order.list[i],matches.1)
+}#
+
+##things left now as "" are identified as Fungi, or to the phylum or subphylum therefore I dont need anyways...
+
+taxsetlist.IDed$Genus<-matches.1
+```
+
+#combine OTUS identified to same genus -agaricomycetes
+```{r}
+agar.genera.list<-c(unique(spec_database19[which(spec_database19$Class == "Agaricomycetes"),]$Genus))
+agar.genera.list<-agar.genera.list[-3]#these remove the NA
+
+agar.fam.list<-c("Clavariaceae","Thelephoraceae","Tricholomataceae","Entolomataceae","Atheliaceae")
+
+matches<-character(nrow(taxsetlist.agar))
+
+for (i in seq_along(agar.genera.list)){
+  matches<-if_else(grepl(agar.genera.list[i], taxsetlist.agar$Reference),agar.genera.list[i],matches)
+}
+
+ for (j in seq_along(agar.fam.list)){
+  matches<-if_else(grepl(agar.fam.list[j],taxsetlist.agar$Reference),agar.fam.list[j],matches)
+}#
+
+taxsetlist.agar[[1]]$Genus<-matches
+```
+
+
 #write clean data
 ```{r}
 #write listed df to seperate csvs https://stackoverflow.com/questions/42046992/write-csv-on-a-list-of-data-frames
 
 #all SS and SFSI clusters cleaned
 
-perc<-list("1.5","2","3")
+perc<-list("1.5")
 for(x in 1:length(taxsetlist.SFSI)){
    write.csv(taxsetlist.SFSI[[x]],file = paste('../clean_data/','clean_taxonomicdata_SFSI_SS','_',perc[x],'perc','.csv',sep=""), row.names = F)
 }
@@ -67,5 +127,6 @@ for(x in 1:length(taxsetlist.agar)){
    write.csv(taxsetlist.agar[[x]],file = paste('../clean_data/','clean_taxonimcdata_SFSI_SS_agar','_',perc[x],'perc','.csv',sep=""), row.names = F)
 }
 
+write.csv(taxsetlist.IDed,file = paste('../clean_data/','clean_taxonomicdata_SFSI_SS_genus','.csv',sep=""), row.names = F)
 ```
 

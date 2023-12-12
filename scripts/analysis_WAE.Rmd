@@ -16,21 +16,14 @@ library(vegan)
 library(ggplot2)
 library(dplyr)
 library(tidyr)
-library(factoextra)
-library(beepr)
-library(corrgram)
-library(lme4)
-library(splitstackshape)
-library(DHARMa)
-library(ggfortify)
-library(ggrepel)
 ```
 
 #read in data
 ```{r}
-datasetlist.rel.agar.15<-list(read_csv("../clean_data/SS_data_relabun_agar_15_1.5perc.csv"),read_csv("../clean_data/SS_data_relabun_agar_15_2perc.csv"),read_csv("../clean_data/SS_data_relabun_agar_15_3perc.csv"))
+datasetlist.rel.agar.15<-read_csv("../clean_data/SS_data_relabun_agar_15_1.5perc.csv")#list(,read_csv("../clean_data/SS_data_relabun_agar_15_5perc.csv"
+datasetlist.rel.agar.genus.15<-read_csv("../clean_data/SS_data_relabun__agar_genus_15.csv")
 Meta.data.spatial<-read_csv("../clean_data/Clean_spatial_study_metadata.csv")
-taxsetlist.agar<-list(read_csv("../clean_data/clean_taxonimcdata_SFSI_SS_agar_1.5perc.csv"),read_csv("../clean_data/clean_taxonimcdata_SFSI_SS_agar_2perc.csv"),read_csv("../clean_data/clean_taxonimcdata_SFSI_SS_agar_3perc.csv"))
+taxsetlist.agar<-read_csv("../clean_data/clean_taxonimcdata_SFSI_SS_agar_1.5perc.csv")#,read_csv("../clean_data/clean_taxonimcdata_SFSI_SS_agar_5perc.csv")
 ```
 
 
@@ -40,6 +33,9 @@ taxsetlist.agar<-list(read_csv("../clean_data/clean_taxonimcdata_SFSI_SS_agar_1.
 
 wae.15<-as.data.frame(colSums(Meta.data.spatial$MnP_gOM_scaled*datasetlist.rel.agar.15[[1]])/colSums(datasetlist.rel.agar.15[[1]]))
 colnames(wae.15)<-c("Weight.aver")
+
+wae.15.genera<-as.data.frame(colSums(Meta.data.spatial$MnP_gOM_scaled*datasetlist.rel.agar.genus.15)/colSums(datasetlist.rel.agar.genus.15))
+colnames(wae.15.genera)<-c("Weight.aver")
 
 ```
 
@@ -59,8 +55,10 @@ permutation.test <- function(MnP, spec.data, test.stat, n){
   } #not the abs value because I want only one side test... 
   return(list(result, distribution))#result,
 }
+```
 
-
+#species level
+```{r}
 set.seed(13)
 
 permtest.results.15 <- permutation.test(MnP =  Meta.data.spatial$MnP_gOM_scaled, spec.data = datasetlist.rel.agar.15[[1]],test.stat = wae.15, 10000)
@@ -79,10 +77,26 @@ wae.perm.results.15[which(wae.perm.results.15$V3 < 0.1),]
 wae.perm.results.15$ID<-taxsetlist.agar[[1]][match(wae.perm.results.15$V1,taxsetlist.agar[[1]]$`Cluster ID`),]$Reference
 colnames(wae.perm.results.15)<-c("Cluster_ID","adjusted_p","p","ID")
 
-
 wae.perm.results.15[match(sort(wae.perm.results.15$p),wae.perm.results.15$p),]
 
 ```
+
+#genus level WAE
+```{r}
+set.seed(13)
+
+permtest.results.15.genera <- permutation.test(MnP =  Meta.data.spatial$MnP_gOM_scaled, spec.data = datasetlist.rel.agar.genus.15,test.stat = wae.15.genera, 10000)
+
+wae.perm.results.15.genera<-as.data.frame(cbind(colnames(datasetlist.rel.agar.genus.15),p.adjust(permtest.results.15.genera[[1]],method = "fdr",length(permtest.results.15.genera[[1]])),permtest.results.15.genera[[1]]))
+wae.perm.results.15.genera[which(wae.perm.results.15.genera$V3 < 0.1),]
+#wae.perm.results.15.genera$ID<-taxsetlist.agar[[1]][match(wae.perm.results.15.genera$V1,taxsetlist.agar[[2]]$`Cluster ID`),]$Reference
+colnames(wae.perm.results.15.genera)<-c("ID","adjusted_p","p")#,"ID"
+
+
+wae.perm.results.15.genera[match(sort(wae.perm.results.15.genera$p),wae.perm.results.15.genera$p),]
+
+```
+
 
 #check consistency of CCA and WAE results 
 ```{r}
@@ -110,5 +124,6 @@ species_list<-sorted.perm.results[c(2,4,5,7,9,12),]$ID
 #write WAE list
 ```{r}
 write.csv(wae.15,"../clean_data/wae.15.csv")
+write.csv(wae.15.genera,"../clean_data/wae.15.genera.csv")
 ```
 

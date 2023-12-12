@@ -435,9 +435,9 @@ sfsi.spruce.pres<-read_csv("../clean_data/SFSI_spruce_guildpresent.csv")
 ###relative abundance plot overall
 ```{r}
 pine.plot<-ggplot(sfsi.pine.pres)+geom_point(aes(x=unscaled_age,y=log10(sfsi.pine.pres$miners.relecm)))+
-  geom_smooth(aes(x=unscaled_age,y=log10(sfsi.pine.pres$miners.relecm)),method = "lm",se=FALSE)+
+  geom_smooth(aes(x=unscaled_age,y=log10(sfsi.pine.pres$miners.relecm)),method = "lm")+
   xlab("Forest age (years)")+
-  ylab("Relative abundance of potential ectomycorrhizal decomposers \n amoung ectomycorrhizal fungi (logged) \n \n ")+
+  ylab("Relative abundance of potential ectomycorrhizal decomposers \n amoung ectomycorrhizal fungi (log scale) \n \n ")+
   scale_x_continuous(breaks = c(10,50,100,150,200))+
   annotate("text",x=-25,y=0,label="100 %",size=3)+
   annotate("text",x=-25,y=-1,label="10 %",size=3)+
@@ -472,7 +472,7 @@ sfsi.spruce.pres$agecat<-factor(sfsi.spruce.pres$agecat,levels=c('young','old'))
 
 pine.plot.categ<-ggplot(sfsi.pine.pres)+geom_jitter(aes(x=agecat,y=log10(miners.relecm)),position = position_jitter(0.08))+
   stat_summary(aes(x=agecat,y=log10(miners.relecm)),fun.y =   "mean",geom = "point",colour="red",size=3)+
-  stat_summary(aes(x=agecat,y=log10(miners.relecm)),fun.data =   "mean_se",geom = "linerange",colour="red",lwd=1)+
+  stat_summary(aes(x=agecat,y=log10(miners.relecm)),fun.ymin = function(x) mean(x) - sd(x), fun.ymax = function(x) mean(x) + sd(x),geom = "linerange",colour="red",lwd=1)+
   xlab("Forest age")+
   ylab("")+
   annotate("text",x=-0,y=0,label="100 %",size=3)+
@@ -486,7 +486,7 @@ pine.plot.categ<-ggplot(sfsi.pine.pres)+geom_jitter(aes(x=agecat,y=log10(miners.
 
 pine.plot.categ.box<-ggplot(sfsi.pine.pres)+geom_boxplot(aes(x=agecat,y=log10(miners.relecm)))+
   stat_summary(aes(x=agecat,y=log10(miners.relecm)),fun.y =   "mean",geom = "point",colour="red",size=3)+
-  stat_summary(aes(x=agecat,y=log10(miners.relecm)),fun.data =   "mean_se",geom = "linerange",colour="red",lwd=1)+
+  stat_summary(aes(x=agecat,y=log10(miners.relecm)),fun.ymin = function(x) mean(x) - sd(x), fun.ymax = function(x) mean(x) + sd(x),geom = "linerange",colour="red",lwd=1)+
   xlab("Forest age")+
   ylab("")+
   annotate("text",x=-0,y=0,label="100 %",size=3)+
@@ -512,7 +512,7 @@ spruce.plot.categ<-ggplot(sfsi.spruce.pres)+geom_jitter(aes(x=agecat,y=log10(min
   theme_classic()+
   theme(axis.title=element_text(size = 12,family="Times New Roman"),axis.text.y = element_blank())
 
-#tiff("../figures/guild_niche_age_pine.tiff",res = 1000,width = 175,height = 120,units="mm")
+#tiff("../figures/guild_niche_age_pine_confint.tiff",res = 1000,width = 175,height = 120,units="mm")
 pine.plot+pine.plot.categ+plot_layout(widths = c(4,2))+plot_annotation(tag_levels = "A")
 
 spruce.plot.categ
@@ -593,6 +593,93 @@ spr.v.pine.freq<-ggplot(freq.guild.p.v.s, aes(x = species, y = freq.guild.p.v.s)
 
 spr.v.pine.freq
 ```
+###frequncey plot spruce vs pine specific taxa
+```{r}
+freq.lact.all.pine<-sum(sfsi.fungniche[which(sfsi.fungniche$tree_dom == "Pine"),which(colnames(sfsi.fungniche) =="p Lactarius_vietus")])/210 
+freq.lact.all.spruce<-sum(sfsi.fungniche[which(sfsi.fungniche$tree_dom == "Spruce"),which(colnames(sfsi.fungniche) =="p Lactarius_vietus")])/210 
+
+freq.lact.p.v.s<-c(freq.lact.all.pine,freq.lact.all.spruce)
+species<-c("Pine","Spruce")
+freq.lact.p.v.s<-data.frame(freq.lact.p.v.s,species)
+
+lact.spr.v.pine.freq<-ggplot(freq.lact.p.v.s, aes(x = species, y = freq.lact.p.v.s)) +
+  geom_bar(fill = "seagreen", stat = "identity") +
+  xlab("Dominant host species")+
+  ylab("Percent frequency")+
+  scale_y_continuous(limits = c(0,1))+
+  theme_classic()+
+  theme(axis.title=element_text(size = 12))
+
+lact.spr.v.pine.freq
+
+freq.gaut.all.pine<-sum(sfsi.fungniche[which(sfsi.fungniche$tree_dom == "Pine"),which(colnames(sfsi.fungniche) =="p Gautieria_monticola")])/210 
+freq.gaut.all.spruce<-sum(sfsi.fungniche[which(sfsi.fungniche$tree_dom == "Spruce"),which(colnames(sfsi.fungniche) =="p Gautieria_monticola")])/210 
+
+freq.gaut.p.v.s<-c(freq.gaut.all.pine,freq.gaut.all.spruce)
+species<-c("Pine","Spruce")
+freq.gaut.p.v.s<-data.frame(freq.gaut.p.v.s,species)
+
+gaut.spr.v.pine.freq<-ggplot(freq.gaut.p.v.s, aes(x = species, y = freq.gaut.p.v.s)) +
+  geom_bar(fill = "seagreen", stat = "identity") +
+  xlab("Dominant host species")+
+  ylab("Percent frequency")+
+  scale_y_continuous(limits = c(0,1))+
+  theme_classic()+
+  theme(axis.title=element_text(size = 12))
+
+gaut.spr.v.pine.freq
+
+freq.cortc.all.pine<-sum(sfsi.fungniche[which(sfsi.fungniche$tree_dom == "Pine"),which(colnames(sfsi.fungniche) =="p Cortinarius_comptulus")])/210 
+freq.cortc.all.spruce<-sum(sfsi.fungniche[which(sfsi.fungniche$tree_dom == "Spruce"),which(colnames(sfsi.fungniche) =="p Cortinarius_comptulus")])/210 
+
+freq.cortc.p.v.s<-c(freq.cortc.all.pine,freq.cortc.all.spruce)
+species<-c("Pine","Spruce")
+freq.cortc.p.v.s<-data.frame(freq.cortc.p.v.s,species)
+
+cortc.spr.v.pine.freq<-ggplot(freq.cortc.p.v.s, aes(x = species, y = freq.cortc.p.v.s)) +
+  geom_bar(fill = "seagreen", stat = "identity") +
+  xlab("Dominant host species")+
+  ylab("Percent frequency")+
+  scale_y_continuous(limits = c(0,1))+
+  theme_classic()+
+  theme(axis.title=element_text(size = 12))
+
+cortc.spr.v.pine.freq
+
+freq.corts.all.pine<-sum(sfsi.fungniche[which(sfsi.fungniche$tree_dom == "Pine"),which(colnames(sfsi.fungniche) =="p Cortinarius_semisanguineus")])/210 
+freq.corts.all.spruce<-sum(sfsi.fungniche[which(sfsi.fungniche$tree_dom == "Spruce"),which(colnames(sfsi.fungniche) =="p Cortinarius_semisanguineus")])/210 
+
+freq.corts.p.v.s<-c(freq.corts.all.pine,freq.corts.all.spruce)
+species<-c("Pine","Spruce")
+freq.corts.p.v.s<-data.frame(freq.corts.p.v.s,species)
+
+corts.spr.v.pine.freq<-ggplot(freq.corts.p.v.s, aes(x = species, y = freq.corts.p.v.s)) +
+  geom_bar(fill = "seagreen", stat = "identity") +
+  xlab("Dominant host species")+
+  ylab("Percent frequency")+
+  scale_y_continuous(limits = c(0,1))+
+  theme_classic()+
+  theme(axis.title=element_text(size = 12))
+
+corts.spr.v.pine.freq
+
+freq.hyst.all.pine<-sum(sfsi.fungniche[which(sfsi.fungniche$tree_dom == "Pine"),which(colnames(sfsi.fungniche) =="p Hysterangium")])/210 
+freq.hyst.all.spruce<-sum(sfsi.fungniche[which(sfsi.fungniche$tree_dom == "Spruce"),which(colnames(sfsi.fungniche) =="p Hysterangium")])/210 
+
+freq.hyst.p.v.s<-c(freq.hyst.all.pine,freq.hyst.all.spruce)
+species<-c("Pine","Spruce")
+freq.hyst.p.v.s<-data.frame(freq.hyst.p.v.s,species)
+
+hyst.spr.v.pine.freq<-ggplot(freq.hyst.p.v.s, aes(x = species, y = freq.hyst.p.v.s)) +
+  geom_bar(fill = "seagreen", stat = "identity") +
+  xlab("Dominant host species")+
+  ylab("Percent frequency")+
+  scale_y_continuous(limits = c(0,1))+
+  theme_classic()+
+  theme(axis.title=element_text(size = 12))
+
+lact.spr.v.pine.freq+gaut.spr.v.pine.freq+russ.spr.v.pine.freq+hyst.spr.v.pine.freq+corts.spr.v.pine.freq+cortc.spr.v.pine.freq
+```
 
 ###relative abundance plot spruce vs pine
 ```{r}
@@ -612,5 +699,93 @@ spr.v.pine.plot.categ<-ggplot(sfsi.pres)+geom_jitter(aes(x=tree_dom,y=log10(mine
 
 #tiff("../figures/fungniche.pine.vs.spruce.tiff",res = 1000,width = 8000,height = 6000,units = "px")
 spr.v.pine.freq+spr.v.pine.plot.categ+plot_annotation(tag_levels = "A")
+```
+
+```{r}
+spr.v.pine.plot.categ.lact<-ggplot(sfsi.pres[which(sfsi.pres$`p Lactarius_vietus` > 0),])+geom_jitter(aes(x=tree_dom,y=Lactarius_vietus),position = position_jitter(0.08))+
+  stat_summary(aes(x=tree_dom,y=Lactarius_vietus),fun.y =   "mean",geom = "point",colour="red")+
+  stat_summary(aes(x=tree_dom,y=Lactarius_vietus),fun.data =   "mean_se",geom = "linerange",colour="red")+
+  xlab("Dominant host species")+
+  ylab("Relative abundance of Russula aquosa in sites where present (logged) \n \n")+
+  #annotate("text",x=0.20,y=0,label="100 %",size=3)+
+  #annotate("text",x=0.20,y=-1,label="10 %",size=3)+
+  #annotate("text",x=0.20,y=-2,label="1 %",size=3)+
+  #annotate("text",x=0.20,y=-3,label="0.1 %",size=3)+
+  #scale_y_continuous(limits = c(-3.2,0))+
+  coord_cartesian(clip = "off",xlim = c(1,2))+
+  theme_classic()+
+  theme(axis.title=element_text(size = 12),axis.text.y = element_blank())
+
+spr.v.pine.plot.categ.gaut<-ggplot(sfsi.pres[which(sfsi.pres$`p Gautieria_monticola` > 0),])+geom_jitter(aes(x=tree_dom,y=Gautieria_monticola),position = position_jitter(0.08))+
+  stat_summary(aes(x=tree_dom,y=Gautieria_monticola),fun.y =   "mean",geom = "point",colour="red")+
+  stat_summary(aes(x=tree_dom,y=Gautieria_monticola),fun.data =   "mean_se",geom = "linerange",colour="red")+
+  xlab("Dominant host species")+
+  ylab("Relative abundance of Russula aquosa in sites where present (logged) \n \n")+
+  #annotate("text",x=0.20,y=0,label="100 %",size=3)+
+  #annotate("text",x=0.20,y=-1,label="10 %",size=3)+
+  #annotate("text",x=0.20,y=-2,label="1 %",size=3)+
+  #annotate("text",x=0.20,y=-3,label="0.1 %",size=3)+
+  #scale_y_continuous(limits = c(-3.2,0))+
+  coord_cartesian(clip = "off",xlim = c(1,2))+
+  theme_classic()+
+  theme(axis.title=element_text(size = 12),axis.text.y = element_blank())
+
+spr.v.pine.plot.categ.russ<-ggplot(sfsi.pres[which(sfsi.pres$`p Russula_aquosa` > 0),])+geom_jitter(aes(x=tree_dom,y=Russula_aquosa),position = position_jitter(0.08))+
+  stat_summary(aes(x=tree_dom,y=Russula_aquosa),fun.y =   "mean",geom = "point",colour="red")+
+  stat_summary(aes(x=tree_dom,y=Russula_aquosa),fun.data =   "mean_se",geom = "linerange",colour="red")+
+  xlab("Dominant host species")+
+  ylab("Relative abundance of Russula aquosa in sites where present (logged) \n \n")+
+  #annotate("text",x=0.20,y=0,label="100 %",size=3)+
+  #annotate("text",x=0.20,y=-1,label="10 %",size=3)+
+  #annotate("text",x=0.20,y=-2,label="1 %",size=3)+
+  #annotate("text",x=0.20,y=-3,label="0.1 %",size=3)+
+  #scale_y_continuous(limits = c(-3.2,0))+
+  coord_cartesian(clip = "off",xlim = c(1,2))+
+  theme_classic()+
+  theme(axis.title=element_text(size = 12),axis.text.y = element_blank())
+
+spr.v.pine.plot.categ.hyst<-ggplot(sfsi.pres[which(sfsi.pres$`p Hysterangium` > 0),])+geom_jitter(aes(x=tree_dom,y=Hysterangium),position = position_jitter(0.08))+
+  stat_summary(aes(x=tree_dom,y=Hysterangium),fun.y =   "mean",geom = "point",colour="red")+
+  stat_summary(aes(x=tree_dom,y=Hysterangium),fun.data =   "mean_se",geom = "linerange",colour="red")+
+  xlab("Dominant host species")+
+  ylab("Relative abundance of Russula aquosa in sites where present (logged) \n \n")+
+  #annotate("text",x=0.20,y=0,label="100 %",size=3)+
+  #annotate("text",x=0.20,y=-1,label="10 %",size=3)+
+  #annotate("text",x=0.20,y=-2,label="1 %",size=3)+
+  #annotate("text",x=0.20,y=-3,label="0.1 %",size=3)+
+  #scale_y_continuous(limits = c(-3.2,0))+
+  coord_cartesian(clip = "off",xlim = c(1,2))+
+  theme_classic()+
+  theme(axis.title=element_text(size = 12),axis.text.y = element_blank())
+
+spr.v.pine.plot.categ.corts<-ggplot(sfsi.pres[which(sfsi.pres$`p Cortinarius_semisanguineus` > 0),])+geom_jitter(aes(x=tree_dom,y=Cortinarius_semisanguineus),position = position_jitter(0.08))+
+  stat_summary(aes(x=tree_dom,y=Cortinarius_semisanguineus),fun.y =   "mean",geom = "point",colour="red")+
+  stat_summary(aes(x=tree_dom,y=Cortinarius_semisanguineus),fun.data =   "mean_se",geom = "linerange",colour="red")+
+  xlab("Dominant host species")+
+  ylab("Relative abundance of Russula aquosa in sites where present (logged) \n \n")+
+  #annotate("text",x=0.20,y=0,label="100 %",size=3)+
+  #annotate("text",x=0.20,y=-1,label="10 %",size=3)+
+  #annotate("text",x=0.20,y=-2,label="1 %",size=3)+
+  #annotate("text",x=0.20,y=-3,label="0.1 %",size=3)+
+  #scale_y_continuous(limits = c(-3.2,0))+
+  coord_cartesian(clip = "off",xlim = c(1,2))+
+  theme_classic()+
+  theme(axis.title=element_text(size = 12),axis.text.y = element_blank())
+
+spr.v.pine.plot.categ.cortc<-ggplot(sfsi.pres[which(sfsi.pres$`p Cortinarius_comptulus` > 0),])+geom_jitter(aes(x=tree_dom,y=Cortinarius_comptulus),position = position_jitter(0.08))+
+  stat_summary(aes(x=tree_dom,y=Cortinarius_comptulus),fun.y =   "mean",geom = "point",colour="red")+
+  stat_summary(aes(x=tree_dom,y=Cortinarius_comptulus),fun.data =   "mean_se",geom = "linerange",colour="red")+
+  xlab("Dominant host species")+
+  ylab("Relative abundance of Russula aquosa in sites where present (logged) \n \n")+
+  #annotate("text",x=0.20,y=0,label="100 %",size=3)+
+  #annotate("text",x=0.20,y=-1,label="10 %",size=3)+
+  #annotate("text",x=0.20,y=-2,label="1 %",size=3)+
+  #annotate("text",x=0.20,y=-3,label="0.1 %",size=3)+
+  #scale_y_continuous(limits = c(-3.2,0))+
+  coord_cartesian(clip = "off",xlim = c(1,2))+
+  theme_classic()+
+  theme(axis.title=element_text(size = 12),axis.text.y = element_blank())
+
+spr.v.pine.plot.categ.lact+spr.v.pine.plot.categ.gaut+spr.v.pine.plot.categ.russ+spr.v.pine.plot.categ.hyst+spr.v.pine.plot.categ.corts+spr.v.pine.plot.categ.cortc
 ```
 
