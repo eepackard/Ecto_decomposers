@@ -435,7 +435,7 @@ sfsi.spruce.pres<-read_csv("../clean_data/SFSI_spruce_guildpresent.csv")
 ###relative abundance plot overall
 ```{r}
 pine.plot<-ggplot(sfsi.pine.pres)+geom_point(aes(x=unscaled_age,y=log10(sfsi.pine.pres$miners.relecm)))+
-  geom_smooth(aes(x=unscaled_age,y=log10(sfsi.pine.pres$miners.relecm)),method = "lm",se=FALSE)+
+  geom_smooth(aes(x=unscaled_age,y=log10(sfsi.pine.pres$miners.relecm)),method = "lm")+
   xlab("Forest age (years)")+
   ylab("Relative abundance of potential ectomycorrhizal decomposers \n amoung ectomycorrhizal fungi (log scale) \n \n ")+
   scale_x_continuous(breaks = c(10,50,100,150,200))+
@@ -472,7 +472,7 @@ sfsi.spruce.pres$agecat<-factor(sfsi.spruce.pres$agecat,levels=c('young','old'))
 
 pine.plot.categ<-ggplot(sfsi.pine.pres)+geom_jitter(aes(x=agecat,y=log10(miners.relecm)),position = position_jitter(0.08))+
   stat_summary(aes(x=agecat,y=log10(miners.relecm)),fun.y =   "mean",geom = "point",colour="red",size=3)+
-  stat_summary(aes(x=agecat,y=log10(miners.relecm)),fun.data =   "mean_se",geom = "linerange",colour="red",lwd=1)+
+  stat_summary(aes(x=agecat,y=log10(miners.relecm)),fun.ymin = function(x) mean(x) - sd(x), fun.ymax = function(x) mean(x) + sd(x),geom = "linerange",colour="red",lwd=1)+
   xlab("Forest age")+
   ylab("")+
   annotate("text",x=-0,y=0,label="100 %",size=3)+
@@ -486,7 +486,7 @@ pine.plot.categ<-ggplot(sfsi.pine.pres)+geom_jitter(aes(x=agecat,y=log10(miners.
 
 pine.plot.categ.box<-ggplot(sfsi.pine.pres)+geom_boxplot(aes(x=agecat,y=log10(miners.relecm)))+
   stat_summary(aes(x=agecat,y=log10(miners.relecm)),fun.y =   "mean",geom = "point",colour="red",size=3)+
-  stat_summary(aes(x=agecat,y=log10(miners.relecm)),fun.data =   "mean_se",geom = "linerange",colour="red",lwd=1)+
+  stat_summary(aes(x=agecat,y=log10(miners.relecm)),fun.ymin = function(x) mean(x) - sd(x), fun.ymax = function(x) mean(x) + sd(x),geom = "linerange",colour="red",lwd=1)+
   xlab("Forest age")+
   ylab("")+
   annotate("text",x=-0,y=0,label="100 %",size=3)+
@@ -512,7 +512,7 @@ spruce.plot.categ<-ggplot(sfsi.spruce.pres)+geom_jitter(aes(x=agecat,y=log10(min
   theme_classic()+
   theme(axis.title=element_text(size = 12,family="Times New Roman"),axis.text.y = element_blank())
 
-#tiff("../figures/guild_niche_age_pine.tiff",res = 1000,width = 175,height = 120,units="mm")
+#tiff("../figures/guild_niche_age_pine_confint.tiff",res = 1000,width = 175,height = 120,units="mm")
 pine.plot+pine.plot.categ+plot_layout(widths = c(4,2))+plot_annotation(tag_levels = "A")
 
 spruce.plot.categ
