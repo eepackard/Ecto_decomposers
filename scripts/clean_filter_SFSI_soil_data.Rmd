@@ -66,7 +66,7 @@ SFSI.soil.f1<-SFSI.soil[which(SFSI.soil$Bestandsalder >10),]
 SFSI.soil.f1<-SFSI.soil.f1[which(SFSI.soil.f1$Agoslag == 1),]
 SFSI.soil.f1<-SFSI.soil.f1[-which(SFSI.soil.f1$Tallandel+SFSI.soil.f1$Granandel < 90),]
 SFSI.soil.f1<-SFSI.soil.f1[which(SFSI.soil.f1$CN < 200),]
-SFSI.soil.f1<-SFSI.soil.f1[which(between(SFSI.soil.f1$Temperatursumma,1100,1500)),]
+#SFSI.soil.f1<-SFSI.soil.f1[which(between(SFSI.soil.f1$Temperatursumma,1100,1500)),]
 SFSI.soil.f1<-SFSI.soil.f1[-which(SFSI.soil.f1$pH_H2O > 6),]
 
 #SFSI.soil.f1<-SFSI.soil.f1[which(SFSI.soil.f1$H_form %in% c("1","2","3")),] 
@@ -80,7 +80,7 @@ SFSI.soil.f2<-SFSI.soil.f1[-which(SFSI.soil.f1$JordprovNr %in% setdiff(SFSI.soil
 datasetlist.rel.sfsi.f2<-datasetlist.rel.sfsi[-which(datasetlist.rel.sfsi$JordProvnr %in% setdiff(datasetlist.rel.sfsi$JordProvnr,SFSI.soil.f1$JordprovNr)),] #remove 6 
 datasetlist.rel.sfsi.ecm.f1<-datasetlist.rel.sfsi.ecm[-which(datasetlist.rel.sfsi.ecm$JordProvnr %in% setdiff(datasetlist.rel.sfsi.ecm$JordProvnr,SFSI.soil.f1$JordprovNr)),]
 #this removes samples which then means some taxa have zero relative abundances across the remaining samples
-datasetlist.rel.sfsi.ecm.f1<-datasetlist.rel.sfsi.ecm.f1[,-which(colSums(datasetlist.rel.sfsi.ecm.f1[,-371])==0)]
+datasetlist.rel.sfsi.ecm.f1<-datasetlist.rel.sfsi.ecm.f1[,-which(colSums(datasetlist.rel.sfsi.ecm.f1[,-ncol(datasetlist.rel.sfsi.ecm.f1)])==0)]
 
 #now match the rows of species data to the order of sfsi
 datasetlist.rel.sfsi.f2<-datasetlist.rel.sfsi.f2[match(SFSI.soil.f2$JordprovNr,datasetlist.rel.sfsi.f2$JordProvnr),]
