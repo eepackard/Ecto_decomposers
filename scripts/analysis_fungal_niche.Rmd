@@ -91,8 +91,8 @@ miner.guild.sqrt.sfsi.ecm<-sqrt(miner.guild.sfsi.ecm)#hellinger transformation o
 # niche variables
 ```{r}
 #bind together soil data and guild data
-sfsi.fungniche<-as.data.frame(cbind(miner.taxa.sfsi,miner.taxa.sfsi.ecm,miner.taxa.p.sfsi,miner.guild.p.sfsi,miner.guild.sfsi,miner.guild.sfsi.ecm,miner.guild.sqrt.sfsi,miner.guild.sqrt.sfsi.ecm,SFSI.soil.sel$Bestandsalder_scaled,SFSI.soil.sel$Bestandsalder_log_scaled,SFSI.soil.sel$Granandel_scaled,SFSI.soil.sel$pH_H2O_log_scaled,SFSI.soil.sel$NC_scaled,SFSI.soil.sel$Temperatursumma_scaled,SFSI.soil.sel$Taxar,SFSI.soil.sel$Bestandsaldercat,SFSI.soil.sel$Cstock_log_scaled,SFSI.soil.sel$Cstock_scaled,SFSI.soil.sel$seqplat,SFSI.soil.sel$Bestandsalder,SFSI.soil.sel$NC,SFSI.soil.sel$CN,SFSI.soil.sel$Bjorkandel,SFSI.soil.sel$Granandel,SFSI.soil.sel$Tallandel))
-colnames(sfsi.fungniche)<-c(colnames(miner.taxa.sfsi),paste("ecm",colnames(miner.taxa.p.sfsi)),paste("p",colnames(miner.taxa.p.sfsi)),"miners.pres","miners.rel","miners.relecm","miners.relsqrt","miners.relsqrtecm","age","age_log","spruce","pH","NC","temp","year","agecat","Cstock_log","Cstock","Seqplat","unscaled_age","unscaled_NC","unscaled_CN","unscaled_birch","unscaled_spruce","unscaled_pine")
+sfsi.fungniche<-as.data.frame(cbind(miner.taxa.sfsi,miner.taxa.sfsi.ecm,miner.taxa.p.sfsi,miner.guild.p.sfsi,miner.guild.sfsi,miner.guild.sfsi.ecm,miner.guild.sqrt.sfsi,miner.guild.sqrt.sfsi.ecm,SFSI.soil.sel$Bestandsalder_scaled,SFSI.soil.sel$Bestandsalder_log_scaled,SFSI.soil.sel$Granandel_scaled,SFSI.soil.sel$pH_H2O_log_scaled,SFSI.soil.sel$NC_scaled,SFSI.soil.sel$Temperatursumma_scaled,SFSI.soil.sel$Taxar,SFSI.soil.sel$Bestandsaldercat,SFSI.soil.sel$Cstock_log_scaled,SFSI.soil.sel$Cstock_scaled,SFSI.soil.sel$seqplat,SFSI.soil.sel$Bestandsalder,SFSI.soil.sel$NC,SFSI.soil.sel$CN,SFSI.soil.sel$Bjorkandel,SFSI.soil.sel$Granandel,SFSI.soil.sel$Tallandel,SFSI.soil.sel$pH_H2O))
+colnames(sfsi.fungniche)<-c(colnames(miner.taxa.sfsi),paste("ecm",colnames(miner.taxa.p.sfsi)),paste("p",colnames(miner.taxa.p.sfsi)),"miners.pres","miners.rel","miners.relecm","miners.relsqrt","miners.relsqrtecm","age","age_log","spruce","pH","NC","temp","year","agecat","Cstock_log","Cstock","Seqplat","unscaled_age","unscaled_NC","unscaled_CN","unscaled_birch","unscaled_spruce","unscaled_pine","unscaled_pH")
 
 corrgram(sfsi.fungniche[,which(colnames(sfsi.fungniche) %in% c("miners.pres","age","pH","NC","spruce","temp"))],upper.panel = panel.conf,lower.panel = panel.fill)
 
@@ -209,12 +209,12 @@ hist(sfsi.pine.pres$miner.relecmlog)
 ```{r}
 #linear model with relecmative abun of guild to only ectomycorrhizal
 #pine
-#lm.relecm.pine<-lmer(miner.relecmlog~age+fert.pca+(1|Seqplat),data = sfsi.pine.pres)#
+lm.relecm.pine<-lmer(miner.relecmlog~age+fert.pca+(1|Seqplat),data = sfsi.pine.pres)#
 lm.relecm.pine<-lmer(miner.relecmlog~agecat+fert.pca+(1|Seqplat),data = sfsi.pine.pres)
 #lm.relecm.pine<-lmer(miner.relecmlog~fert.age.pca+(1|Seqplat),data = sfsi.pine.pres)
 summary(lm.relecm.pine)
-#summary(aov(miner.relecmlog~age+fert.pca+(1|Seqplat),data = sfsi.pine.pres))
-summary(aov(miner.relecmlog~agecat+fert.pca+(1|Seqplat),data = sfsi.pine.pres))#
+summary(aov(miner.relecmlog~age+fert.pca+(1|Seqplat),data = sfsi.pine.pres))
+summary(aov(miner.relecmlog~agecat+fert.pca+(1|Seqplat),data = sfsi.pine.pres))#[-which(sfsi.pine.pres$unscaled_age > 155),]
 #summary(aov(miner.relecmlog~fert.age.pca+(1|year),data = sfsi.pine.pres))
 plot(lm.relecm.pine)
 r.squaredGLMM(lmer(miner.relecmlog~agecat+fert.pca+(1|Seqplat),data = sfsi.pine.pres))
@@ -316,6 +316,7 @@ p.value.pine.list.glm.fert<-list()
 p.value.spruce.list.glm.fert<-list()
 p.value.pine.list.fisher.age<-list()
 p.value.spruce.list.fisher.age<-list()
+p.value.spruce.v.pine.fisher<-list()
 
 #extract p values
 for( i in 1:6){
@@ -327,6 +328,7 @@ p.value.pine.list.fisher.age[[i]]<-fisher.age.results.pine[[i]]$p.value
 p.value.spruce.list.fisher.age[[i]]<-fisher.age.results.spruce[[i]]$p.value
 p.value.pine.list.glm.fert[[i]]<-glm.fert.results.pine[[i]]$`Pr(>Chisq)`
 p.value.spruce.list.glm.fert[[i]]<-glm.fert.results.spruce[[i]]$`Pr(>Chisq)`
+p.value.spruce.v.pine.fisher[[i]]<-fisher.age.results.all[[i]]$p.value
 }
 
 p.adjust(unlist(p.value.pine.list.wilcox.age),method = "fdr")
@@ -337,6 +339,7 @@ p.adjust(unlist(p.value.pine.list.fisher.age),method = "fdr")
 p.adjust(unlist(p.value.spruce.list.fisher.age),method = "fdr")
 p.adjust(unlist(p.value.pine.list.glm.fert),method = "fdr")
 p.adjust(unlist(p.value.spruce.list.glm.fert),method = "fdr")
+p.adjust(unlist(p.value.spruce.v.pine.fisher),method = "fdr")
 ```
 
 
