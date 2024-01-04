@@ -23,6 +23,7 @@ library(sf)         # Simple Features, handle .shp-filer, geographical data and 
 library(tmap)       # Like ggplot2 but specifically for creating maps
 library(patchwork)
 library(ggplot2)
+library(grid)
 ```
 
 #   Read in data 
