@@ -45,7 +45,7 @@ freq.pine$second_column<-factor(freq.pine$second_column,levels=c('10-31','32-45'
 numsites.p<-c(118,109,114,110,113)
 
 pine.freq<-ggplot(freq.pine, aes(x = second_column, y = first_column)) +
-  geom_bar(fill = "yellowgreen", stat = "identity") +
+  geom_bar(fill = "#2A9D8F", stat = "identity") +
   geom_text(aes(label = numsites.p), vjust = -0.3) + 
   xlab("")+
   ylab("Percent frequency")+
@@ -64,7 +64,7 @@ freq.spruce$second_column<-factor(freq.spruce$second_column,levels=c('10-28','29
 numsites.s<-c(75,73,74,70,73)
 
 spruce.freq<-ggplot(freq.spruce, aes(x = second_column, y = first_column)) +
-  geom_bar(fill = "darkgreen", stat = "identity") +
+  geom_bar(fill = "#275651", stat = "identity") +
   scale_x_discrete(drop=FALSE)+
   geom_text(aes(label = numsites.s), vjust = -0.3) + 
   xlab("Forest age")+
@@ -95,7 +95,7 @@ binary.freq.pine$second_column<-factor(binary.freq.pine$second_column,levels=c('
 numsites.p.b<-c("n=360","n=204")
 
 pine.binary.freq<-ggplot(binary.freq.pine, aes(x = second_column, y = first_column)) +
-  geom_bar(fill = "yellowgreen", stat = "identity") +
+  geom_bar(fill = "#2A9D8F", stat = "identity") +
   geom_text(aes(label = numsites.p.b), vjust = -0.3,) + 
   xlab("Forest age")+
   ylab("Frequency")+
@@ -115,7 +115,7 @@ binary.freq.spruce$second_column<-factor(binary.freq.spruce$second_column,levels
 numsites.s.b<-c("n=239","n=126")
 
 spruce.binary.freq<-ggplot(binary.freq.spruce, aes(x = second_column, y = first_column)) +
-  geom_bar(fill = "darkgreen", stat = "identity") +
+  geom_bar(fill = "#275651", stat = "identity") +
   scale_x_discrete(drop=FALSE)+
   geom_text(aes(label = numsites.s.b), vjust = -0.3) + 
   xlab("Forest age")+
@@ -231,7 +231,7 @@ freq.pine$second_column<-factor(freq.pine$second_column,levels=c('lowest CN','lo
 numsites.p<-c(113,113,112,113,113)
 
 pine.freq<-ggplot(freq.pine, aes(x = second_column, y = first_column)) +
-  geom_bar(fill = "yellowgreen", stat = "identity") +
+  geom_bar(fill = "#2A9D8F", stat = "identity") +
   geom_text(aes(label = numsites.p), vjust = -0.3) + 
   xlab("")+
   ylab("Percent frequency")+
@@ -250,7 +250,7 @@ freq.spruce$second_column<-factor(freq.spruce$second_column,levels=c('lowest CN'
 numsites.s<-c(73,73,73,73,73)
 
 spruce.freq<-ggplot(freq.spruce, aes(x = second_column, y = first_column)) +
-  geom_bar(fill = "darkgreen", stat = "identity") +
+  geom_bar(fill = "#275651", stat = "identity") +
   scale_x_discrete(drop=FALSE)+
   geom_text(aes(label = numsites.s), vjust = -0.3) + 
   xlab("NC")+
@@ -277,7 +277,7 @@ gaut.freq.pine$second_column<-factor(gaut.freq.pine$second_column,levels=c('lowe
 numsites.p<-c(113,113,112,113,113)
 
 gaut.pine.freq<-ggplot(gaut.freq.pine, aes(x = second_column, y = first_column)) +
-  geom_bar(fill = "yellowgreen", stat = "identity") +
+  geom_bar(fill = "#2A9D8F", stat = "identity") +
   geom_text(aes(label = numsites.p), vjust = -0.3) + 
   xlab("")+
   ylab("Percent frequency")+
@@ -305,7 +305,7 @@ hsyt.freq.pine$second_column<-ordered(hsyt.freq.pine$second_column,levels=c('hig
 
 
 hsyt.pine.freq<-ggplot(hsyt.freq.pine, aes(x = second_column, y = first_column)) +
-  geom_bar(fill = "yellowgreen", stat = "identity") +
+  geom_bar(fill = "#2A9D8F", stat = "identity") +
   #geom_text(aes(label = numsites.p), vjust = -0.3,size=3) + 
   xlab("")+
   ylab("")+
@@ -334,7 +334,7 @@ cort.se.freq.pine$second_column<-ordered(cort.se.freq.pine$second_column,levels=
 
 
 cort.se.pine.freq<-ggplot(cort.se.freq.pine, aes(x = second_column, y = first_column)) +
-  geom_bar(fill = "yellowgreen", stat = "identity") +
+  geom_bar(fill = "#2A9D8F", stat = "identity") +
   #geom_text(aes(label = numsites.p), vjust = -0.3,size=3) + 
   xlab("")+
   ylab("Frequency")+
@@ -364,7 +364,7 @@ hsyt.freq.spruce$second_column<-ordered(hsyt.freq.spruce$second_column,levels=c(
 numsites.s<-c(73,73,73,73,73)
 
 hsyt.spruce.freq<-ggplot(hsyt.freq.spruce, aes(x = second_column, y = first_column)) +
-  geom_bar(fill = "darkgreen", stat = "identity") +
+  geom_bar(fill = "#275651", stat = "identity") +
   scale_x_discrete(drop=FALSE)+
   #geom_text(aes(label = numsites.s), vjust = -0.3,size=3) + 
   xlab("CN")+
@@ -394,7 +394,7 @@ cort.se.freq.spruce$second_column<-ordered(cort.se.freq.spruce$second_column,lev
 
 
 cort.se.spruce.freq<-ggplot(cort.se.freq.spruce, aes(x = second_column, y = first_column)) +
-  geom_bar(fill = "darkgreen", stat = "identity") +
+  geom_bar(fill = "#275651", stat = "identity") +
   scale_x_discrete(drop=FALSE)+
   #geom_text(aes(label = numsites.s), vjust = -0.3,size=3) + 
   xlab("CN")+
