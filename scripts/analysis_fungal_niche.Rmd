@@ -267,7 +267,7 @@ summary(aov(miner.relecmlog~agecat+fert.pca+(1|Seqplat),data = sfsi.spruce.pres)
 summary(aov(miner.relecmlog~age_log+fert.pca+(1|year),data = sfsi.spruce.pres))
 plot(lm.relecm.spruce)
 r.squaredGLMM(lmer(miner.relecmlog~agecat+fert.pca+(1|Seqplat),data = sfsi.spruce.pres))
-r.squaredGLMM(lmer(miner.relecmlog~age+fert.pca+(1|Seqplat),data = sfsi.spruce.pres))
+r.squaredGLMM(lmer(miner.relecmlog~age_log+fert.pca+(1|Seqplat),data = sfsi.spruce.pres))
 
 
 test.varpart<-varpart(sfsi.pine.pres$miner.relecmlog, ~unscaled_age, ~ fert.pca, data = sfsi.pine.pres[,which(colnames(sfsi.pine.pres) %in% c("miner.relecmlog","unscaled_age","fert.pca"))])
@@ -305,7 +305,7 @@ summary(aov(miner.rellog~agecat+fert.pca+(1|Seqplat),data = sfsi.spruce.pres))#
 summary(aov(miner.rellog~age_log+fert.pca+(1|year),data = sfsi.spruce.pres))
 plot(lm.rel.spruce)
 r.squaredGLMM(lmer(miner.rellog~agecat+fert.pca+(1|Seqplat),data = sfsi.spruce.pres))
-r.squaredGLMM(lmer(miner.rellog~age+fert.pca+(1|Seqplat),data = sfsi.spruce.pres))
+r.squaredGLMM(lmer(miner.rellog~age_log+fert.pca+(1|Seqplat),data = sfsi.spruce.pres))
 
 ```
 
@@ -340,7 +340,7 @@ glm.fert.sum.spruce
 
 
 #Rel abun - wilcox
-list.rel.miners.ecm<-list(c(colnames(sfsi.pine[,7:12])))
+list.rel.miners.ecm<-list(c(colnames(sfsi.pine.pres[,1:6])))
 col.num<-list(13:18)
 pearson.age.results.pine.ecm<-list()
 pearson.age.results.spruce.ecm<-list()
@@ -348,13 +348,13 @@ pearson.fert.results.pine.ecm<-list()
 pearson.fert.results.spruce.ecm<-list()
 
 for (i in 1:6){
-pearson.age.results.pine.ecm[[i]]<-cor.test(as.numeric(unlist(sfsi.pine[which(sfsi.pine[, col.num[[1]][i]] == "1"),which(colnames(sfsi.pine) == "unscaled_age")])),as.numeric(unlist(log(sfsi.pine[which(sfsi.pine[, col.num[[1]][i]] == "1"),which(colnames(sfsi.pine) == list.rel.miners.ecm[[1]][[i]])])))) 
+pearson.age.results.pine.ecm[[i]]<-cor.test(as.numeric(unlist(sfsi.pine.pres[which(sfsi.pine.pres[, col.num[[1]][i]] == "1"),which(colnames(sfsi.pine.pres) == "age_log")])),as.numeric(unlist(log(sfsi.pine.pres[which(sfsi.pine.pres[, col.num[[1]][i]] == "1"),which(colnames(sfsi.pine.pres) == list.rel.miners.ecm[[1]][[i]])])))) 
 
-pearson.age.results.spruce.ecm[[i]]<-cor.test(as.numeric(unlist(sfsi.spruce[which(sfsi.spruce[, col.num[[1]][i]] == "1"),which(colnames(sfsi.spruce) == "unscaled_age")])),as.numeric(unlist(log(sfsi.spruce[which(sfsi.spruce[, col.num[[1]][i]] == "1"),which(colnames(sfsi.spruce) == list.rel.miners.ecm[[1]][[i]])])))) 
+pearson.age.results.spruce.ecm[[i]]<-cor.test(as.numeric(unlist(sfsi.spruce.pres[which(sfsi.spruce.pres[, col.num[[1]][i]] == "1"),which(colnames(sfsi.spruce.pres) == "age_log")])),as.numeric(unlist(log(sfsi.spruce.pres[which(sfsi.spruce.pres[, col.num[[1]][i]] == "1"),which(colnames(sfsi.spruce.pres) == list.rel.miners.ecm[[1]][[i]])])))) 
 
-pearson.fert.results.pine.ecm[[i]]<-cor.test(as.numeric(unlist(sfsi.pine[which(sfsi.pine[, col.num[[1]][i]] == "1"),which(colnames(sfsi.pine) == "fert.pca")])),as.numeric(unlist(log(sfsi.pine[which(sfsi.pine[, col.num[[1]][i]] == "1"),which(colnames(sfsi.pine) == list.rel.miners.ecm[[1]][[i]])])))) 
+pearson.fert.results.pine.ecm[[i]]<-cor.test(as.numeric(unlist(sfsi.pine.pres[which(sfsi.pine.pres[, col.num[[1]][i]] == "1"),which(colnames(sfsi.pine.pres) == "fert.pca")])),as.numeric(unlist(log(sfsi.pine.pres[which(sfsi.pine.pres[, col.num[[1]][i]] == "1"),which(colnames(sfsi.pine.pres) == list.rel.miners.ecm[[1]][[i]])])))) 
 
-pearson.fert.results.spruce.ecm[[i]]<-cor.test(as.numeric(unlist(sfsi.spruce[which(sfsi.spruce[, col.num[[1]][i]] == "1"),which(colnames(sfsi.spruce) == "fert.pca")])),as.numeric(unlist(log(sfsi.spruce[which(sfsi.spruce[, col.num[[1]][i]] == "1"),which(colnames(sfsi.spruce) == list.rel.miners.ecm[[1]][[i]])])))) 
+pearson.fert.results.spruce.ecm[[i]]<-cor.test(as.numeric(unlist(sfsi.spruce.pres[which(sfsi.spruce.pres[, col.num[[1]][i]] == "1"),which(colnames(sfsi.spruce.pres) == "fert.pca")])),as.numeric(unlist(log(sfsi.spruce.pres[which(sfsi.spruce.pres[, col.num[[1]][i]] == "1"),which(colnames(sfsi.spruce.pres) == list.rel.miners.ecm[[1]][[i]])])))) 
  }
 
 pearson.age.results.pine.ecm
