@@ -54,7 +54,7 @@ MnP.CCA.1<-cca(sqrt(datasetlist.rel.15)~Meta.data.spatial$MnP_gOM.log+Condition(
 MnP.CCA.genus<-cca(sqrt(datasetlist.rel.genus.15)~Meta.data.spatial$MnP_gOM.log+Condition(Meta.data.spatial$plot))
 MnP.CCA.test<-cca(sqrt(datasetlist.rel.15)~sample(Meta.data.spatial$MnP_gOM.log,replace = FALSE)+Condition(Meta.data.spatial$plot))
 
-plot(MnP.CCA.genus)
+plot(MnP.CCA.1)
 
 anova(MnP.CCA.1,permutations = ctrl)
 anova(MnP.CCA.genus,permutations = ctrl)
