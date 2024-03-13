@@ -20,10 +20,10 @@ library(tidyr)
 
 #read in data
 ```{r}
-datasetlist.rel.agar.15<-read_csv("../clean_data/SS_data_relabun_agar_15_1.5perc.csv")#list(,read_csv("../clean_data/SS_data_relabun_agar_15_5perc.csv"
+datasetlist.rel.agar.15<-read_csv("../clean_data/SS_data_relabun_agar_15_1.5perc.csv")
 datasetlist.rel.agar.genus.15<-read_csv("../clean_data/SS_data_relabun__agar_genus_15.csv")
 Meta.data.spatial<-read_csv("../clean_data/Clean_spatial_study_metadata.csv")
-taxsetlist.agar<-read_csv("../clean_data/clean_taxonimcdata_SFSI_SS_agar_1.5perc.csv")#,read_csv("../clean_data/clean_taxonimcdata_SFSI_SS_agar_5perc.csv")
+taxsetlist.agar<-read_csv("../clean_data/clean_taxonimcdata_SFSI_SS_agar_1.5perc.csv")
 ```
 
 
@@ -31,13 +31,23 @@ taxsetlist.agar<-read_csv("../clean_data/clean_taxonimcdata_SFSI_SS_agar_1.5perc
 ```{r}
 #using untransformed but scaled MnP activity per site.. everything is in same rows so can just multiply the matrix
 
-wae.15<-as.data.frame(colSums(Meta.data.spatial$MnP_gOM_scaled*datasetlist.rel.agar.15[[1]])/colSums(datasetlist.rel.agar.15[[1]]))
+wae.15<-as.data.frame(colSums(Meta.data.spatial$MnP_gOM_scaled*datasetlist.rel.agar.15)/colSums(datasetlist.rel.agar.15))
 colnames(wae.15)<-c("Weight.aver")
 
 wae.15.genera<-as.data.frame(colSums(Meta.data.spatial$MnP_gOM_scaled*datasetlist.rel.agar.genus.15)/colSums(datasetlist.rel.agar.genus.15))
 colnames(wae.15.genera)<-c("Weight.aver")
-
 ```
+
+##compare ecology to WAE
+```{r}
+#make wae table with ecology (saprotrophic or mycorrhizal)
+
+wae.15.ecol<-wae.15
+tax.wae<-taxsetlist.agar[which(taxsetlist.agar$`Cluster ID` %in% rownames(wae.15.ecol)),c(1,4,31)]
+tax.wae<-tax.wae[match(rownames(wae.15.ecol),tax.wae$`Cluster ID`,),]
+wae.15.ecol$Ecology<-tax.wae$Ecology
+```
+
 
 #permutation test of the weighted averages
 ```{r}
@@ -61,9 +71,9 @@ permutation.test <- function(MnP, spec.data, test.stat, n){
 ```{r}
 set.seed(13)
 
-permtest.results.15 <- permutation.test(MnP =  Meta.data.spatial$MnP_gOM_scaled, spec.data = datasetlist.rel.agar.15[[1]],test.stat = wae.15, 10000)
+permtest.results.15 <- permutation.test(MnP =  Meta.data.spatial$MnP_gOM_scaled, spec.data = datasetlist.rel.agar.15,test.stat = wae.15, 10000)
 
-#plot Cort semisan
+#plot Cort
 hist(as.numeric(as.data.frame(permtest.results.15[[2]])[13,]), breaks=50, col='grey', main="Permutation Distribution", las=1, xlab='')
 abline(v=wae.15[which(rownames(wae.15)== "scata6318_68"),], lwd=3, col="red")
 
@@ -71,14 +81,32 @@ abline(v=wae.15[which(rownames(wae.15)== "scata6318_68"),], lwd=3, col="red")
 hist(as.numeric(as.data.frame(permtest.results.15[[2]])[71,]), breaks=50, col='grey', main="Permutation Distribution", las=1, xlab='')
 abline(v=wae.15[which(rownames(wae.15)== "scata6318_310"),], lwd=3, col="red")
 
+#plot mycena
+hist(as.numeric(as.data.frame(permtest.results.15[[2]])[24,]), breaks=50, col='grey', main="Permutation Distribution", las=1, xlab='')
+abline(v=wae.15[which(rownames(wae.15)== "scata6318_90"),], lwd=3, col="red")
 
-wae.perm.results.15<-as.data.frame(cbind(colnames(datasetlist.rel.agar.15[[1]]),p.adjust(permtest.results.15[[1]],method = "fdr",length(permtest.results.15[[1]])),permtest.results.15[[1]]))
+wae.perm.results.15<-as.data.frame(cbind(colnames(datasetlist.rel.agar.15),p.adjust(permtest.results.15[[1]],method = "fdr",length(permtest.results.15[[1]])),permtest.results.15[[1]]))
 wae.perm.results.15[which(wae.perm.results.15$V3 < 0.1),]
-wae.perm.results.15$ID<-taxsetlist.agar[[1]][match(wae.perm.results.15$V1,taxsetlist.agar[[1]]$`Cluster ID`),]$Reference
+wae.perm.results.15$ID<-taxsetlist.agar[match(wae.perm.results.15$V1,taxsetlist.agar$`Cluster ID`),]$Reference
 colnames(wae.perm.results.15)<-c("Cluster_ID","adjusted_p","p","ID")
 
 wae.perm.results.15[match(sort(wae.perm.results.15$p),wae.perm.results.15$p),]
+```
 
+
+#make nice table
+```{r}
+wae.perm.results.15<-wae.perm.results.15[match(rownames(wae.15),wae.perm.results.15$Cluster_ID),]
+wae.perm.results.15$WAE<- wae.15$Weight.aver #add WAE 
+wae.perm.results.15<-wae.perm.results.15[,c(1,4,3,5)] #re-order
+wae.perm.results.15$Ecology <- wae.15.ecol$Ecology #add ecology
+
+#make presence/absence data set - so I can add occurance
+datasetlist.rel.agar.15.p<-datasetlist.rel.agar.15 
+datasetlist.rel.agar.15.p[datasetlist.rel.agar.15.p>0]<-1
+wae.perm.results.15$Occurrence <- colSums(datasetlist.rel.agar.15.p)
+
+write_csv(wae.perm.results.15,file = "../figures/WAE_results.csv")
 ```
 
 #genus level WAE
@@ -96,7 +124,18 @@ colnames(wae.perm.results.15.genera)<-c("ID","adjusted_p","p")#,"ID"
 wae.perm.results.15.genera[match(sort(wae.perm.results.15.genera$p),wae.perm.results.15.genera$p),]
 
 ```
+#make nice table 
+```{r}
+wae.perm.results.15.genera$WAE<- wae.15.genera$Weight.aver #add WAE 
+wae.perm.results.15.genera<-wae.perm.results.15.genera[,c(1,3,4)] #re-order and remove adjusted P
 
+#make presence/absence data set - so I can add occurance
+datasetlist.rel.agar.genus.15.p<-datasetlist.rel.agar.genus.15 
+datasetlist.rel.agar.genus.15.p[datasetlist.rel.agar.genus.15.p>0]<-1
+wae.perm.results.15.genera$Occurrence <- colSums(datasetlist.rel.agar.genus.15.p)
+
+write_csv(wae.perm.results.15.genera,file = "../figures/WAE_genus_results.csv")
+```
 
 #check consistency of CCA and WAE results 
 ```{r}
@@ -113,17 +152,12 @@ MnP.CCA.1<-MnP.CCA.1[match(MnP.CCA.1$...1,rownames(wae.15)),]
 plot(MnP.CCA.1$CCA1*-1,wae.15$Weight.aver)
 text(MnP.CCA.1$CCA1*-1,wae.15$Weight.aver,labels = rownames(wae.15))
 ```
-#get list of all species in clusters
-```{r}
-sorted.perm.results<-wae.perm.results.15[match(sort(wae.perm.results.15$p),wae.perm.results.15$p),]
-sorted.perm.results
-
-species_list<-sorted.perm.results[c(2,4,5,7,9,12),]$ID
-```
 
 #write WAE list
 ```{r}
 write.csv(wae.15,"../clean_data/wae.15.csv")
+wae.15.genera$Genus<-rownames(wae.15.genera)
+colnames(wae.15.genera)<-c("Weight.aver","Genus")
 write.csv(wae.15.genera,"../clean_data/wae.15.genera.csv")
 ```
 
