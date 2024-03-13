@@ -1,0 +1,40 @@
+---
+title: "Making_fasta_files"
+output: html_document
+date: "2024-03-11"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#load package
+```{r}
+library(readr)
+```
+
+
+#load data
+```{r}
+datasetlist.rel.15<-read_csv("../clean_data/SS_data_relabun_15_1.5perc.csv")
+taxsetlist<-list(read_csv("../clean_data/clean_taxonomicdata_SFSI_SS_1.5perc.csv"))
+```
+
+#format
+```{r}
+test.pres.noid<-datasetlist.rel.15
+
+test.pres.noid<-datasetlist.rel.15[,which(colnames(datasetlist.rel.15) %in% taxsetlist[[1]][which(is.na(taxsetlist[[1]]$Reference)),]$`Cluster ID`)]
+
+noidseqs<-taxsetlist[[1]][which(taxsetlist[[1]]$`Cluster ID` %in% colnames(test.pres.noid)),]$Sequence1
+noidscata<-taxsetlist[[1]][which(taxsetlist[[1]]$`Cluster ID` %in% colnames(test.pres.noid)),]$`Cluster ID`
+noid.fasta<-paste(">",noidscata,"\n",noidseqs,"\n")
+```
+
+#save
+```{r}
+sink("../clean_data/fasta_no_ID_SS.txt")
+cat(noid.fasta)
+sink()
+```
+
