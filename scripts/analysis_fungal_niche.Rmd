@@ -37,7 +37,7 @@ SFSI.soil.f2<-read_csv("../clean_data/Clean_filtered_SFSI_soil_data.csv")
 
 #create scaled soil parameters
 ```{r}
-#this centers and scales 
+#this centers and scales the variables because they are all of very different magnitude
 SFSI.soil.sel<-SFSI.soil.f2%>% mutate_at(c("Bestandsalder","Bestandsalder_log","Tallandel","Granandel","Bjorkandel","CN_log","Temperatursumma","pH_H2O_log","NC","CN","Cstock","Cstock_log"),list(scaled =scale))
 
 
@@ -93,6 +93,8 @@ miner.guild.sqrt.sfsi.ecm<-sqrt(miner.guild.sfsi.ecm)#hellinger transformation o
 ```{r}
 #bind together soil data and guild data
 sfsi.fungniche<-as.data.frame(cbind(miner.taxa.sfsi,miner.taxa.sfsi.ecm,miner.taxa.p.sfsi,miner.guild.p.sfsi,miner.guild.sfsi,miner.guild.sfsi.ecm,miner.guild.sqrt.sfsi,miner.guild.sqrt.sfsi.ecm,SFSI.soil.sel$Bestandsalder_scaled,SFSI.soil.sel$Bestandsalder_log_scaled,SFSI.soil.sel$Granandel_scaled,SFSI.soil.sel$pH_H2O_log_scaled,SFSI.soil.sel$NC_scaled,SFSI.soil.sel$Temperatursumma_scaled,SFSI.soil.sel$Taxar,SFSI.soil.sel$Bestandsaldercat,SFSI.soil.sel$Cstock_log_scaled,SFSI.soil.sel$Cstock_scaled,SFSI.soil.sel$seqplat,SFSI.soil.sel$Bestandsalder,SFSI.soil.sel$NC,SFSI.soil.sel$CN,SFSI.soil.sel$Bjorkandel,SFSI.soil.sel$Granandel,SFSI.soil.sel$Tallandel,SFSI.soil.sel$pH_H2O))
+
+#rename variables 
 colnames(sfsi.fungniche)<-c(colnames(miner.taxa.sfsi),paste("ecm",colnames(miner.taxa.p.sfsi)),paste("p",colnames(miner.taxa.p.sfsi)),"miners.pres","miners.rel","miners.relecm","miners.relsqrt","miners.relsqrtecm","age","age_log","spruce","pH","NC","temp","year","agecat","Cstock_log","Cstock","Seqplat","unscaled_age","unscaled_NC","unscaled_CN","unscaled_birch","unscaled_spruce","unscaled_pine","unscaled_pH")
 
 #make a pine/spruce categorical variable 
@@ -102,7 +104,6 @@ table(sfsi.fungniche$tree_dom)
 #this removes 29 sites where pine and spruce 50/50 (or 50/40/10 because of birch)
 
 corrgram(sfsi.fungniche[,which(colnames(sfsi.fungniche) %in% c("miners.pres","age","pH","NC","spruce","temp"))],upper.panel = panel.conf,lower.panel = panel.fill)
-
 
 #split into spruce and pine
 hist(sfsi.fungniche$spruce)
@@ -116,7 +117,6 @@ fviz_pca_biplot(pca.sfsi.fert.pine,axes = c(1,2))#,invisible = "ind"
 fviz_pca_biplot(pca.sfsi.fert.spruce,axes = c(1,2))#,invisible = "ind"
 #fviz_pca_biplot(pca.sfsi.fert,axes = c(2,3))#,invisible = "ind"
 
-
 sfsi.pine$fert.pca <-c(pca.sfsi.fert.pine$x[,1])
 sfsi.spruce$fert.pca <-c(pca.sfsi.fert.spruce$x[,1]*-1)
 
@@ -124,30 +124,12 @@ corrgram(sfsi.fungniche[,which(colnames(sfsi.fungniche) %in% c("NC","pH","miners
 corrgram(sfsi.pine[,which(colnames(sfsi.pine) %in% c("fert.pca","miners.pres","unscaled_age","temp"))],upper.panel = panel.conf,lower.panel = panel.fill)
 corrgram(sfsi.spruce[,which(colnames(sfsi.spruce) %in% c("fert.pca","miners.pres","unscaled_age","temp"))],upper.panel = panel.conf,lower.panel = panel.fill)
 
-pca.sfsi.age.fert.pine<-prcomp(sfsi.pine[,which(colnames(sfsi.pine) %in% c("age","fert.pca"))]) 
-pca.sfsi.age.fert.spruce<-prcomp(sfsi.spruce[,which(colnames(sfsi.spruce) %in% c("age","fert.pca"))])
-fviz_pca_biplot(pca.sfsi.age.fert.pine,axes = c(1,2))#,invisible = "ind"
-#fviz_pca_biplot(pca.sfsi.age.fert.pine,axes = c(1,3))#,invisible = "ind"
-fviz_pca_biplot(pca.sfsi.age.fert.spruce,axes = c(1,2))#,invisible = "ind"
-#fviz_pca_biplot(pca.sfsi.age.fert.spruce,axes = c(1,3))#,invisible = "ind"
-
-
-sfsi.pine$fert.age.pca<-c(pca.sfsi.age.fert.pine$x[,1])
-sfsi.spruce$fert.age.pca<-c(pca.sfsi.age.fert.spruce$x[,1])
-#fert.age.pca axis goes in direction that more positive is older and less fertile...
-
 
 pca.sfsi.fert<-prcomp(sfsi.fungniche[,which(colnames(sfsi.fungniche) %in% c("NC","pH","spruce","age"))]) 
 #tiff("../figures/PCA_age_NC_pH.tiff",width = 100,height = 100,res = 1000,units = "mm")
 fviz_pca_biplot(pca.sfsi.fert,axes = c(1,2),geom = "point",repel = T)
 
 sfsi.fungniche$fert.pca<-c(pca.sfsi.fert$x[,1]*-1)
-
-pca.sfsi<-prcomp(sfsi.fungniche[,which(colnames(sfsi.fungniche) %in% c("fert.pca","age"))]) 
-
-#tiff("../figures/PCA_age_NC_pH.tiff",width = 100,height = 100,res = 1000,units = "mm")
-fviz_pca_biplot(pca.sfsi,axes = c(1,2),geom = "point",repel = T)#,invisible = "ind"
-
 ```
 
 #compare presence of guild between pine and spruce
@@ -159,17 +141,13 @@ fisher.test(as.matrix(table(sfsi.fungniche[,which(colnames(sfsi.fungniche) %in% 
 ##GLMM of presence absence
 ```{r}
 glm.pa.spruce<-glmer(miners.pres~age_log+fert.pca+(1|Seqplat),family = binomial(),data = sfsi.spruce)#
-glm.pa.spruce<-glmer(miners.pres~age+fert.pca+(1|Seqplat),family = binomial(),data = sfsi.spruce)
 glm.pa.spruce<-glmer(miners.pres~agecat+fert.pca+(1|Seqplat),family = binomial(),data = sfsi.spruce)
-#glm.pa.spruce<-glmer(miners.pres~fert.age.pca+(1|year),family = binomial(),data = sfsi.spruce) #this one tests that fer age combined...
 summary(glm.pa.spruce)
 Anova(glm.pa.spruce)
 r.squaredGLMM(glm.pa.spruce)
 
 glm.pa.pine<-glmer(miners.pres~age_log+fert.pca+(1|Seqplat),family = binomial(),data = sfsi.pine)
-glm.pa.pine<-glmer(miners.pres~age+fert.pca+(1|Seqplat),family = binomial(),data = sfsi.pine)
 glm.pa.pine<-glmer(miners.pres~agecat+fert.pca+(1|Seqplat),family = binomial(),data = sfsi.pine)
-#glm.pa.pine<-glmer(miners.pres~fert.age.pca+(1|year),family = binomial(),data = sfsi.pine)
 summary(glm.pa.pine)
 Anova(glm.pa.pine)
 r.squaredGLMM(glm.pa.pine)
@@ -186,13 +164,14 @@ plot(simulationOutput)
 
 #compare relative abundance between pine and spruce
 ```{r}
-sfsi.pres<-sfsi.fungniche[-which(sfsi.fungniche$miners.pres == 0),]
+sfsi.pres<-sfsi.fungniche[-which(sfsi.fungniche$miners.pres == 0),] #this makes a dataset where only sites where at least one of the six ecto decomposers are present are kept
 
 hist(sfsi.pres$miners.relecm)
-sfsi.pres$miner.relecmlog<-log(sfsi.pres$miners.relecm)
+sfsi.pres$miner.relecmlog<-log(sfsi.pres$miners.relecm)#can now do a log transformation 
+sfsi.pres$miner.rellog<-log(sfsi.pres$miners.rel)
 hist(sfsi.pres$miner.relecmlog)
 
-spruce.v.pine<-lm(sfsi.pres$miner.relecmlog~ sfsi.pres$tree_dom)
+spruce.v.pine<-lm(sfsi.pres$miner.rellog~ sfsi.pres$tree_dom)
 summary(spruce.v.pine)
 plot(spruce.v.pine)
 anova(spruce.v.pine)
@@ -223,46 +202,22 @@ sfsi.pine.pres$miner.rellog<-log(sfsi.pine.pres$miners.rel)
 hist(sfsi.pine.pres$miner.rellog)
 ```
 
+##LMM of relative abundance in proportion to only ecto comm
 ```{r}
-lm.relecm<-lmer(miner.relecmlog~ age +fert.pca+ spruce+ (1|Seqplat),data = sfsi.pres)#
-summary(lm.relecm)
-summary(aov(miner.relecmlog~ age +fert.pca+spruce+  (1|Seqplat),data = sfsi.pres))#
-plot(lm.relecm)
-r.squaredGLMM(lmer(miner.relecmlog~ age +fert.pca+  (1|Seqplat),data = sfsi.pres))#spruce+
-
-fert_resid <- resid(lm(data=sfsi.pres, fert.pca ~ age_log ))
-age_resid <- resid(lm(data=sfsi.pres, age_log ~ fert.pca ))
-#miners_resid <- resid(lm(data=sfsi.pres, miner.relecmlog ~  Seqplat))
-ggplot(data=NULL) + geom_point(aes(x=age_resid, y=sfsi.pres$miner.relecmlog))
-ggplot(data=NULL) + geom_point(aes(x=fert_resid, y=sfsi.pres$miner.relecmlog))
-summary(aov(sfsi.pres$miner.relecmlog~ fert_resid+  (1|sfsi.pres$Seqplat)))
-summary(aov(sfsi.pres$miner.relecmlog~ age_resid +  (1|sfsi.pres$Seqplat)))
-
-```
-
-
-##LMM of relative abundance
-```{r}
-#linear model with relecmative abun of guild to only ectomycorrhizal
 #pine
-lm.relecm.pine<-lmer(miner.relecmlog~ age +fert.pca+(1|Seqplat),data = sfsi.pine.pres)#
 lm.relecm.pine<-lmer(miner.relecmlog~agecat+fert.pca+(1|Seqplat),data = sfsi.pine.pres)
 lm.relecm.pine<-lmer(miner.relecmlog~age_log +fert.pca+(1|Seqplat),data = sfsi.pine.pres)
 summary(lm.relecm.pine)
-summary(aov(miner.relecmlog~age +fert.pca+(1|Seqplat),data = sfsi.pine.pres))
 summary(aov(miner.relecmlog~agecat+fert.pca+(1|Seqplat),data = sfsi.pine.pres))#
 summary(aov(miner.relecmlog~age_log +fert.pca+(1|year),data = sfsi.pine.pres))
 plot(lm.relecm.pine)
 r.squaredGLMM(lmer(miner.relecmlog~agecat+fert.pca+(1|Seqplat),data = sfsi.pine.pres))
-r.squaredGLMM(lmer(miner.relecmlog~age+fert.pca+(1|Seqplat),data = sfsi.pine.pres))
 r.squaredGLMM(lmer(miner.relecmlog~age_log+fert.pca+(1|Seqplat),data = sfsi.pine.pres))
 
 #spruce
-lm.relecm.spruce<-lmer(miner.relecmlog~age+fert.pca+(1|Seqplat),data = sfsi.spruce.pres)#
 lm.relecm.spruce<-lmer(miner.relecmlog~agecat+fert.pca+(1|Seqplat),data = sfsi.spruce.pres)#
 lm.relecm.spruce<-lmer(miner.relecmlog~age_log+fert.pca+(1|Seqplat),data = sfsi.spruce.pres)
 summary(lm.relecm.spruce)
-summary(aov(miner.relecmlog~age+fert.pca+(1|Seqplat),data = sfsi.spruce.pres))#
 summary(aov(miner.relecmlog~agecat+fert.pca+(1|Seqplat),data = sfsi.spruce.pres))#
 summary(aov(miner.relecmlog~age_log+fert.pca+(1|year),data = sfsi.spruce.pres))
 plot(lm.relecm.spruce)
@@ -280,27 +235,22 @@ summary(test.varpart)
 showvarparts(2)
 plot(test.varpart,cutoff=-Inf)
 ```
+###LMM with relative abundance proportional to total fungal comm
 ```{r}
-#linear model with relecmative abun of guild 
-#pine
-lm.rel.pine<-lmer(miner.rellog~ age +fert.pca+(1|Seqplat),data = sfsi.pine.pres)#
+ #pine
 lm.rel.pine<-lmer(miner.rellog~agecat+fert.pca+(1|Seqplat),data = sfsi.pine.pres)
 lm.rel.pine<-lmer(miner.rellog~age_log +fert.pca+(1|Seqplat),data = sfsi.pine.pres)
 summary(lm.rel.pine)
-summary(aov(miner.rellog~age +fert.pca+(1|Seqplat),data = sfsi.pine.pres))
 summary(aov(miner.rellog~agecat+fert.pca+(1|Seqplat),data = sfsi.pine.pres))#
 summary(aov(miner.rellog~age_log +fert.pca+(1|year),data = sfsi.pine.pres))
 plot(lm.rel.pine)
 r.squaredGLMM(lmer(miner.rellog~agecat+fert.pca+(1|Seqplat),data = sfsi.pine.pres))
-r.squaredGLMM(lmer(miner.rellog~age+fert.pca+(1|Seqplat),data = sfsi.pine.pres))
 r.squaredGLMM(lmer(miner.rellog~age_log+fert.pca+(1|Seqplat),data = sfsi.pine.pres))
 
 #spruce
-lm.rel.spruce<-lmer(miner.rellog~age+fert.pca+(1|Seqplat),data = sfsi.spruce.pres)#
 lm.rel.spruce<-lmer(miner.rellog~agecat+fert.pca+(1|Seqplat),data = sfsi.spruce.pres)#
 lm.rel.spruce<-lmer(miner.rellog~age_log+fert.pca+(1|Seqplat),data = sfsi.spruce.pres)
 summary(lm.rel.spruce)
-summary(aov(miner.rellog~age+fert.pca+(1|Seqplat),data = sfsi.spruce.pres))#
 summary(aov(miner.rellog~agecat+fert.pca+(1|Seqplat),data = sfsi.spruce.pres))#
 summary(aov(miner.rellog~age_log+fert.pca+(1|year),data = sfsi.spruce.pres))
 plot(lm.rel.spruce)
@@ -310,7 +260,7 @@ r.squaredGLMM(lmer(miner.rellog~age_log+fert.pca+(1|Seqplat),data = sfsi.spruce.
 ```
 
 
-##testing individual miner taxa
+##testing individual ectomycorrhizal species
 ```{r}
 #presence/absence - fisher exact test
 list.pres.abs.miners<-list(c(colnames(sfsi.pine[,13:18])))
@@ -339,7 +289,7 @@ glm.fert.sum.pine
 glm.fert.sum.spruce
 
 
-#Rel abun - wilcox
+#Rel abun
 list.rel.miners.ecm<-list(c(colnames(sfsi.pine.pres[,1:6])))
 col.num<-list(13:18)
 pearson.age.results.pine.ecm<-list()
