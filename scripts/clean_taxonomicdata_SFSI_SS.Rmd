@@ -16,46 +16,60 @@ library(splitstackshape)
 
 #read in taxonomic data
 ```{r}
-#read in files
+#read in files - 98.5% similarity required to enter clusters, SCATA pipeline, national and regional dataset are clustered together so that species hypotheses can be traced between datasets
 scata6318_tax<-read_delim("../raw_data/all_clusters_scata6318.txt",delim = "\t",col_names = FALSE,show_col_types = FALSE) #it doesnt work to simply use ; as delim
 scata6318_tax<-cSplit(scata6318_tax,'X1',sep = ";",type.convert = FALSE)
-#scata6354_tax<-read_delim("../raw_data/all_clusters_scata6354.txt",delim = "\t",col_names = FALSE,show_col_types = FALSE) #it doesnt work to simply use ; as delim
-#scata6354_tax<-cSplit(scata6354_tax,'X1',sep = ";",type.convert = FALSE)
 
 
-taxsetlist.SFSI<-list(scata6318_tax)#,scata6354_tax
+taxsetlist<-scata6318_tax
 
 ##now I can split the taxonomy data out
-for (i in 1:length(taxsetlist.SFSI)) {
-colnames(taxsetlist.SFSI[[i]])<-as.character(taxsetlist.SFSI[[i]][35,])# make column names
-taxsetlist.SFSI[[i]]<-taxsetlist.SFSI[[i]][36:nrow(taxsetlist.SFSI[[i]]),]
-#taxsetlist.SFSI[[i]]<-taxsetlist.SFSI[[i]][-which(grepl("NF_",taxsetlist.SFSI[[i]]$Reference)),]##remove any plant clusters 
-}
+colnames(taxsetlist)<-as.character(taxsetlist[35,])# make column names
+taxsetlist<-taxsetlist[36:nrow(taxsetlist),] #remove filtering information
+
 
 #read in species database
 spec_database19<-read_delim("../raw_data/Speciesdatabase_19.txt",delim = "\t",col_names = TRUE,show_col_types = FALSE) 
 #unique(spec_database19[spec_database19$Class == "Agaricomycetes",]$Genus)
-agar.genera<-c("Agaricus|Echinoderma|Amanita|Conocybe|Camarophyllopsis|Clavaria|Clavulinopsis|Hodophilus|Ramariopsis|Cortinarius|Crepidotus|Clitopilus|Entocybe|Entoloma|Laccaria|Ampulloclitocybe|Arrhenia|Cuphophyllus|Gliophorus|Hygrocybe|Hygrophorus|Galerina|Gymnopilus|Hebeloma|Hymenogaster|Naucoria|Psilocybe|Calyptella|Clitocybe|Collybia|Cystoderma|Delicatula|Dendrocollybia|Fayodia|Lepista|Mycenella|Panaeolus|Rhizocybe|Squamanita|Inocybe|Lycoperdon|Asterophora|Calocybe|Tephrocybe|Marasmius|Hemimycena|Hydropus|Mycena|Roridomyces|Xeromphalina|Gymnopus|Mycetinis|Paragymnopus|Rhodocollybia|Armillaria|Flammulina|Rhizomarasmius|Pluteus|Coprinellus|Coprinopsis|Homophron|Parasola|Psathyrella|Pseudoclitocybe|Cristinia|Deconica|Hemipholiota|Hypholoma|Pholiota|Stropharia|Dermoloma|Tricholoma|Macrotyphula|Typhula|Amylocorticiellum|Ceraceomyces|Amphinema|Athelia|Byssocorticium|Piloderma|Tretomyces|Tylospora|Boletus|Chalciporus|Chamonixia|Imleria|Leccinum|Tylopilus|Xerocomellus|Xerocomus|Coniophora|Chroogomphus|Hygrophoropsis|Leucogyrophana|Alpova|Hydnomerulius|Melanogaster|Paxillus|Rhizopogon|Scleroderma|Serpula|Suillus|Fibricium|Protodontia|Pseudohydnum|Stypella|Oliveonia|Ceratobasidium|Clavulina|Craterellus|Hydnum|Sistotrema|Minimedusa|Waitea|Tubulicrinis|Alloclavaria|Cotylidia|Resinicium|Rickenella|Hyphodontia|Xylodon|Fibulochlamys|Postia|Rigidoporus|Physisporinus|Phanerochaete|Ganoderma|Odontia|Xenasmatella|Byssoporia|Gloiothele|Scytinostroma|Lactarius|Russula|Helvellosebacina|Sebacina|Serendipita|Phellodon|Pseudotomentella|Thelephora|Tomentella|Tomentellopsis|Luellia|Sistotremastrum|Subulicystidium|Trechispora|Steccherinum|Nidulariopsis|Clavariadelphus|Gautieria|Ramaria|Kavinia|Hysterangium|Phallus")
+agar.genera<-c("Agaricus|Echinoderma|Amanita|Conocybe|Camarophyllopsis|Clavaria|Clavulinopsis|Hodophilus|Ramariopsis|Cortinarius|Crepidotus|Clitopilus|Entocybe|Entoloma|Laccaria|Ampulloclitocybe|Arrhenia|Cuphophyllus|Gliophorus|Hygrocybe|Hygrophorus|Galerina|Gymnopilus|Hebeloma|Hymenogaster|Naucoria|Psilocybe|Calyptella|Clitocybe|Collybia|Cystoderma|Delicatula|Dendrocollybia|Fayodia|Lepista|Mycenella|Panaeolus|Rhizocybe|Squamanita|Inocybe|Lycoperdon|Asterophora|Calocybe|Tephrocybe|Marasmius|Hemimycena|Hydropus|Mycena|Roridomyces|Xeromphalina|Gymnopus|Mycetinis|Paragymnopus|Rhodocollybia|Armillaria|Flammulina|Rhizomarasmius|Pluteus|Coprinellus|Coprinopsis|Homophron|Parasola|Psathyrella|Pseudoclitocybe|Cristinia|Deconica|Hemipholiota|Hypholoma|Pholiota|Stropharia|Dermoloma|Tricholoma|Macrotyphula|Typhula|Amylocorticiellum|Ceraceomyces|Amphinema|Athelia|Byssocorticium|Piloderma|Tretomyces|Tylospora|Boletus|Chalciporus|Chamonixia|Imleria|Leccinum|Tylopilus|Xerocomellus|Xerocomus|Coniophora|Chroogomphus|Hygrophoropsis|Leucogyrophana|Alpova|Hydnomerulius|Melanogaster|Paxillus|Rhizopogon|Scleroderma|Serpula|Suillus|Fibricium|Protodontia|Pseudohydnum|Stypella|Oliveonia|Ceratobasidium|Clavulina|Craterellus|Hydnum|Sistotrema|Minimedusa|Waitea|Tubulicrinis|Alloclavaria|Cotylidia|Resinicium|Rickenella|Hyphodontia|Xylodon|Fibulochlamys|Postia|Rigidoporus|Physisporinus|Phanerochaete|Ganoderma|Odontia|Xenasmatella|Byssoporia|Gloiothele|Scytinostroma|Lactarius|Russula|Helvellosebacina|Sebacina|Serendipita|Phellodon|Pseudotomentella|Thelephora|Tomentella|Tomentellopsis|Luellia|Sistotremastrum|Subulicystidium|Trechispora|Steccherinum|Nidulariopsis|Clavariadelphus|Gautieria|Ramaria|Kavinia|Hysterangium|Phallus|Hydnellum")
 
 sapro.genera<-c("Agaricus|Echinoderma|Conocybe|Camarophyllopsis|Clavaria|Clavulinopsis|Hodophilus|Ramariopsis|Crepidotus|Clitopilus|Entocybe|Ampulloclitocybe|Arrhenia|Cuphophyllus|Gliophorus|Hygrocybe|Galerina|Gymnopilus|Psilocybe|Calyptella|Clitocybe|Collybia|Cystoderma|Delicatula|Dendrocollybia|Fayodia|Lepista|Mycenella|Panaeolus|Rhizocybe|Squamanita|Lycoperdon|Asterophora|Calocybe|Tephrocybe|Marasmius|Hemimycena|Hydropus|Mycena|Roridomyces|Xeromphalina|Gymnopus|Mycetinis|Paragymnopus|Rhodocollybia|Armillaria|Flammulina|Rhizomarasmius|Pluteus|Coprinellus|Coprinopsis|Homophron|Parasola|Psathyrella|Pseudoclitocybe|Cristinia|Deconica|Hemipholiota|Hypholoma|Pholiota|Stropharia|Dermoloma|Entoloma|Macrotyphula|Typhula|Amylocorticiellum|Ceraceomyces|Athelia|Coniophora|Hygrophoropsis|Leucogyrophana|Hydnomerulius|Serpula|Fibricium|Protodontia|Pseudohydnum|Stypella|Oliveonia|Ceratobasidium|Minimedusa|Waitea|Tubulicrinis|Alloclavaria|Cotylidia|Resinicium|Rickenella|Hyphodontia|Xylodon|Fibulochlamys|Postia|Rigidoporus|Physisporinus|Phanerochaete|Ganoderma|Odontia|Xenasmatella|Byssoporia|Gloiothele|Scytinostroma|Luellia|Sistotremastrum|Subulicystidium|Trechispora|Steccherinum|Nidulariopsis|Clavariadelphus|Kavinia|Phallus")
 
-ecm.genera<-c("Cenococcum|Elaphomyces|Hyaloscypha|Acephala|Tarzetta|Hydnotrya|Genea|Geopora|Humaria|Otidea|Trichophaea|Wilcoxina|Tuber|Amanita|Cortinarius|Laccaria|Entoloma_silvae-frondosae|Entoloma_sericatum|Hygrophorus|Hebeloma|Hymenogaster|Naucoria|Inocybe|Tricholoma|Amphinema|Byssocorticium|Piloderma|Tretomyces|Tylospora|Boletus|Chalciporus|Chamonixia|Imleria|Leccinum|Tylopilus|Xerocomellus|Xerocomus|Chroogomphus|Alpova|Melanogaster|Paxillus|Rhizopogon|Scleroderma|Suillus|Clavulina|Craterellus|Hydnum|Sistotrema|Lactarius|Russula|Helvellosebacina|Sebacina|Serendipita|Phellodon|Pseudotomentella|Thelephora|Tomentella|Tomentellopsis|Gautieria|Ramaria|Hysterangium")
+ecm.genera<-c("Cenococcum|Elaphomyces|Hyaloscypha|Acephala|Tarzetta|Hydnotrya|Genea|Geopora|Humaria|Otidea|Trichophaea|Wilcoxina|Tuber|Amanita|Cortinarius|Laccaria|Entoloma_silvae-frondosae|Entoloma_sericatum|Hygrophorus|Hebeloma|Hymenogaster|Naucoria|Inocybe|Tricholoma|Amphinema|Byssocorticium|Piloderma|Tretomyces|Tylospora|Boletus|Chalciporus|Chamonixia|Imleria|Leccinum|Tylopilus|Xerocomellus|Xerocomus|Chroogomphus|Alpova|Melanogaster|Paxillus|Rhizopogon|Scleroderma|Suillus|Clavulina|Craterellus|Hydnum|Sistotrema|Lactarius|Russula|Helvellosebacina|Sebacina|Serendipita|Phellodon|Pseudotomentella|Thelephora|Tomentella|Tomentellopsis|Gautieria|Ramaria|Hysterangium|Hydnellum")
 
-taxsetlist.agar<-taxsetlist.SFSI 
-for (i in 1:length(taxsetlist.SFSI)){
-taxsetlist.agar[[i]]$Class<-ifelse(grepl(agar.genera,taxsetlist.SFSI[[i]]$Reference),"Agaricomycetes","other")
-taxsetlist.agar[[i]]$Ecology<-ifelse(grepl(ecm.genera,taxsetlist.agar[[i]]$Reference),"ECM",ifelse(grepl(sapro.genera,taxsetlist.agar[[i]]$Reference),"SAP","other")) 
-taxsetlist.agar[[i]]<-taxsetlist.agar[[i]][which(taxsetlist.agar[[i]]$Class == "Agaricomycetes"),]
-taxsetlist.SFSI[[i]]$Ecology<-ifelse(grepl(ecm.genera,taxsetlist.SFSI[[i]]$Reference),"ECM",ifelse(grepl(sapro.genera,taxsetlist.SFSI[[i]]$Reference),"SAP","other")) 
-}##this is a quick solution to pick out clusters identified to genus level from the class agaricomyctes... 
+#There are a few missing identifications that are frequent enough to be considered in WAE. Add these in manual based on blast results to UNITE. 
+taxsetlist[which(taxsetlist$`Cluster ID` == "scata6318_351"),which(colnames(taxsetlist) == "Reference")]<-"SH0950786.09FU_Hydnellum"
+taxsetlist[which(taxsetlist$`Cluster ID` == "scata6318_619"),which(colnames(taxsetlist) == "Reference")]<-"SH_Mycena_sp."
+taxsetlist[which(taxsetlist$`Cluster ID` == "scata6318_656"),which(colnames(taxsetlist) == "Reference")]<-"SH1175650.09FU_Cortinarius_spilomeus"
+taxsetlist[which(taxsetlist$`Cluster ID` == "scata6318_679"),which(colnames(taxsetlist) == "Reference")]<-"SH0895816.09FU_Xenasmatella_vaga"
+taxsetlist[which(taxsetlist$`Cluster ID` == "scata6318_814"),which(colnames(taxsetlist) == "Reference")]<-"SH1162882.09FU_Galerina"
+taxsetlist[which(taxsetlist$`Cluster ID` == "scata6318_1369"),which(colnames(taxsetlist) == "Reference")]<-"SH1233149.09FU_Tomentellopsis"
+taxsetlist[which(taxsetlist$`Cluster ID` == "scata6318_1277"),which(colnames(taxsetlist) == "Reference")]<-"SH1102296.09FU_Mycena"
+taxsetlist[which(taxsetlist$`Cluster ID` == "scata6318_1352"),which(colnames(taxsetlist) == "Reference")]<-"SH1162916.09FU_Galerina"
+taxsetlist[which(taxsetlist$`Cluster ID` == "scata6318_1624"),which(colnames(taxsetlist) == "Reference")]<-"SH1162499.09FU_Galerina"
+taxsetlist[which(taxsetlist$`Cluster ID` == "scata6318_1700"),which(colnames(taxsetlist) == "Reference")]<-"SH1260534.09FU_Entoloma"
+taxsetlist[which(taxsetlist$`Cluster ID` == "scata6318_3991"),which(colnames(taxsetlist) == "Reference")]<-"SH1249211.09FU_Ganoderma"
+
+taxsetlist.agar<-taxsetlist
+
+taxsetlist.agar$Class<-ifelse(grepl(agar.genera,taxsetlist$Reference),"Agaricomycetes","other")
+taxsetlist$Class<-ifelse(grepl(agar.genera,taxsetlist$Reference),"Agaricomycetes","other")
+taxsetlist.agar$Ecology<-ifelse(grepl(ecm.genera,taxsetlist.agar$Reference),"ECM",ifelse(grepl(sapro.genera,taxsetlist.agar$Reference),"SAP","other")) 
+taxsetlist.agar<-taxsetlist.agar[which(taxsetlist.agar$Class == "Agaricomycetes"),]
+taxsetlist$Ecology<-ifelse(grepl(ecm.genera,taxsetlist$Reference),"ECM",ifelse(grepl(sapro.genera,taxsetlist$Reference),"SAP","other")) 
+
+##this is a quick solution to pick out clusters identified to genus level from the class agaricomyctes... 
 
 ```
 
 
-#combine OTUS identified to same genus
+#taxonomic aggregation of species
 ```{r}
+#to make a genus level dataset should combine species hypotheses identified to the same genus
+
 genera.list<-c(unique(spec_database19$Genus))
 genera.list<-genera.list[-3]#these remove the NA
+genera.list<-c(genera.list,"Hydnellum")#add hydnellum
 
 fam.list<-c(unique(spec_database19$Family))
 fam.list<-fam.list[-5]#these remove the NA
@@ -67,7 +81,7 @@ order.list<-c(unique(spec_database19$Order))
 order.list<-order.list[-13] #these remove the NA
 
 #I will need to remove ones that have no ID..
-taxsetlist.IDed<-taxsetlist[[1]][-which(is.na(taxsetlist[[1]]$Reference)),]
+taxsetlist.IDed<-taxsetlist[-which(taxsetlist$Reference == ""),]
 taxsetlist.IDed<-taxsetlist.IDed[!grepl("NF_",taxsetlist.IDed$Reference),]
 
 matches.1<-character(nrow(taxsetlist.IDed[!grepl("NF_",taxsetlist.IDed$Reference),]))
@@ -91,10 +105,13 @@ for (i in seq_along(order.list)){
 taxsetlist.IDed$Genus<-matches.1
 ```
 
-#combine OTUS identified to same genus -agaricomycetes
+#taxonomic aggregation of species -agaricomycetes
 ```{r}
+#need to repeat but only within the agaricomycetes
+
 agar.genera.list<-c(unique(spec_database19[which(spec_database19$Class == "Agaricomycetes"),]$Genus))
 agar.genera.list<-agar.genera.list[-3]#these remove the NA
+agar.genera.list<-c(agar.genera.list,"Hydnellum")#add hydnellum
 
 agar.fam.list<-c("Clavariaceae","Thelephoraceae","Tricholomataceae","Entolomataceae","Atheliaceae")
 
@@ -108,7 +125,7 @@ for (i in seq_along(agar.genera.list)){
   matches<-if_else(grepl(agar.fam.list[j],taxsetlist.agar$Reference),agar.fam.list[j],matches)
 }#
 
-taxsetlist.agar[[1]]$Genus<-matches
+taxsetlist.agar$Genus<-matches
 ```
 
 
@@ -118,14 +135,12 @@ taxsetlist.agar[[1]]$Genus<-matches
 
 #all SS and SFSI clusters cleaned
 
-perc<-list("1.5")
-for(x in 1:length(taxsetlist.SFSI)){
-   write.csv(taxsetlist.SFSI[[x]],file = paste('../clean_data/','clean_taxonomicdata_SFSI_SS','_',perc[x],'perc','.csv',sep=""), row.names = F)
-}
 
-for(x in 1:length(taxsetlist.agar)){
-   write.csv(taxsetlist.agar[[x]],file = paste('../clean_data/','clean_taxonimcdata_SFSI_SS_agar','_',perc[x],'perc','.csv',sep=""), row.names = F)
-}
+write.csv(taxsetlist,file = paste('../clean_data/','clean_taxonomicdata_SFSI_SS','_','1.5','perc','.csv',sep=""), row.names = F)
+
+
+write.csv(taxsetlist.agar,file = paste('../clean_data/','clean_taxonimcdata_SFSI_SS_agar','_','1.5','perc','.csv',sep=""), row.names = F)
+
 
 write.csv(taxsetlist.IDed,file = paste('../clean_data/','clean_taxonomicdata_SFSI_SS_genus','.csv',sep=""), row.names = F)
 ```
