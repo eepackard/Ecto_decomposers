@@ -21,9 +21,9 @@ library(ape)
 ##read in taxonomic data with ref sequnces
 
 ```{r}
-taxsetlist<-list(read_csv("../clean_data/clean_taxonomicdata_SFSI_SS_1.5perc.csv"),read_csv("../clean_data/clean_taxonomicdata_SFSI_SS_2perc.csv"),read_csv("../clean_data/clean_taxonomicdata_SFSI_SS_3perc.csv"))
-taxsetlist.agar<-list(read_csv("../clean_data/clean_taxonimcdata_SFSI_SS_agar_1.5perc.csv"),read_csv("../clean_data/clean_taxonimcdata_SFSI_SS_agar_2perc.csv"),read_csv("../clean_data/clean_taxonimcdata_SFSI_SS_agar_3perc.csv"))
-datasetlist.rel.15<-list(read_csv("../clean_data/SS_data_relabun_15_1.5perc.csv"),read_csv("../clean_data/SS_data_relabun_15_2perc.csv"),read_csv("../clean_data/SS_data_relabun_15_3perc.csv"))
+taxsetlist<-read_csv("../clean_data/clean_taxonomicdata_SFSI_SS_1.5perc.csv")
+taxsetlist.agar<-read_csv("../clean_data/clean_taxonimcdata_SFSI_SS_agar_1.5perc.csv")
+datasetlist.rel.15<-read_csv("../clean_data/SS_data_relabun_15_1.5perc.csv")
 wae.15<-read_csv("../clean_data/wae.15.csv")
 ```
 
