@@ -22,7 +22,7 @@ datasetlist.rel.sfsi<-read_csv("../clean_data/SFSI_data_relabun_1.5perc.csv")
 datasetlist.rel.sfsi.ecm<-read_csv("../clean_data/SFSI_data_relabun_ECM_1.5perc.csv")
 ```
 
-#create CN, NC, mineral content and Cstocks
+#create CN, NC, mineral content and Cstocks varaibles
 ```{r}
 SFSI.soil$CN<-SFSI.soil$C/SFSI.soil$N
 SFSI.soil$NC<-SFSI.soil$N/SFSI.soil$C
@@ -30,7 +30,7 @@ SFSI.soil$Cstock<-SFSI.soil$H_mangd*SFSI.soil$C
 SFSI.soil$mincon<-1-((0.01*SFSI.soil$C)/0.50)
 ```
 
-#transform
+#transform for normal distributions
 ```{r}
 SFSI.soil$Cstock_log<-log(SFSI.soil$Cstock)
 SFSI.soil$CN_log<-log(SFSI.soil$CN)
@@ -46,14 +46,10 @@ SFSI.soil$Bestandsalder_log<-log(SFSI.soil$Bestandsalder)
 hist(SFSI.soil$Bestandsalder) # skewed towards young forests - mostly < 100 
 quantile(SFSI.soil$Bestandsalder) # 50% of sites 48 years or younger
 
-#the humus form
-table(SFSI.soil$H_form) #no 0 - want to only include sites with H_form = 1,2,3 = Mor 1, Mor 2 and Moder 
-length(SFSI.soil[SFSI.soil$H_form %in% c("1","2","3"),]$H_form) #1420 samples 
-
 #proportion pine, spruce, mix
 table(SFSI.soil$Tallandel) # 311 sites 100% pine
 table(SFSI.soil$Granandel) # 212 sites 100% spruce 
-length(SFSI.soil[which(SFSI.soil$Tallandel > 0 & SFSI.soil$Granandel >0),]$Tallandel) #665 sites with pine spruce mix
+length(SFSI.soil[which(SFSI.soil$Tallandel > 0 & SFSI.soil$Granandel >0),]$Tallandel) #665 sites with only pine spruce mix
 
 #one site with a strange CN ratio - which is that
 hist(SFSI.soil$CN) # one is >200?
@@ -62,15 +58,12 @@ which(SFSI.soil$CN >200) # row 717 # 100 % stand of 167 years #JordProvnr 204631
 #land use distribution
 table(SFSI.soil$Agoslag) # mostly "productive forest" 999 samples
 
-SFSI.soil.f1<-SFSI.soil[which(SFSI.soil$Bestandsalder >10),]
-SFSI.soil.f1<-SFSI.soil.f1[which(SFSI.soil.f1$Agoslag == 1),]
-SFSI.soil.f1<-SFSI.soil.f1[-which(SFSI.soil.f1$Tallandel+SFSI.soil.f1$Granandel < 90),]
-SFSI.soil.f1<-SFSI.soil.f1[which(SFSI.soil.f1$CN < 200),]
-#SFSI.soil.f1<-SFSI.soil.f1[which(between(SFSI.soil.f1$Temperatursumma,1100,1500)),]
-SFSI.soil.f1<-SFSI.soil.f1[-which(SFSI.soil.f1$pH_H2O > 6),]
+SFSI.soil.f1<-SFSI.soil[which(SFSI.soil$Bestandsalder >10),] #remove sites mean stand age 10 and under
+SFSI.soil.f1<-SFSI.soil.f1[which(SFSI.soil.f1$Agoslag == 1),] #only productive forests
+SFSI.soil.f1<-SFSI.soil.f1[-which(SFSI.soil.f1$Tallandel+SFSI.soil.f1$Granandel < 90),] # > 90 conifers
+SFSI.soil.f1<-SFSI.soil.f1[which(SFSI.soil.f1$CN < 200),] #remove CN outlier
+SFSI.soil.f1<-SFSI.soil.f1[-which(SFSI.soil.f1$pH_H2O > 6),] # remove more alkaline soils
 
-#SFSI.soil.f1<-SFSI.soil.f1[which(SFSI.soil.f1$H_form %in% c("1","2","3")),] 
- 
 length(setdiff(SFSI.soil.f1$JordprovNr,datasetlist.rel.sfsi$JordProvnr))
 length(setdiff(datasetlist.rel.sfsi$JordProvnr,SFSI.soil.f1$JordprovNr))
 
