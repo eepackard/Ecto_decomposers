@@ -26,8 +26,8 @@ library(ggrepel)
 
 #read in data
 ```{r}
-datasetlist.rel.15<-read_csv("../clean_data/SS_data_relabun_15_1.5perc.csv")#list(,read_csv("../clean_data/SS_data_relabun_15_2perc.csv")
-datasetlist.rel.agar.15<-read_csv("../clean_data/SS_data_relabun_agar_15_1.5perc.csv")#list(,read_csv("../clean_data/SS_data_relabun_agar_15_5perc.csv"))
+datasetlist.rel.15<-read_csv("../clean_data/SS_data_relabun_15_1.5perc.csv")
+datasetlist.rel.agar.15<-read_csv("../clean_data/SS_data_relabun_agar_15_1.5perc.csv")
 datasetlist.rel.genus.15<-read_csv("../clean_data/SS_data_relabun_genus_15.csv")
 datasetlist.rel.agar.genus.15<-read_csv("../clean_data/SS_data_relabun__agar_genus_15.csv")
 Meta.data.spatial<-read_csv("../clean_data/Clean_spatial_study_metadata.csv")
@@ -58,7 +58,7 @@ plot(MnP.CCA.1)
 
 anova(MnP.CCA.1,permutations = ctrl)
 anova(MnP.CCA.genus,permutations = ctrl)
-anova(MnP.CCA.test,permutations = ctrl)# this test just sees that if MnP is randomly resampled if it would still be significant - and reassuringly it is not
+anova(MnP.CCA.test,permutations = ctrl)# this test just sees that if MnP is randomly resampled if it would still be significant 
 ```
 #write CCA scores
 ```{r}
