@@ -19,7 +19,7 @@ library(tidyr)
 Meta.data.spatial<-read_csv("../clean_data/Clean_spatial_study_metadata.csv",show_col_types = FALSE)
 
 #or the clusters combined with the SFSI - 1.5 - species level 
-SFSI.SS.specraw.1<-read_delim("../raw_data/all_tag_by_cluster_counts6318.txt",delim = ";",col_names = TRUE,trim_ws = FALSE,show_col_types = FALSE)
+SFSI.SS.specraw.1<-read_delim("../raw_data/all_tag_by_cluster_counts_6546.txt",delim = ";",col_names = TRUE,trim_ws = FALSE,show_col_types = FALSE)
 
 datasetlist<-list(SFSI.SS.specraw.1)
 
@@ -42,9 +42,11 @@ datasetlist.SS[[i]]<-datasetlist.SS[[i]][-which(datasetlist.SS[[i]]$switches == 
 which(datasetlist.SS[[i]]$tag1 != datasetlist.SS[[i]]$tag2)#check they actually match
 datasetlist.SS[[i]]<-datasetlist.SS[[i]][,-which(colnames(datasetlist.SS[[i]]) == "switches")]#remove "switches" column that is now empty
 datasetlist.SS[[i]]<-datasetlist.SS[[i]][-which(datasetlist.SS[[i]]$tag1 == 40),]#remove tag 40 -mock control 
+}
 
 #load file with tag to sample name matching - so i can add replace the tag names with actual sample names
 tag.matches<-read_delim("../raw_data/spatial_tag_matching.txt",delim = "\t",col_names = TRUE,show_col_types = FALSE)
+for (i in 1:length(datasetlist.SS)) {
 datasetlist.SS[[i]]<-separate(datasetlist.SS[[i]], `Pool tag1`,c("Pool","tag1"),sep = " ",extra="merge") #FYI this overwrite tag1 but now tag1 and tag2 are the same so its okay 
 datasetlist.SS[[i]]$tag1<-paste(datasetlist.SS[[i]]$Pool,datasetlist.SS[[i]]$tag2) #again overwriting tag1 to make a combo column which I can more easily use to match with the tag matching file
 tag.matches$tag1<-paste(tag.matches$Pool,tag.matches$Tag)
@@ -99,8 +101,8 @@ print(which(Meta.data.spatial$tag != datasetlist.SS[[i]]$tag1))#check that they 
 
 #need to remove non-fungal taxa 
 #read in taxonomic data 
-taxsetlist<-read_csv("../clean_data/clean_taxonomicdata_SFSI_SS_1.5perc.csv")
-taxsetlist.agar<-read_csv("../clean_data/clean_taxonimcdata_SFSI_SS_agar_1.5perc.csv")
+taxsetlist<-read_csv("../clean_data/clean_taxonomicdata_SFSI_SS_1.5percrev.csv")
+taxsetlist.agar<-read_csv("../clean_data/clean_taxonimcdata_SFSI_SS_agar_1.5percrev.csv")
 
 
 NF.scata<-taxsetlist[which(grepl("NF_",taxsetlist$Reference)),]$`Cluster ID`
@@ -129,7 +131,7 @@ datasetlist.rel.sfsi$JordProvnr<-datasetlist.SFSI[[1]]$tag1
 ```
 
 
-#create filtered relative abun data
+#create filtered relative abun data and count
 ```{r}
 ##can be present at any level of relative abundance, present in at least 15 cores -everything must be run together
 
@@ -145,7 +147,7 @@ datasetlist.p2[[i]][datasetlist.p2[[i]] >0]<-1
 datasetlist.p2.agar<-list()
 
 for (i in 1:length(datasetlist.p2)){
-datasetlist.p2.agar[[i]]<-datasetlist.p2[[i]][,which(colnames(datasetlist.p2[[i]]) %in% taxsetlist.agar[which(taxsetlist.agar$Class == "Agaricomycetes"),]$`Cluster ID`)]
+datasetlist.p2.agar[[i]]<-datasetlist.p2[[i]][,which(colnames(datasetlist.p2[[i]]) %in% taxsetlist.agar$`Cluster ID`)]
 }
 
 
@@ -153,8 +155,8 @@ datasetlist.p2.agar[[i]]<-datasetlist.p2[[i]][,which(colnames(datasetlist.p2[[i]
 datasetlist.p2.15<-list()
 datasetlist.p2.agar.15<-list()
 for (i in 1:length(datasetlist.p2.agar)){
-datasetlist.p2.15[[i]]<-datasetlist.p2[[i]][,-which(colSums(datasetlist.p2[[i]]) <15)]
-datasetlist.p2.agar.15[[i]]<-datasetlist.p2.agar[[i]][,-which(colSums(datasetlist.p2.agar[[i]]) <15)]
+datasetlist.p2.15[[i]]<-datasetlist.p2[[i]][,-which(colSums(datasetlist.p2[[i]]) <10)]
+datasetlist.p2.agar.15[[i]]<-datasetlist.p2.agar[[i]][,-which(colSums(datasetlist.p2.agar[[i]]) <10)]
 }
 
 
@@ -173,12 +175,16 @@ datasetlist.p2.15[[i]]<-datasetlist.p2.15[[i]][,- c(which(colSums(counts_per_sit
 }
 
 
-#flip back to the relative abundance data 
+#flip back to the relative abundance data and count data
 datasetlist.rel.15<-list()
 datasetlist.rel.agar.15<-list()
+datasetlist.count.15<-list()
+datasetlist.count.agar.15<-list()
 for (i in 1:length(datasetlist.p2.agar)){
 datasetlist.rel.15[[i]]<-datasetlist.rel[[i]][,which(colnames(datasetlist.rel[[i]]) %in% colnames(datasetlist.p2.15[[i]]))]
 datasetlist.rel.agar.15[[i]]<-datasetlist.rel[[i]][,which(colnames(datasetlist.rel[[i]]) %in% colnames(datasetlist.p2.agar.15[[i]]))]
+datasetlist.count.15[[i]]<-datasetlist.SS[[i]][,which(colnames(datasetlist.SS[[i]]) %in% colnames(datasetlist.p2.15[[i]]))]
+datasetlist.count.agar.15[[i]]<-datasetlist.SS[[i]][,which(colnames(datasetlist.SS[[i]]) %in% colnames(datasetlist.p2.agar.15[[i]]))]
 }
 
 ```
@@ -188,9 +194,11 @@ datasetlist.rel.agar.15[[i]]<-datasetlist.rel[[i]][,which(colnames(datasetlist.r
 ```{r}
 #make an agarico only rel abun dataset
 datasetlist.rel.agar<-datasetlist.rel[[1]][,which(colnames(datasetlist.rel[[1]]) %in% taxsetlist.agar$`Cluster ID`)]
+datasetlist.count.agar<-datasetlist.SS[[1]][,which(colnames(datasetlist.SS[[1]]) %in% taxsetlist.agar$`Cluster ID`)]
 
 #make new dataframe
 datasetlist.rel.agar.genus<-datasetlist.rel.agar
+datasetlist.count.agar.genus<-datasetlist.count.agar
 
 #order of the scataIDs in taxsetlist and that in species files match
 taxsetlist.agar$`Cluster ID` == colnames(datasetlist.rel.agar)
@@ -198,7 +206,7 @@ taxsetlist.agar$`Cluster ID` == colnames(datasetlist.rel.agar)
 scata.IDs<-colnames(datasetlist.rel.agar.genus) #save them just incase i want again... 
 
 colnames(datasetlist.rel.agar.genus)<-taxsetlist.agar$Genus
-
+colnames(datasetlist.count.agar.genus)<-taxsetlist.agar$Genus
 
 #now just rowsum the columns with the same name... 
 #https://stackoverflow.com/questions/25387714/add-columns-together-that-match-a-pattern
@@ -207,33 +215,43 @@ colnames(datasetlist.rel.agar.genus)<-taxsetlist.agar$Genus
 only.1.species<-c(names(table(colnames(datasetlist.rel.agar.genus))[which(table(colnames(datasetlist.rel.agar.genus)) < 2)] ))
 
 #split the dataframe into two 
-single.species<- datasetlist.rel.agar.genus[,which(colnames(datasetlist.rel.agar.genus) %in% only.1.species)] #83 genera
-several.species<- datasetlist.rel.agar.genus[,-which(colnames(datasetlist.rel.agar.genus) %in% only.1.species)] # 671 species remaning
-colnames(several.species)<-gsub("\\.[0-9]*","",colnames(several.species),perl=TRUE) #this returns the column names to be repeated (not with .##)
+single.species.r<- datasetlist.rel.agar.genus[,which(colnames(datasetlist.rel.agar.genus) %in% only.1.species)] #83 genera
+single.species.c<- datasetlist.count.agar.genus[,which(colnames(datasetlist.count.agar.genus) %in% only.1.species)]
+several.species.r<- datasetlist.rel.agar.genus[,-which(colnames(datasetlist.rel.agar.genus) %in% only.1.species)] # 671 species remaning
+several.species.c<- datasetlist.count.agar.genus[,-which(colnames(datasetlist.count.agar.genus) %in% only.1.species)]
+colnames(several.species.r)<-gsub("\\.[0-9]*","",colnames(several.species.r),perl=TRUE) #this returns the column names to be repeated (not with .##)
+colnames(several.species.c)<-gsub("\\.[0-9]*","",colnames(several.species.c),perl=TRUE)
 
 datasetlist.rel.agar.genus.combine<-list() #make an empty list
+datasetlist.count.agar.genus.combine<-list()
 
-for (i in 1:length(unique(colnames(several.species)))){
-ind <- grepl(unique(colnames(several.species))[i], colnames(several.species)) #select the genus to sum
-datasetlist.rel.agar.genus.combine[[i]] <- rowSums(several.species[,ind]) #this sums them and enters each as an item on the list
+for (i in 1:length(unique(colnames(several.species.c)))){
+ind.r <- grepl(unique(colnames(several.species.r))[i], colnames(several.species.r)) #select the genus to sum
+ind.c <- grepl(unique(colnames(several.species.c))[i], colnames(several.species.c)) 
+datasetlist.rel.agar.genus.combine[[i]] <- rowSums(several.species.r[,ind.r]) #this sums them and enters each as an item on the list
+datasetlist.count.agar.genus.combine[[i]] <- rowSums(several.species.c[,ind.c]) 
 }
 
 #now I need to convert back from list to dataframe with correct column names
 datasetlist.rel.agar.genus.combine<- do.call(cbind.data.frame,datasetlist.rel.agar.genus.combine)
-colnames(datasetlist.rel.agar.genus.combine)<-unique(colnames(several.species))
+colnames(datasetlist.rel.agar.genus.combine)<-unique(colnames(several.species.r))
+datasetlist.count.agar.genus.combine<- do.call(cbind.data.frame,datasetlist.count.agar.genus.combine)
+colnames(datasetlist.count.agar.genus.combine)<-unique(colnames(several.species.c))
 
 #now just double check that the values are as I would expect - these values shold match
 sum(rowSums(datasetlist.rel.agar.genus[,which(colnames(datasetlist.rel.agar.genus) == "Suillus")])) == sum(datasetlist.rel.agar.genus.combine$Suillus)
+sum(rowSums(datasetlist.count.agar.genus[,which(colnames(datasetlist.count.agar.genus) == "Suillus")])) == sum(datasetlist.count.agar.genus.combine$Suillus)
 
 #now add back the single species with cbind
-datasetlist.rel.agar.genus<-cbind(datasetlist.rel.agar.genus.combine,single.species)
+datasetlist.rel.agar.genus<-cbind(datasetlist.rel.agar.genus.combine,single.species.r)
+datasetlist.count.agar.genus<-cbind(datasetlist.count.agar.genus.combine,single.species.c)
 colnames(datasetlist.rel.agar.genus) == unique(colnames(datasetlist.rel.agar.genus)) #make sure not repeats
 
 ##now check that the genera are frequent enough and filter! 
 datasetlist.p2.agar.genus<-datasetlist.rel.agar.genus
 datasetlist.p2.agar.genus[datasetlist.p2.agar.genus >0]<-1
 
-datasetlist.p2.agar.genus.15<-datasetlist.p2.agar.genus[,-which(colSums(datasetlist.p2.agar.genus) <15)]
+datasetlist.p2.agar.genus.15<-datasetlist.p2.agar.genus[,-which(colSums(datasetlist.p2.agar.genus) <10)]
 
 datasetlist.p2.agar.genus.15$site <-Meta.data.spatial$plot
 counts_per_site.15.agar.genus<-aggregate(x= datasetlist.p2.agar.genus.15[,-ncol(datasetlist.p2.agar.genus.15)],by=list(datasetlist.p2.agar.genus.15$site),FUN=sum)
@@ -245,6 +263,23 @@ datasetlist.rel.agar.genus.15<-datasetlist.rel.agar.genus[,which(colnames(datase
 
 ##will remove those to family level because I cannot say they are from same genus - clavariaceae and thelephoraceae
 datasetlist.rel.agar.genus.15<-datasetlist.rel.agar.genus.15[,-which(grepl("aceae",colnames(datasetlist.rel.agar.genus.15)))]
+
+##now check that the genera are frequent enough and filter! 
+datasetlist.p2c.agar.genus<-datasetlist.count.agar.genus
+datasetlist.p2c.agar.genus[datasetlist.p2c.agar.genus >0]<-1
+
+datasetlist.p2c.agar.genus.15<-datasetlist.p2c.agar.genus[,-which(colSums(datasetlist.p2c.agar.genus) <10)]
+
+datasetlist.p2c.agar.genus.15$site <-Meta.data.spatial$plot
+counts_per_site.15.agar.genus<-aggregate(x= datasetlist.p2c.agar.genus.15[,-ncol(datasetlist.p2c.agar.genus.15)],by=list(datasetlist.p2c.agar.genus.15$site),FUN=sum)
+counts_per_site.15.agar.genus[counts_per_site.15.agar.genus>0]<-1
+datasetlist.p2c.agar.genus.15<-datasetlist.p2c.agar.genus.15[,- c(which(colSums(counts_per_site.15.agar.genus[,-1]) == 1),which(colSums(counts_per_site.15.agar.genus[,-1]) == 2))]
+
+
+datasetlist.count.agar.genus.15<-datasetlist.count.agar.genus[,which(colnames(datasetlist.count.agar.genus) %in% colnames(datasetlist.p2c.agar.genus.15))]
+
+##will remove those to family level because I cannot say they are from same genus - clavariaceae and thelephoraceae
+datasetlist.count.agar.genus.15<-datasetlist.count.agar.genus.15[,-which(grepl("aceae",colnames(datasetlist.count.agar.genus.15)))]
 ```
 
 #make ecto relative abun of sfsi 1.5%
@@ -271,16 +306,20 @@ datasetlist.rel.sfsi.ecm$JordProvnr<-datasetlist.ecm.sfsi$JordProvnr
 
 perc<-list("1.5")
 for(x in 1:length(perc)){
-   write.csv(datasetlist.rel.15[[x]],file = paste('../clean_data/','SS_data_relabun_15_',perc[x],'perc','.csv',sep=""), row.names = F)
+   write.csv(datasetlist.rel.15[[x]],file = paste('../clean_data/','SS_data_relabun_15_',perc[x],'perc','.rev','.csv',sep=""), row.names = F)
+  write.csv(datasetlist.count.15[[x]],file = paste('../clean_data/','SS_data_count_15_',perc[x],'perc','.rev','.csv',sep=""), row.names = F)
+  write.csv(datasetlist.SS[[x]],file = paste('../clean_data/','SS_data_count',perc[x],'perc','.rev','.csv',sep=""), row.names = F)
 }
 
 for(x in 1:length(perc)){
-   write.csv(datasetlist.rel.agar.15[[x]],file = paste('../clean_data/','SS_data_relabun_agar_15_',perc[x],'perc','.csv',sep=""), row.names = F)
+   write.csv(datasetlist.rel.agar.15[[x]],file = paste('../clean_data/','SS_data_relabun_agar_15_',perc[x],'perc','.rev','.csv',sep=""), row.names = F)
+   write.csv(datasetlist.count.agar.15[[x]],file = paste('../clean_data/','SS_data_count_agar_15_',perc[x],'perc','.rev','.csv',sep=""), row.names = F)
 }
 
-write.csv(datasetlist.rel.agar.genus.15,file = '../clean_data/SS_data_relabun__agar_genus_15.csv', row.names = F)
+write.csv(datasetlist.rel.agar.genus.15,file = '../clean_data/SS_data_relabun__agar_genus_15.rev.csv', row.names = F)
+write.csv(datasetlist.count.agar.genus.15,file = '../clean_data/SS_data_count__agar_genus_15.rev.csv', row.names = F)
 
-write_csv(datasetlist.rel.sfsi,"../clean_data/SFSI_data_relabun_1.5perc.csv")
-write_csv(datasetlist.rel.sfsi.ecm,"../clean_data/SFSI_data_relabun_ECM_1.5perc.csv")
+write_csv(datasetlist.rel.sfsi,"../clean_data/SFSI_data_relabun_1.5perc.rev.csv")
+write_csv(datasetlist.rel.sfsi.ecm,"../clean_data/SFSI_data_relabun_ECM_1.5perc.rev.csv")
 ```
 
