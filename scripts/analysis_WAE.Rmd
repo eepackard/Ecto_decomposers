@@ -21,11 +21,9 @@ library(tidyr)
 #read in data
 ```{r}
 datasetlist.rel.agar.15<-read_csv("../clean_data/SS_data_relabun_agar_15_1.5perc.rev.csv")
-test.old.data<-read_csv("../clean_data/SS_data_relabun_agar_15_1.5perc.csv")
 datasetlist.rel.agar.genus.15<-read_csv("../clean_data/SS_data_relabun__agar_genus_15.rev.csv")
 Meta.data.spatial<-read_csv("../clean_data/Clean_spatial_study_metadata.csv")
 taxsetlist.agar<-read_csv("../clean_data/clean_taxonimcdata_SFSI_SS_agar_1.5percrev.csv")
-test.old.cluster<-read_csv("../clean_data/clean_taxonimcdata_SFSI_SS_agar_1.5perc.csv")
 ```
 
 
