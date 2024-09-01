@@ -17,16 +17,16 @@ library(splitstackshape)
 #read in taxonomic data
 ```{r}
 #read in files - 98.5% similarity required to enter clusters, SCATA pipeline, national and regional dataset are clustered together so that species hypotheses can be traced between datasets
-scata6318_tax<-read_delim("../raw_data/all_clusters_scata6318.txt",delim = "\t",col_names = FALSE,show_col_types = FALSE) #it doesnt work to simply use ; as delim
-scata6318_tax<-cSplit(scata6318_tax,'X1',sep = ";",type.convert = FALSE)
+scata6546_tax<-read_delim("../raw_data/all_clusters_scata6546.txt",delim = "\t",col_names = FALSE,show_col_types = FALSE) #it doesnt work to simply use ; as delim
+scata6546_tax<-cSplit(scata6546_tax,'X1',sep = ";",type.convert = FALSE)
+# if you get warning "unable to translate....." it is likely because there is some strange spaces in the reference names (in my case the sistotrema SI-1101)
 
-
-taxsetlist<-scata6318_tax
+taxsetlist<-scata6546_tax
 
 ##now I can split the taxonomy data out
 colnames(taxsetlist)<-as.character(taxsetlist[35,])# make column names
 taxsetlist<-taxsetlist[36:nrow(taxsetlist),] #remove filtering information
-
+taxsetlist<-taxsetlist[,-c(14:37)]
 
 #read in species database
 spec_database19<-read_delim("../raw_data/Speciesdatabase_19.txt",delim = "\t",col_names = TRUE,show_col_types = FALSE) 
@@ -38,18 +38,16 @@ sapro.genera<-c("Agaricus|Echinoderma|Conocybe|Camarophyllopsis|Clavaria|Clavuli
 ecm.genera<-c("Cenococcum|Elaphomyces|Hyaloscypha|Acephala|Tarzetta|Hydnotrya|Genea|Geopora|Humaria|Otidea|Trichophaea|Wilcoxina|Tuber|Amanita|Cortinarius|Laccaria|Entoloma_silvae-frondosae|Entoloma_sericatum|Hygrophorus|Hebeloma|Hymenogaster|Naucoria|Inocybe|Tricholoma|Amphinema|Byssocorticium|Piloderma|Tretomyces|Tylospora|Boletus|Chalciporus|Chamonixia|Imleria|Leccinum|Tylopilus|Xerocomellus|Xerocomus|Chroogomphus|Alpova|Melanogaster|Paxillus|Rhizopogon|Scleroderma|Suillus|Clavulina|Craterellus|Hydnum|Sistotrema|Lactarius|Russula|Helvellosebacina|Sebacina|Serendipita|Phellodon|Pseudotomentella|Thelephora|Tomentella|Tomentellopsis|Gautieria|Ramaria|Hysterangium|Hydnellum")
 
 #There are a few missing identifications that are frequent enough to be considered in WAE. Add these in manual based on blast results to UNITE. 
-taxsetlist[which(taxsetlist$`Cluster ID` == "scata6318_351"),which(colnames(taxsetlist) == "Reference")]<-"SH0950786.09FU_Hydnellum"
-taxsetlist[which(taxsetlist$`Cluster ID` == "scata6318_619"),which(colnames(taxsetlist) == "Reference")]<-"SH_Mycena_sp."
-taxsetlist[which(taxsetlist$`Cluster ID` == "scata6318_656"),which(colnames(taxsetlist) == "Reference")]<-"SH1175650.09FU_Cortinarius_spilomeus"
-taxsetlist[which(taxsetlist$`Cluster ID` == "scata6318_679"),which(colnames(taxsetlist) == "Reference")]<-"SH0895816.09FU_Xenasmatella_vaga"
-taxsetlist[which(taxsetlist$`Cluster ID` == "scata6318_814"),which(colnames(taxsetlist) == "Reference")]<-"SH1162882.09FU_Galerina"
-taxsetlist[which(taxsetlist$`Cluster ID` == "scata6318_1369"),which(colnames(taxsetlist) == "Reference")]<-"SH1233149.09FU_Tomentellopsis"
-taxsetlist[which(taxsetlist$`Cluster ID` == "scata6318_1277"),which(colnames(taxsetlist) == "Reference")]<-"SH1102296.09FU_Mycena"
-taxsetlist[which(taxsetlist$`Cluster ID` == "scata6318_1352"),which(colnames(taxsetlist) == "Reference")]<-"SH1162916.09FU_Galerina"
-taxsetlist[which(taxsetlist$`Cluster ID` == "scata6318_1624"),which(colnames(taxsetlist) == "Reference")]<-"SH1162499.09FU_Galerina"
-taxsetlist[which(taxsetlist$`Cluster ID` == "scata6318_1700"),which(colnames(taxsetlist) == "Reference")]<-"SH1260534.09FU_Entoloma"
-taxsetlist[which(taxsetlist$`Cluster ID` == "scata6318_3991"),which(colnames(taxsetlist) == "Reference")]<-"SH1249211.09FU_Ganoderma"
+blast_results_agarico<-read_csv("../raw_data/clean_blast_results_agar.csv")
+#remove spaces from the identification column
+blast_results_agarico$Identification<-gsub(" ","_",blast_results_agarico$Identification)
+scatas.list<-as.list(blast_results_agarico$Query)
+identity.list<-as.list(paste(blast_results_agarico$Identification,blast_results_agarico$SH,sep = "_"))
+for (i in 1:length(identity.list)){
+  taxsetlist[which(taxsetlist$`Cluster ID` == scatas.list[[i]]),which(colnames(taxsetlist) == "Reference")]<-identity.list[[i]]
+}
 
+#make new dataset for isolating only agaricos
 taxsetlist.agar<-taxsetlist
 
 taxsetlist.agar$Class<-ifelse(grepl(agar.genera,taxsetlist$Reference),"Agaricomycetes","other")
@@ -136,12 +134,12 @@ taxsetlist.agar$Genus<-matches
 #all SS and SFSI clusters cleaned
 
 
-write.csv(taxsetlist,file = paste('../clean_data/','clean_taxonomicdata_SFSI_SS','_','1.5','perc','.csv',sep=""), row.names = F)
+write.csv(taxsetlist,file = paste('../clean_data/','clean_taxonomicdata_SFSI_SS','_','1.5','perc','rev','.csv',sep=""), row.names = F)
 
 
-write.csv(taxsetlist.agar,file = paste('../clean_data/','clean_taxonimcdata_SFSI_SS_agar','_','1.5','perc','.csv',sep=""), row.names = F)
+write.csv(taxsetlist.agar,file = paste('../clean_data/','clean_taxonimcdata_SFSI_SS_agar','_','1.5','perc','rev','.csv',sep=""), row.names = F)
 
 
-write.csv(taxsetlist.IDed,file = paste('../clean_data/','clean_taxonomicdata_SFSI_SS_genus','.csv',sep=""), row.names = F)
+write.csv(taxsetlist.IDed,file = paste('../clean_data/','clean_taxonomicdata_SFSI_SS_genus','rev','.csv',sep=""), row.names = F)
 ```
 
