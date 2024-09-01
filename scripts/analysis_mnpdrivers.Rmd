@@ -26,23 +26,13 @@ library(ggrepel)
 
 #read in data
 ```{r}
-datasetlist.rel.15<-read_csv("../clean_data/SS_data_relabun_15_1.5perc.csv")
-datasetlist.rel.agar.15<-read_csv("../clean_data/SS_data_relabun_agar_15_1.5perc.csv")
-datasetlist.rel.genus.15<-read_csv("../clean_data/SS_data_relabun_genus_15.csv")
-datasetlist.rel.agar.genus.15<-read_csv("../clean_data/SS_data_relabun__agar_genus_15.csv")
+datasetlist.rel.15<-read_csv("../clean_data/SS_data_relabun_15_1.5perc.rev.csv")
+datasetlist.rel.agar.15<-read_csv("../clean_data/SS_data_relabun_agar_15_1.5perc.rev.csv")
 Meta.data.spatial<-read_csv("../clean_data/Clean_spatial_study_metadata.csv")
 ```
 
 
 #model the abio factors then abio plus with the subset taxa
-
-#create detrended MnP 
-```{r}
-MnP.v.NC<-lm(Meta.data.spatial$MnP_gOM.log~Meta.data.spatial$NC+Meta.data.spatial$ph)
-MnP.res<-residuals(MnP.v.NC)
-
-Meta.data.spatial$MnP.res<-MnP.res
-```
 
 #run CCA
 ```{r}
@@ -50,19 +40,24 @@ Meta.data.spatial$MnP.res<-MnP.res
 ctrl<-how(nperm = 1000, blocks = Meta.data.spatial$plot)
 
 set.seed(13)
-MnP.CCA.1<-cca(sqrt(datasetlist.rel.15)~Meta.data.spatial$MnP_gOM.log+Condition(Meta.data.spatial$plot))
-MnP.CCA.genus<-cca(sqrt(datasetlist.rel.genus.15)~Meta.data.spatial$MnP_gOM.log+Condition(Meta.data.spatial$plot))
-MnP.CCA.test<-cca(sqrt(datasetlist.rel.15)~sample(Meta.data.spatial$MnP_gOM.log,replace = FALSE)+Condition(Meta.data.spatial$plot))
+MnP.CCA.1<-cca(sqrt(datasetlist.rel.15)~Meta.data.spatial$MnP_gOM.log+Condition(Meta.data.spatial$plot))#
+MnP.CCA.2<-cca(sqrt(datasetlist.rel.15)~Meta.data.spatial$Perox_gOM.log+Condition(Meta.data.spatial$plot))
+
+rando<-sample(Meta.data.spatial$MnP_gOM.log,replace = FALSE)
+MnP.CCA.test<-cca(sqrt(datasetlist.rel.15)~rando+Condition(Meta.data.spatial$plot))
 
 plot(MnP.CCA.1)
+plot(MnP.CCA.2)
+plot(MnP.CCA.test)
 
-anova(MnP.CCA.1,permutations = ctrl)
-anova(MnP.CCA.genus,permutations = ctrl)
+anova(MnP.CCA.1,permutations = ctrl)#,by="terms"
+anova(MnP.CCA.2,permutations = ctrl)
 anova(MnP.CCA.test,permutations = ctrl)# this test just sees that if MnP is randomly resampled if it would still be significant 
 ```
 #write CCA scores
 ```{r}
-write.csv(scores(MnP.CCA.1,choices = 1)$species,"../clean_data/MNP.CCA.scores.1.5perc.csv")
+write.csv(scores(MnP.CCA.1,choices = 1)$species,"../clean_data/MNP.CCA.scores.1.5percrev.csv")
+write.csv(scores(MnP.CCA.2,choices = 1)$species,"../clean_data/MNP.CCA.scores.residu.1.5percrev.csv")
 ```
 
 
