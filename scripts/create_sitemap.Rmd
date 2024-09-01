@@ -29,7 +29,8 @@ library(grid)
 #   Read in data 
 ##  Data: 
 ```{r}
-SFSI.soil.f2<-read_csv("../clean_data/Clean_filtered_SFSI_soil_data.csv")
+SFSI.soil.f2<-read_csv("../clean_data/Clean_filtered_SFSI_soil_data.rev.csv")
+SFSI.soil<-read_delim("../raw_data/SFSI_NFI_data_20240627_reduced.csv",delim = ";",show_col_types = FALSE)
 SS.coordinates<-read_delim("../raw_data/Spatial_study_coordinates.csv",delim = ";",col_types = list("c","n","n","f","f"))
 ```
 
@@ -48,10 +49,6 @@ sjoar <- st_intersection(st_geometry(sjoar), st_geometry(sverige)) ## Removes an
 #   Wrangle data
 
 ```{r}
-#create spruce pine variable
-SFSI.soil.f2<-SFSI.soil.f2[-which(SFSI.soil.f2$Granandel == 50),]
-SFSI.soil.f2$host<-if_else(SFSI.soil.f2$Granandel > 50,"Spruce dominated","Pine dominated")
-
 #rename spruce pine variable 
 SS.coordinates$Species<-if_else(SS.coordinates$Species == "Spruce","Spruce dominated","Pine dominated")
 #Hade, 17472,17646 overlap to much to distinguish add a manual jitter to 17472 and 17646
@@ -59,6 +56,19 @@ SS.coordinates[2,2]<-60.30000
 SS.coordinates[2,3]<-17.04000
 SS.coordinates[12,3]<-17.09000
 SS.coordinates[12,2]<-60.28000
+
+# test filtering
+#SFSI.soil.f1<-SFSI.soil[which(SFSI.soil$Bestandsalder >10),] #remove sites mean stand age 10 and under
+#SFSI.soil.f1<-SFSI.soil.f1[which(SFSI.soil.f1$Agoslag == 1),] #only productive forests
+#SFSI.soil.f1<-SFSI.soil.f1[-which(SFSI.soil.f1$Tallandel+SFSI.soil.f1$Granandel < 90),] # > 90 conifers
+#SFSI.soil.f1<-SFSI.soil.f1[-which(SFSI.soil.f1$CN < 200),] #remove CN outlier
+#SFSI.soil.f1<-SFSI.soil.f1[-which(SFSI.soil.f1$pH_H2O > 6),] # remove more alkaline soils
+#SFSI.soil.f1<-SFSI.soil.f1[-which(is.na(SFSI.soil.f1$Mn_Ac)),] #remove missing data
+#SFSI.soil.f1<-SFSI.soil.f1[which(between(SFSI.soil.f1$Temperatursumma,1000,1425)),]
+
+#create spruce pine variable
+SFSI.soil.f2$host<-if_else(SFSI.soil.f2$Granandel >= 60,"Spruce",if_else(SFSI.soil.f2$Tallandel >= 60,"Pine","miss")) 
+SFSI.soil.f2<-SFSI.soil.f2[-which(SFSI.soil.f2$host == "miss"),]
 ```
 
 
@@ -71,7 +81,7 @@ data_sf_ss<- st_as_sf(SS.coordinates, coords = c("Longitude","Latitude"), agr = 
 
 # test:
 ```{r}
-plot(data_sf_sfsi,max.plot = 42)
+plot(data_sf_sfsi)
 plot(data_sf_ss)
 ```
 
@@ -138,12 +148,12 @@ map4
 
 #   Save data
 ```{r}
-tmap_save(tm = map1, filename = "../figures/Sampling_map.png",dpi = 1000)
+tmap_save(tm = map1, filename = "../figures/revised/Sampling_map.png",dpi = 1000)
 tmap_save(tm = map3, filename = "../figures/Sampling_map_inset.png")
 tmap_save(tm = map2, filename = "../figures/Age_map.png",dpi = 1000)
 tmap_save(tm = map4, filename = "../figures/Age_map_inset.png")
 
-tmap_save(tm = map1, filename = "../figures/Sampling_map.pdf")
+tmap_save(tm = map1, filename = "../figures/revised/Sampling_map.pdf")
 tmap_save(tm = map1, filename = "../figures/Sampling_map.eps")
 tmap_save(tm = map3, filename = "../figures/Sampling_map_inset.pdf")
 tmap_save(tm = map2, filename = "../figures/Age_map.pdf")
