@@ -1,0 +1,46 @@
+---
+title: "Making_fasta_files"
+output: html_document
+date: "2024-03-11"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#load package
+```{r}
+library(readr)
+```
+
+
+#load data
+```{r}
+blast_results<-read_delim("../raw_data/blast_results_NO_ID_SSREV.2.csv",delim = ";")
+spec_database19<-read_delim("../raw_data/Speciesdatabase_19.txt",delim = "\t",col_names = TRUE,show_col_types = FALSE) 
+#unique(spec_database19[spec_database19$Class == "Agaricomycetes",]$Genus)
+agar.genera<-c("Agaricus|Echinoderma|Amanita|Conocybe|Camarophyllopsis|Clavaria|Clavulinopsis|Hodophilus|Ramariopsis|Cortinarius|Crepidotus|Clitopilus|Entocybe|Entoloma|Laccaria|Ampulloclitocybe|Arrhenia|Cuphophyllus|Gliophorus|Hygrocybe|Hygrophorus|Galerina|Gymnopilus|Hebeloma|Hymenogaster|Naucoria|Psilocybe|Calyptella|Clitocybe|Collybia|Cystoderma|Delicatula|Dendrocollybia|Fayodia|Lepista|Mycenella|Panaeolus|Rhizocybe|Squamanita|Inocybe|Lycoperdon|Asterophora|Calocybe|Tephrocybe|Marasmius|Hemimycena|Hydropus|Mycena|Roridomyces|Xeromphalina|Gymnopus|Mycetinis|Paragymnopus|Rhodocollybia|Armillaria|Flammulina|Rhizomarasmius|Pluteus|Coprinellus|Coprinopsis|Homophron|Parasola|Psathyrella|Pseudoclitocybe|Cristinia|Deconica|Hemipholiota|Hypholoma|Pholiota|Stropharia|Dermoloma|Tricholoma|Macrotyphula|Typhula|Amylocorticiellum|Ceraceomyces|Amphinema|Athelia|Byssocorticium|Piloderma|Tretomyces|Tylospora|Boletus|Chalciporus|Chamonixia|Imleria|Leccinum|Tylopilus|Xerocomellus|Xerocomus|Coniophora|Chroogomphus|Hygrophoropsis|Leucogyrophana|Alpova|Hydnomerulius|Melanogaster|Paxillus|Rhizopogon|Scleroderma|Serpula|Suillus|Fibricium|Protodontia|Pseudohydnum|Stypella|Oliveonia|Ceratobasidium|Clavulina|Craterellus|Hydnum|Sistotrema|Minimedusa|Waitea|Tubulicrinis|Alloclavaria|Cotylidia|Resinicium|Rickenella|Hyphodontia|Xylodon|Fibulochlamys|Postia|Rigidoporus|Physisporinus|Phanerochaete|Ganoderma|Odontia|Xenasmatella|Byssoporia|Gloiothele|Scytinostroma|Lactarius|Russula|Helvellosebacina|Sebacina|Serendipita|Phellodon|Pseudotomentella|Thelephora|Tomentella|Tomentellopsis|Luellia|Sistotremastrum|Subulicystidium|Trechispora|Steccherinum|Nidulariopsis|Clavariadelphus|Gautieria|Ramaria|Kavinia|Hysterangium|Phallus|Hydnellum")
+```
+
+#filter out poor matches 
+```{r}
+#low score (i.e too short or too many mismatches)
+blast_results<-blast_results[-which(blast_results$Score < 100),]
+
+#low percent match
+blast_results<-blast_results[-which(blast_results$Prcnt < 85),]
+```
+
+#isolate agaricos
+```{r}
+blast_results_agarico<-blast_results[grepl(agar.genera,blast_results$...4),]
+colnames(blast_results_agarico)
+colnames(blast_results_agarico)<-c(colnames(blast_results_agarico)[1:2],"SH","Identification",colnames(blast_results_agarico)[5:12])
+```
+
+
+#save
+```{r}
+write.csv(blast_results_agarico,"../raw_data/clean_blast_results_agar.csv")
+```
+
