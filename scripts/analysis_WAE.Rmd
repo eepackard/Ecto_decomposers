@@ -20,32 +20,51 @@ library(tidyr)
 
 #read in data
 ```{r}
-datasetlist.rel.agar.15<-read_csv("../clean_data/SS_data_relabun_agar_15_1.5perc.csv")
-datasetlist.rel.agar.genus.15<-read_csv("../clean_data/SS_data_relabun__agar_genus_15.csv")
+datasetlist.rel.agar.15<-read_csv("../clean_data/SS_data_relabun_agar_15_1.5perc.rev.csv")
+test.old.data<-read_csv("../clean_data/SS_data_relabun_agar_15_1.5perc.csv")
+datasetlist.rel.agar.genus.15<-read_csv("../clean_data/SS_data_relabun__agar_genus_15.rev.csv")
 Meta.data.spatial<-read_csv("../clean_data/Clean_spatial_study_metadata.csv")
-taxsetlist.agar<-read_csv("../clean_data/clean_taxonimcdata_SFSI_SS_agar_1.5perc.csv")
+taxsetlist.agar<-read_csv("../clean_data/clean_taxonimcdata_SFSI_SS_agar_1.5percrev.csv")
+test.old.cluster<-read_csv("../clean_data/clean_taxonimcdata_SFSI_SS_agar_1.5perc.csv")
 ```
 
 
 #create weight averages
 ```{r}
-#using untransformed but scaled MnP activity per site.. everything is in same rows so can just multiply the matrix
+#using untransformed but centered MnP activity per site.. everything is in same rows so can just multiply the matrix
 
-wae.15<-as.data.frame(colSums(Meta.data.spatial$MnP_gOM_scaled*datasetlist.rel.agar.15)/colSums(datasetlist.rel.agar.15))
+wae.15<-as.data.frame(colSums(Meta.data.spatial$MnP_gOM_centered*datasetlist.rel.agar.15)/colSums(datasetlist.rel.agar.15))
 colnames(wae.15)<-c("Weight.aver")
 
-wae.15.genera<-as.data.frame(colSums(Meta.data.spatial$MnP_gOM_scaled*datasetlist.rel.agar.genus.15)/colSums(datasetlist.rel.agar.genus.15))
+wae.15.perox<-as.data.frame(colSums(Meta.data.spatial$Perox_gOM_centered*datasetlist.rel.agar.15)/colSums(datasetlist.rel.agar.15))
+colnames(wae.15.perox)<-c("Weight.aver")
+
+wae.15.mnpindep<-as.data.frame(colSums(Meta.data.spatial$MnPindep_gOM_centered*datasetlist.rel.agar.15)/colSums(datasetlist.rel.agar.15))
+colnames(wae.15.mnpindep)<-c("Weight.aver")
+
+wae.15.genera<-as.data.frame(colSums(Meta.data.spatial$MnP_gOM_centered*datasetlist.rel.agar.genus.15)/colSums(datasetlist.rel.agar.genus.15))
 colnames(wae.15.genera)<-c("Weight.aver")
+
+wae.15.genera.perox<-as.data.frame(colSums(Meta.data.spatial$Perox_gOM_centered*datasetlist.rel.agar.genus.15)/colSums(datasetlist.rel.agar.genus.15))
+colnames(wae.15.genera.perox)<-c("Weight.aver")
 ```
 
 ##compare ecology to WAE
 ```{r}
 #make wae table with ecology (saprotrophic or mycorrhizal)
-
 wae.15.ecol<-wae.15
-tax.wae<-taxsetlist.agar[which(taxsetlist.agar$`Cluster ID` %in% rownames(wae.15.ecol)),c(1,4,31)]
+tax.wae<-taxsetlist.agar[which(taxsetlist.agar$`Cluster ID` %in% rownames(wae.15.ecol)),c(1,4,15,16)]
 tax.wae<-tax.wae[match(rownames(wae.15.ecol),tax.wae$`Cluster ID`,),]
 wae.15.ecol$Ecology<-tax.wae$Ecology
+wae.15.ecol$ref<-tax.wae$Reference
+wae.15.sorted<-wae.15.ecol[match(sort(wae.15.ecol$Weight.aver,decreasing = TRUE),wae.15.ecol$Weight.aver),]
+
+wae.15.ecol.perox<-wae.15.perox
+tax.wae.perox<-taxsetlist.agar[which(taxsetlist.agar$`Cluster ID` %in% rownames(wae.15.ecol.perox)),c(1,4,15,16)]
+tax.wae.perox<-tax.wae.perox[match(rownames(wae.15.ecol.perox),tax.wae.perox$`Cluster ID`,),]
+wae.15.ecol.perox$Ecology<-tax.wae.perox$Ecology
+wae.15.ecol.perox$ref<-tax.wae.perox$Reference
+wae.15.sorted.perox<-wae.15.ecol[match(sort(wae.15.ecol.perox$Weight.aver,decreasing = TRUE),wae.15.ecol.perox$Weight.aver),]
 ```
 
 
@@ -65,34 +84,99 @@ permutation.test <- function(MnP, spec.data, test.stat, n){
   } #not the abs value because I want only one side test... 
   return(list(result, distribution))#result,
 }
+
+permutation.test.reverse <- function(MnP, spec.data, test.stat, n){
+  distribution=c()
+  result=0
+  for(i in 1:n){
+    distribution[[i]]=colSums(sample(MnP,length(MnP),FALSE)*spec.data)/colSums(spec.data)
+  }
+  dist.p=as.data.frame(distribution)
+  for(j in 1:nrow(test.stat)){
+  result[j]=sum(dist.p[j,]<=test.stat[j,])/(n)
+  } #not the abs value because I want only one side test... 
+  return(list(result, distribution))#result,
+}
 ```
 
-#species level
+#species level - MnP dep
 ```{r}
 set.seed(13)
 
-permtest.results.15 <- permutation.test(MnP =  Meta.data.spatial$MnP_gOM_scaled, spec.data = datasetlist.rel.agar.15,test.stat = wae.15, 10000)
+permtest.results.15 <- permutation.test(MnP =  Meta.data.spatial$MnP_gOM_centered, spec.data = datasetlist.rel.agar.15,test.stat = wae.15, 10000)
 
 #plot Cort
-hist(as.numeric(as.data.frame(permtest.results.15[[2]])[13,]), breaks=50, col='grey', main="Permutation Distribution", las=1, xlab='')
-abline(v=wae.15[which(rownames(wae.15)== "scata6318_68"),], lwd=3, col="red")
+hist(as.numeric(as.data.frame(permtest.results.15[[2]])[14,]), breaks=50, col='grey', main="Permutation Distribution", las=1, xlab='')
+abline(v=wae.15[which(rownames(wae.15)== "scata6546_71"),], lwd=3, col="red")
 
 #plot suillus 
-hist(as.numeric(as.data.frame(permtest.results.15[[2]])[71,]), breaks=50, col='grey', main="Permutation Distribution", las=1, xlab='')
-abline(v=wae.15[which(rownames(wae.15)== "scata6318_310"),], lwd=3, col="red")
+hist(as.numeric(as.data.frame(permtest.results.15[[2]])[80,]), breaks=50, col='grey', main="Permutation Distribution", las=1, xlab='')
+abline(v=wae.15[which(rownames(wae.15)== "scata6546_346"),], lwd=3, col="red")
 
-#plot mycena
-hist(as.numeric(as.data.frame(permtest.results.15[[2]])[24,]), breaks=50, col='grey', main="Permutation Distribution", las=1, xlab='')
-abline(v=wae.15[which(rownames(wae.15)== "scata6318_90"),], lwd=3, col="red")
 
 wae.perm.results.15<-as.data.frame(cbind(colnames(datasetlist.rel.agar.15),p.adjust(permtest.results.15[[1]],method = "fdr",length(permtest.results.15[[1]])),permtest.results.15[[1]]))
 wae.perm.results.15[which(wae.perm.results.15$V3 < 0.1),]
 wae.perm.results.15$ID<-taxsetlist.agar[match(wae.perm.results.15$V1,taxsetlist.agar$`Cluster ID`),]$Reference
 colnames(wae.perm.results.15)<-c("Cluster_ID","adjusted_p","p","ID")
 
-wae.perm.results.15[match(sort(wae.perm.results.15$p),wae.perm.results.15$p),]
+wae.perm.results.15[order(wae.perm.results.15$p),]
 ```
 
+#species level - total peroxidase
+```{r}
+set.seed(13)
+
+permtest.results.15.perox <- permutation.test(MnP =  Meta.data.spatial$Perox_gOM_centered, spec.data = datasetlist.rel.agar.15,test.stat = wae.15.perox, 10000)
+
+#plot Cort
+hist(as.numeric(as.data.frame(permtest.results.15.perox[[2]])[13,]), breaks=50, col='grey', main="Permutation Distribution", las=1, xlab='')
+abline(v=wae.15.perox[which(rownames(wae.15.perox)== "scata6531_82"),], lwd=3, col="red")
+
+#plot suillus 
+hist(as.numeric(as.data.frame(permtest.results.15.perox[[2]])[68,]), breaks=50, col='grey', main="Permutation Distribution", las=1, xlab='')
+abline(v=wae.15.perox[which(rownames(wae.15.perox)== "scata6531_318"),], lwd=3, col="red")
+
+
+wae.perm.results.15.perox<-as.data.frame(cbind(colnames(datasetlist.rel.agar.15),p.adjust(permtest.results.15.perox[[1]],method = "fdr",length(permtest.results.15.perox[[1]])),permtest.results.15.perox[[1]]))
+wae.perm.results.15.perox[which(wae.perm.results.15.perox$V3 < 0.1),]
+wae.perm.results.15.perox$ID<-taxsetlist.agar[match(wae.perm.results.15.perox$V1,taxsetlist.agar$`Cluster ID`),]$Reference
+colnames(wae.perm.results.15.perox)<-c("Cluster_ID","adjusted_p","p","ID")
+
+wae.perm.results.15.perox[order(wae.perm.results.15.perox$p),]
+```
+#check overlapping of MnP and perox total results
+```{r}
+sig.mnp<-wae.perm.results.15[which(wae.perm.results.15$p < 0.1),]
+sig.mnp<-rbind(sig.mnp,wae.perm.results.15[which(wae.perm.results.15$Cluster_ID == "scata6546_429"),])
+sig.perox<-wae.perm.results.15.perox[which(wae.perm.results.15.perox$p < 0.1),]
+only.mnp<-setdiff(sig.mnp$Cluster_ID,sig.perox$Cluster_ID)
+only.perox<-setdiff(sig.perox$Cluster_ID,sig.mnp$Cluster_ID)
+
+overlap.ID<-sig.perox[which(sig.perox$Cluster_ID %in% sig.mnp$Cluster_ID),]
+sig.species<-rbind(overlap.ID,sig.mnp[which(sig.mnp$Cluster_ID %in% only.mnp),],sig.perox[which(sig.perox$Cluster_ID %in% only.perox),])
+sig.species$type<-c(rep("both",nrow(overlap.ID)),rep("mnp",length(only.mnp)),rep("perox",length(only.perox)))
+sig.species
+
+sig.species<-separate(sig.species, ID, c("ID","SI","SH"),sep = "/",extra = "merge")
+sig.species<-separate(sig.species, ID, c("Genus","species","extra"),sep="_",extra="merge")
+sig.species.rearrange<-sig.species[which(is.na(sig.species$SI)),c(1:5,7,8,6,9)]
+sig.species<-sig.species[-which(is.na(sig.species$SI)),] #remove ones that I need to rearrange
+colnames(sig.species.rearrange)<-colnames(sig.species) #switch back column names
+sig.species<-rbind(sig.species,sig.species.rearrange)# add back rearranged
+sig.species[5,5]<-"fulvescens_coll." ### these are very specific fixes!!!! always double check before running!!!
+sig.species[18,5]<-"mucosus.alpinus.fennoscandicus.trivialis"
+sig.species[20,5]<-"stuposa_coll."
+sig.species[22,5]<-"aff.lubrica"
+sig.species<-sig.species[,-which(colnames(sig.species) %in% c("extra","SI"))]
+sig.species[18,6]<-"SH1503718.08FU"
+
+#add ecology and AA2 in genus 
+taxa.sig<-taxsetlist.agar[which(taxsetlist.agar$`Cluster ID` %in% sig.species$Cluster_ID),]
+taxa.sig<-taxa.sig[match(sig.species$Cluster_ID,taxa.sig$`Cluster ID`),]
+sig.species$ecology<-taxa.sig$Ecology
+
+write_csv(sig.species,file = "../clean_data/WAE_results.sig.csv")
+```
 
 #make nice table
 ```{r}
@@ -100,6 +184,7 @@ wae.perm.results.15<-wae.perm.results.15[match(rownames(wae.15),wae.perm.results
 wae.perm.results.15$WAE<- wae.15$Weight.aver #add WAE 
 wae.perm.results.15<-wae.perm.results.15[,c(1,4,3,5)] #re-order
 wae.perm.results.15$Ecology <- wae.15.ecol$Ecology #add ecology
+wae.perm.results.15$rot<-if_else(grepl("Suillus|Thelephora",wae.perm.results.15$ID),"BR","unk")
 
 #make presence/absence data set - so I can add occurance
 datasetlist.rel.agar.15.p<-datasetlist.rel.agar.15 
@@ -109,11 +194,101 @@ wae.perm.results.15$Occurrence <- colSums(datasetlist.rel.agar.15.p)
 write_csv(wae.perm.results.15,file = "../figures/WAE_results.csv")
 ```
 
+#species level - opposite
+```{r}
+set.seed(13)
+
+#this now tests in the opposite direction which taxa have lower WAE than expected by random... 
+permtest.results.15.oppo <- permutation.test.reverse(MnP =  Meta.data.spatial$MnP_gOM_centered, spec.data = datasetlist.rel.agar.15,test.stat = wae.15, 10000)
+
+
+#plot piloderma
+hist(as.numeric(as.data.frame(permtest.results.15.oppo[[2]])[2,]), breaks=50, col='grey', main="Permutation Distribution", las=1, xlab='')
+abline(v=wae.15[which(rownames(wae.15)== "scata6531_18"),], lwd=3, col="red")
+
+#plot serendipita
+hist(as.numeric(as.data.frame(permtest.results.15.oppo[[2]])[27,]), breaks=50, col='grey', main="Permutation Distribution", las=1, xlab='')
+abline(v=wae.15[which(rownames(wae.15)== "scata6531_110"),], lwd=3, col="red")
+
+wae.perm.results.15.oppo<-as.data.frame(cbind(colnames(datasetlist.rel.agar.15),p.adjust(permtest.results.15.oppo[[1]],method = "fdr",length(permtest.results.15.oppo[[1]])),permtest.results.15.oppo[[1]]))
+wae.perm.results.15.oppo[which(wae.perm.results.15.oppo$V3 < 0.1),]
+wae.perm.results.15.oppo$ID<-taxsetlist.agar[match(wae.perm.results.15.oppo$V1,taxsetlist.agar$`Cluster ID`),]$Reference
+colnames(wae.perm.results.15.oppo)<-c("Cluster_ID","adjusted_p","p","ID")
+
+wae.perm.results.15.oppo[order(wae.perm.results.15.oppo$p),]
+```
+#species level - opposite total perox
+```{r}
+set.seed(13)
+
+#this now tests in the opposite direction which taxa have lower WAE than expected by random... 
+permtest.results.15.oppo.perox <- permutation.test.reverse(MnP =  Meta.data.spatial$Perox_gOM_centered, spec.data = datasetlist.rel.agar.15,test.stat = wae.15.perox, 10000)
+
+
+#plot piloderma
+hist(as.numeric(as.data.frame(permtest.results.15.oppo[[2]])[2,]), breaks=50, col='grey', main="Permutation Distribution", las=1, xlab='')
+abline(v=wae.15[which(rownames(wae.15)== "scata6531_18"),], lwd=3, col="red")
+
+#plot serendipita
+hist(as.numeric(as.data.frame(permtest.results.15.oppo[[2]])[27,]), breaks=50, col='grey', main="Permutation Distribution", las=1, xlab='')
+abline(v=wae.15[which(rownames(wae.15)== "scata6531_110"),], lwd=3, col="red")
+
+wae.perm.results.15.oppo.perox<-as.data.frame(cbind(colnames(datasetlist.rel.agar.15),p.adjust(permtest.results.15.oppo.perox[[1]],method = "fdr",length(permtest.results.15.oppo.perox[[1]])),permtest.results.15.oppo.perox[[1]]))
+wae.perm.results.15.oppo.perox[which(wae.perm.results.15.oppo.perox$V3 < 0.1),]
+wae.perm.results.15.oppo.perox$ID<-taxsetlist.agar[match(wae.perm.results.15.oppo.perox$V1,taxsetlist.agar$`Cluster ID`),]$Reference
+colnames(wae.perm.results.15.oppo.perox)<-c("Cluster_ID","adjusted_p","p","ID")
+
+wae.perm.results.15.oppo.perox[order(wae.perm.results.15.oppo.perox$p),]
+
+```
+#check overlapping of MnP and perox total results
+```{r}
+sig.mnp.oppo<-wae.perm.results.15.oppo[which(wae.perm.results.15.oppo$p < 0.1),]
+sig.perox.oppo<-wae.perm.results.15.oppo.perox[which(wae.perm.results.15.oppo.perox$p < 0.1),]
+only.mnp.oppo<-setdiff(sig.mnp.oppo$Cluster_ID,sig.perox.oppo$Cluster_ID)
+only.perox.oppo<-setdiff(sig.perox.oppo$Cluster_ID,sig.mnp.oppo$Cluster_ID)
+
+overlap.ID.oppo<-sig.perox.oppo[which(sig.perox.oppo$Cluster_ID %in% sig.mnp.oppo$Cluster_ID),]
+sig.species.oppo<-rbind(overlap.ID.oppo,sig.mnp.oppo[which(sig.mnp.oppo$Cluster_ID %in% only.mnp.oppo),],sig.perox.oppo[which(sig.perox.oppo$Cluster_ID %in% only.perox.oppo),])
+sig.species.oppo$type<-c(rep("both",nrow(overlap.ID.oppo)),rep("mnp",length(only.mnp.oppo)),rep("perox",length(only.perox.oppo)))
+sig.species.oppo
+
+sig.species.oppo<-separate(sig.species.oppo, ID, c("ID","SI","SH"),sep = "/",extra = "merge")
+sig.species.oppo<-separate(sig.species.oppo, ID, c("Genus","species","extra"),sep="_",extra="merge")
+sig.species.oppo.rearrange<-sig.species.oppo[which(is.na(sig.species.oppo$SI)),c(1:5,7,8,6,9)]
+sig.species.oppo<-sig.species.oppo[-which(is.na(sig.species.oppo$SI)),] #remove ones that I need to rearrange
+colnames(sig.species.oppo.rearrange)<-colnames(sig.species.oppo) #switch back column names
+sig.species.oppo<-rbind(sig.species.oppo,sig.species.oppo.rearrange)# add back rearranged
+sig.species.oppo[2,5]<-"aff.obtusus" ### these are very specific fixes!!!! always double check before running!!!
+sig.species.oppo[5,5]<-"emetica.coll_atrorubens.betularum"
+sig.species.oppo[6,5]<-"laccata_coll."
+sig.species.oppo[7,5]<-"byrophila_coll."
+sig.species.oppo[30,5]<-"laccata_coll."
+sig.species.oppo[28,5]<-"butyracea.f.asema"
+sig.species.oppo[36,5]<-"mammosus_spinosulus_glyciomus"
+sig.species.oppo<-sig.species.oppo[,-which(colnames(sig.species.oppo) %in% c("extra","SI"))]
+sig.species.oppo[5,6]<-"SH1509012.08FU,SH1509012.08FU"
+sig.species.oppo[30,6]<-"SH1553002.08FU"
+sig.species.oppo[36,6]<-"SH1519108.08FU"
+
+#add ecology and AA2 in genus 
+taxa.sig.oppo<-taxsetlist.agar[which(taxsetlist.agar$`Cluster ID` %in% sig.species.oppo$Cluster_ID),]
+taxa.sig.oppo<-taxa.sig.oppo[match(sig.species.oppo$Cluster_ID,taxa.sig.oppo$`Cluster ID`),]
+sig.species.oppo$ecology<-taxa.sig.oppo$Ecology
+
+write_csv(sig.species.oppo,file = "../clean_data/WAE_results.oppo.sig.csv")
+
+sig.mnp.oppo[which(sig.mnp.oppo$Cluster_ID %in% sig.perox.oppo$Cluster_ID),]
+sig.perox.oppo[which(sig.perox.oppo$Cluster_ID %in% sig.mnp.oppo$Cluster_ID),]
+```
+
+
+
 #genus level WAE
 ```{r}
 set.seed(13)
 
-permtest.results.15.genera <- permutation.test(MnP =  Meta.data.spatial$MnP_gOM_scaled, spec.data = datasetlist.rel.agar.genus.15,test.stat = wae.15.genera, 10000)
+permtest.results.15.genera <- permutation.test(MnP =  Meta.data.spatial$MnP_gOM_centered, spec.data = datasetlist.rel.agar.genus.15,test.stat = wae.15.genera, 10000)
 
 wae.perm.results.15.genera<-as.data.frame(cbind(colnames(datasetlist.rel.agar.genus.15),p.adjust(permtest.results.15.genera[[1]],method = "fdr",length(permtest.results.15.genera[[1]])),permtest.results.15.genera[[1]]))
 wae.perm.results.15.genera[which(wae.perm.results.15.genera$V3 < 0.1),]
@@ -123,7 +298,50 @@ colnames(wae.perm.results.15.genera)<-c("ID","adjusted_p","p")#,"ID"
 
 wae.perm.results.15.genera[match(sort(wae.perm.results.15.genera$p),wae.perm.results.15.genera$p),]
 
+wae.15.genera$genus<-rownames(wae.15.genera)
+wae.15.genera.sorted<- wae.15.genera[match(sort(wae.15.genera$Weight.aver,decreasing = TRUE),wae.15.genera$Weight.aver),]
+wae.15.genera.sorted
 ```
+
+#genus level WAE - total peroxidase
+```{r}
+set.seed(13)
+
+permtest.results.15.genera.perox <- permutation.test(MnP =  Meta.data.spatial$Perox_gOM_centered, spec.data = datasetlist.rel.agar.genus.15,test.stat = wae.15.genera.perox, 10000)
+
+hist(as.numeric(as.data.frame(permtest.results.15.genera.perox[[2]])[56,]), breaks=50, col='grey', main="Permutation Distribution", las=1, xlab='')
+abline(v=wae.15.genera.perox[which(rownames(wae.15.genera.perox)== "Hydnum"),], lwd=3, col="red")
+
+hist(as.numeric(as.data.frame(permtest.results.15.genera.perox[[2]])[66,]), breaks=50, col='grey', main="Permutation Distribution", las=1, xlab='')
+abline(v=wae.15.genera.perox[which(rownames(wae.15.genera.perox)== "Gautieria"),], lwd=3, col="red")
+
+
+wae.perm.results.15.genera.perox<-as.data.frame(cbind(colnames(datasetlist.rel.agar.genus.15),p.adjust(permtest.results.15.genera.perox[[1]],method = "fdr",length(permtest.results.15.genera.perox[[1]])),permtest.results.15.genera.perox[[1]]))
+wae.perm.results.15.genera.perox[which(wae.perm.results.15.genera.perox$V3 < 0.1),]
+#wae.perm.results.15.genera.perox$ID<-taxsetlist.agar[[1]][match(wae.perm.results.15.genera.perox$V1,taxsetlist.agar[[2]]$`Cluster ID`),]$Reference
+colnames(wae.perm.results.15.genera.perox)<-c("ID","adjusted_p","p")#,"ID"
+
+
+wae.perm.results.15.genera.perox[match(sort(wae.perm.results.15.genera.perox$p),wae.perm.results.15.genera.perox$p),]
+
+wae.15.genera.perox$genus<-rownames(wae.15.genera.perox)
+wae.15.genera.sorted.perox<- wae.15.genera.perox[match(sort(wae.15.genera.perox$Weight.aver,decreasing = TRUE),wae.15.genera.perox$Weight.aver),]
+wae.15.genera.sorted.perox
+```
+
+#check overlapping of MnP and perox total results
+```{r}
+sig.genus.mnp<-wae.perm.results.15.genera[which(wae.perm.results.15.genera$p < 0.1),]
+sig.genus.perox<-wae.perm.results.15.genera.perox[which(wae.perm.results.15.genera.perox$p < 0.1),]
+only.mnp.g<-setdiff(sig.genus.mnp$ID,sig.genus.perox$ID)
+only.perox.g<-setdiff(sig.genus.perox$ID,sig.genus.mnp$ID)
+
+overlap.ID.g<-sig.genus.perox[which(sig.genus.perox$ID %in% sig.genus.mnp$ID),]
+sig.genus.genera<-rbind(overlap.ID.g,sig.genus.mnp[which(sig.genus.mnp$ID %in% only.mnp.g),],sig.genus.perox[which(sig.genus.perox$ID %in% only.perox.g),])
+sig.genus.genera$type<-c(rep("both",nrow(overlap.ID.g)),rep("mnp",length(only.mnp.g)),rep("perox",length(only.perox.g)))
+sig.genus.genera
+```
+
 #make nice table 
 ```{r}
 wae.perm.results.15.genera$WAE<- wae.15.genera$Weight.aver #add WAE 
@@ -140,17 +358,29 @@ write_csv(wae.perm.results.15.genera,file = "../figures/WAE_genus_results.csv")
 #check consistency of CCA and WAE results 
 ```{r}
 #read in the MNP CCA scores 
-MnP.CCA.1<-read_csv("../clean_data/MNP.CCA.scores.1.5perc.csv")
+MnP.CCA.1<-read_csv("../clean_data/MNP.CCA.scores.1.5percrev.csv")
 
-which(MnP.CCA.1$...1 %in% taxsetlist.agar[[1]][which(taxsetlist.agar[[1]]$Class == "Agaricomycetes"),]$`Cluster ID`) #length139
+which(MnP.CCA.1$...1 %in% taxsetlist.agar$`Cluster ID`) #length 160
 
 
-MnP.CCA.1<-MnP.CCA.1[which(MnP.CCA.1$...1 %in% taxsetlist.agar[[1]][which(taxsetlist.agar[[1]]$Class == "Agaricomycetes"),]$`Cluster ID`),]
+MnP.CCA.1<-MnP.CCA.1[which(MnP.CCA.1$...1 %in% taxsetlist.agar$`Cluster ID`),]
 
 MnP.CCA.1<-MnP.CCA.1[match(MnP.CCA.1$...1,rownames(wae.15)),]
 
 plot(MnP.CCA.1$CCA1*-1,wae.15$Weight.aver)
 text(MnP.CCA.1$CCA1*-1,wae.15$Weight.aver,labels = rownames(wae.15))
+
+MnP.CCA.2<-read_csv("../clean_data/MNP.CCA.scores.residu.1.5percrev.csv")
+
+which(MnP.CCA.2$...1 %in% taxsetlist.agar$`Cluster ID`) #length 160
+
+
+MnP.CCA.2<-MnP.CCA.2[which(MnP.CCA.2$...1 %in% taxsetlist.agar$`Cluster ID`),]
+
+MnP.CCA.2<-MnP.CCA.2[match(MnP.CCA.2$...1,rownames(wae.15)),]
+
+plot(MnP.CCA.2$CCA1*-1,wae.15$Weight.aver)
+text(MnP.CCA.2$CCA1*-1,wae.15$Weight.aver,labels = rownames(wae.15))
 ```
 
 #write WAE list
