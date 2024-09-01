@@ -28,6 +28,7 @@ library(tmap)       # Like ggplot2 but specifically for creating maps
 ```{r}
 clean_soil_data<-read_csv("../clean_data/Clean_SFSI_soil_data.csv")
 SFSI.spec<-read_csv("../clean_data/SFSI_data_relabun_1.5perc.csv")
+Gauti.data_2021<-read_delim("../raw_data/Gautheria_SIdata.csv",delim = ";")
 ```
 
 ##  Maps:
@@ -69,6 +70,17 @@ SFSI.spec.gaut.p2[SFSI.spec.gaut.p2<0.01]<-0
 #create new df of just hyst, gaut and coordinates 
 truffle_data<-cbind(clean_soil_data$Ost_Stord,clean_soil_data$Nord_Stord,SFSI.spec.gaut.p,SFSI.spec.hyst.p,SFSI.spec.gaut.p2,SFSI.spec.hyst.p2)
 colnames(truffle_data)<-c("Ost_Stord","Nord_Stord","Gauteria>0","Hysterangium>0","Gautieria>0.01","Hysterangium>0.01")
+
+#
+Gauti.data_2021$Gaut_total<-Gauti.data_2021$`SI21-11269_Gautieria_subglobispora`+Gauti.data_2021$`SI18-493_Gautieria_cf._otthii`+Gauti.data_2021$`SI21-9252_Gautieria_villosa`+Gauti.data_2021$`SI21-9568_Gautieria_pityophila`
+Gauti.data_2021$Gaut_total<-if_else(Gauti.data_2021$Gaut_total >0,1,0)
+Gauti.data_2021$`SI21-11269_Gautieria_subglobispora_pres`<-if_else(Gauti.data_2021$`SI21-11269_Gautieria_subglobispora`>0,1,0)
+Gauti.data_2021$`SI18-493_Gautieria_cf._otthii_pres`<-if_else(Gauti.data_2021$`SI18-493_Gautieria_cf._otthii`>0,1,0)
+Gauti.data_2021$`SI21-9252_Gautieria_villosa_pres`<-if_else(Gauti.data_2021$`SI21-9252_Gautieria_villosa`>0,1,0)
+Gauti.data_2021$`SI21-9568_Gautieria_pityophila_pres`<-if_else(Gauti.data_2021$`SI21-9568_Gautieria_pityophila`>0,1,0)
+
+Gauti.data_2021$Gaut_count<-Gauti.data_2021$`SI21-11269_Gautieria_subglobispora_pres`+Gauti.data_2021$`SI18-493_Gautieria_cf._otthii_pres`+Gauti.data_2021$`SI21-9252_Gautieria_villosa_pres`+Gauti.data_2021$`SI21-9568_Gautieria_pityophila_pres`
+Gauti.data_2021$Gaut_count<-as.factor(Gauti.data_2021$Gaut_count)
 ```
 
 
@@ -76,12 +88,14 @@ colnames(truffle_data)<-c("Ost_Stord","Nord_Stord","Gauteria>0","Hysterangium>0"
 ```{r}
 data_truffles <- st_as_sf(truffle_data, coords = c("Ost_Stord","Nord_Stord"),
                     crs = "EPSG:3006", agr = "constant")
+data_Gaut <- st_as_sf(Gauti.data_2021, coords = c("long","lat"),
+                    agr = "constant")
 ```
 
 # test:
 ```{r}
 plot(data_truffles,max.plot = 48)
-
+plot(data_Gaut)
 ```
 
 
@@ -90,6 +104,57 @@ plot(data_truffles,max.plot = 48)
 # tm_shape() for the object folowed by a tm_...() for the appropriate plotting tool
 #  for the data (eg polygon, dots, raster etc...) and then keep adding ontop of the
 #  previous.
+
+gaut.1<-tm_shape(sverige_simp) +
+  tm_polygons(border.col = "black", col = "white", alpha = 0.1) +
+  tm_shape(sjoar) +
+  tm_fill(col = "lightblue") +
+  tm_shape(data_Gaut[-which(data_Gaut$`SI21-11269_Gautieria_subglobispora` == 0),]["SI21-11269_Gautieria_subglobispora_pres"]) +
+  tm_dots(col = "SI21-11269_Gautieria_subglobispora_pres",size = 0.35,alpha=0.8,shape=19,palette=c("#502419"),title = "Gautieria_subglobispora",legend.show = FALSE)+
+  tm_shape(data_Gaut[-which(data_Gaut$`SI18-493_Gautieria_cf._otthii` == 0),]["SI18-493_Gautieria_cf._otthii_pres"]) +
+  tm_dots(col = "SI18-493_Gautieria_cf._otthii_pres", size = 0.35,alpha=0.8,shape=19,palette=c("#5C7A52"),title = "Gautieria_cf._otthii",legend.show = FALSE)+
+  tm_shape(data_Gaut[-which(data_Gaut$`SI21-9252_Gautieria_villosa` == 0),]["SI21-9252_Gautieria_villosa_pres"]) +
+  tm_dots(col = "SI21-9252_Gautieria_villosa_pres", size = 0.35,alpha=0.8,shape=19,palette=c("#497FAB"),title = "Gautieria_villosa",legend.show = FALSE)+
+  tm_shape(data_Gaut[-which(data_Gaut$`SI21-9568_Gautieria_pityophila` == 0),]["SI21-9568_Gautieria_pityophila_pres"]) +
+  tm_dots(col = "SI21-9568_Gautieria_pityophila_pres", size = 0.35,alpha=0.8,shape=19,palette=c("#DA7C2F"),title = "Gautieria_pityophila",legend.show = FALSE)+ 
+  tm_add_legend(type = "symbol",shape =19 ,col = c("#502419","#5C7A52","#497FAB","#DA7C2F"),labels = c("Gautieria subglobispora", "Gautieria cf. otthii","Gautieria villosa","Gautieria pityophila"),title = "Gautieria presence")+
+  tm_layout(legend.width = 1,legend.outside = TRUE,legend.position = c(-0.15,0.1),frame = FALSE)
+
+gaut.subglo<-tm_shape(sverige_simp) +
+  tm_polygons(border.col = "black", col = "white", alpha = 0.1) +
+  tm_shape(sjoar) +
+  tm_fill(col = "lightblue") +
+  tm_shape(data_Gaut[-which(data_Gaut$`SI21-11269_Gautieria_subglobispora` == 0),]["SI21-11269_Gautieria_subglobispora_pres"]) +
+  tm_dots(col = "SI21-11269_Gautieria_subglobispora_pres",size = 0.35,alpha=0.8,shape=19,palette=c("#502419"),title = "Gautieria_subglobispora",legend.show = FALSE)
+
+gaut.otthii<-tm_shape(sverige_simp) +
+  tm_polygons(border.col = "black", col = "white", alpha = 0.1) +
+  tm_shape(sjoar) +
+  tm_fill(col = "lightblue") +
+  tm_shape(data_Gaut[-which(data_Gaut$`SI18-493_Gautieria_cf._otthii` == 0),]["SI18-493_Gautieria_cf._otthii_pres"]) +
+  tm_dots(col = "SI18-493_Gautieria_cf._otthii_pres", size = 0.35,alpha=0.8,shape=19,palette=c("#5C7A52"),title = "Gautieria_cf._otthii",legend.show = FALSE)
+
+gaut.vill<-tm_shape(sverige_simp) +
+  tm_polygons(border.col = "black", col = "white", alpha = 0.1) +
+  tm_shape(sjoar) +
+  tm_fill(col = "lightblue") +
+  tm_shape(data_Gaut[-which(data_Gaut$`SI21-9252_Gautieria_villosa` == 0),]["SI21-9252_Gautieria_villosa_pres"]) +
+  tm_dots(col = "SI21-9252_Gautieria_villosa_pres", size = 0.35,alpha=0.8,shape=19,palette=c("#497FAB"),title = "Gautieria_villosa",legend.show = FALSE)
+
+gaut.pity<-tm_shape(sverige_simp) +
+  tm_polygons(border.col = "black", col = "white", alpha = 0.1) +
+  tm_shape(sjoar) +
+  tm_fill(col = "lightblue") +
+  tm_shape(data_Gaut[-which(data_Gaut$`SI21-9568_Gautieria_pityophila` == 0),]["SI21-9568_Gautieria_pityophila_pres"]) +
+  tm_dots(col = "SI21-9568_Gautieria_pityophila_pres", size = 0.35,alpha=0.8,shape=19,palette=c("#DA7C2F"),title = "Gautieria_pityophila",legend.show = FALSE)
+
+gaut.3<-tm_shape(sverige_simp) +
+  tm_polygons(border.col = "black", col = "white", alpha = 0.1) +
+  tm_shape(sjoar) +
+  tm_fill(col = "lightblue") +
+  tm_shape(data_Gaut["Gaut_count"]) +
+  tm_dots(col = "Gaut_count",size = 0.25,alpha=1,shape=19,palette=c("darkgray","black"),title = "Gautieria_count")+
+  tm_layout(legend.width = 1,legend.outside = TRUE,legend.position = c(-0.15,0.1),frame = FALSE)
 
 map1 <- tm_shape(sverige_simp) +
   tm_polygons(border.col = "black", col = "white", alpha = 0.1) +
@@ -144,6 +209,14 @@ tmap_save(tm = map1, filename = "../figures/Hysterangium_map.png")
 tmap_save(tm = map2, filename = "../figures/Gautieria_map.png")
 tmap_save(tm = map3, filename = "../figures/Hysterangium1perc_map.png")
 tmap_save(tm = map4, filename = "../figures/Gautieria1perc_map.png")
+
+tmap_save(tm = gaut.1, filename = "../figures/Gautieria_larger.png")
+tmap_save(tm = gaut.3, filename = "../figures/Gautieria_count.png")
+
+tmap_save(tm = gaut.subglo, filename = "../figures/Gaut_subglo.png")
+tmap_save(tm = gaut.otthii, filename = "../figures/Gaut_otthii.png")
+tmap_save(tm = gaut.vill, filename = "../figures/Gaut_vill.png")
+tmap_save(tm = gaut.pity, filename = "../figures/Gaut_pity.png")
 ```
 
 
