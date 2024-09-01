@@ -24,6 +24,16 @@ Meta.data.spatial<-read_delim("../raw_data/Spatial_data_fungi_env_all.txt",delim
 ##Enzyme activity data - Mn-dependant activity
 Leticia.MnP.calc<-read_delim("../raw_data/MnP_Assay_Plates_Final_Leticia.txt",delim = "\t", escape_double = FALSE, trim_ws = TRUE,locale = locale(encoding = "latin1",decimal_mark = "."),skip = 1)
 Leticia.MnP.calc$ID_plot<-gsub("-","_",Leticia.MnP.calc$ID_plot)
+#note: MndepOx is AV-BV, MnindepOx is BV-B, Peroxidase is AV-B
+
+#If change in absorbance is zero - change to zero - also in cases where Peroxidase activity is zero but Mn-dep is still postive and where the Mndep activity is greater than total peroxidase
+Leticia.MnP.calc[which(Leticia.MnP.calc$`Peroxidase(Av-B)` < 0),5]<-0
+Leticia.MnP.calc[which(Leticia.MnP.calc$`Peroxidase(Av-B)` == 0),3]<-0
+Leticia.MnP.calc[which(Leticia.MnP.calc$MnDependentOx...3 < 0),3]<-0
+Leticia.MnP.calc[which(Leticia.MnP.calc$MnDependentOx...3 > Leticia.MnP.calc$`Peroxidase(Av-B)`),c(3,5)]<-0
+
+#calculate MnP independant (total peroxidase - Mn-dep)
+Leticia.MnP.calc$MnIndependentOx...4<-Leticia.MnP.calc$`Peroxidase(Av-B)`- Leticia.MnP.calc$MnDependentOx...3 #this is overwriting the variable I read in but automatically make the ones that should be zero, zero. 
 
 #put in the to dataset in same order
 Leticia.MnP.calc<-Leticia.MnP.calc[match(Meta.data.spatial$ID_plot,Leticia.MnP.calc$ID_plot),]
@@ -65,16 +75,29 @@ soil.conv<-rep((0.2/25000)*(50/200),456)
 MnP_pergram<-(Leticia.MnP.calc$MnDependentOx...3*0.00001)/soil.conv
 Mnp_total<-MnP_pergram*Leticia.MnP.calc$total_dry_weight
 
+Perox_pergram<-(Leticia.MnP.calc$`Peroxidase(Av-B)`*0.00001)/soil.conv
+Perox_total<-Perox_pergram*Leticia.MnP.calc$total_dry_weight
+
+MnPindep_pergram<-(Leticia.MnP.calc$MnIndependentOx...4*0.00001)/soil.conv
+MnPindep_total<-MnPindep_pergram*Leticia.MnP.calc$total_dry_weight
+
 #MnP activity per area of core
 Mnp_m2<-Mnp_total/core.area
+Perox_m2<-Perox_total/core.area
+Mnp_m2<-MnPindep_total/core.area
 
 #MnP activity per gram carbon
 MnP_gC<-(Leticia.MnP.calc$MnDependentOx...3*0.00001)/(soil.conv*(Meta.data.spatial$C/100))
+Perox_gC<-(Leticia.MnP.calc$`Peroxidase(Av-B)`*0.00001)/(soil.conv*(Meta.data.spatial$C/100))
+Mnpindep_gC<-(Leticia.MnP.calc$MnIndependentOx...4*0.00001)/(soil.conv*(Meta.data.spatial$C/100))
 
 #MnP activity per gram OM
 MnP_gOM<-Mnp_total/OM.weight
-MnP_gOM[which(MnP_gOM < 0)]<-0 ##some negative values should be changed to zero - lower than detection level
+Perox_gOM<-Perox_total/OM.weight
+MnPindep_gOM<-MnPindep_total/OM.weight
 Meta.data.spatial$MnP_gOM<-MnP_gOM
+Meta.data.spatial$Perox_gOM<-Perox_gOM
+Meta.data.spatial$MnPindep_gOM<-MnPindep_gOM
 
 #make sure all metadata naming is consistent
 Meta.data.spatial$pool<-gsub("pool1","pool1.v2",Meta.data.spatial$pool)
@@ -87,19 +110,23 @@ Meta.data.spatial$pool<-gsub("pool1","pool1.v2",Meta.data.spatial$pool)
 Meta.data.spatial<-Meta.data.spatial[,which(!grepl("SH_",colnames(Meta.data.spatial)))]
 
 #trim down to needed variables
-Meta.data.spatial<-Meta.data.spatial[,c(1:3,5:7,19:22,29,30,35,37,39)]
+Meta.data.spatial<-Meta.data.spatial[,c(1:3,5:7,19:22,29,30,35,37,39,40,41)]
 ```
 
 #normalize and scale metadata
 
 ```{r}
 #need to log roots, and MnP for normalization 
-Meta.data.spatial$MnP_gOM.log<-log(Meta.data.spatial$MnP_gOM+0.00027) #min value is 0.000027 but better normal distribution by adding on constant with a tenth higher value
-Meta.data.spatial$roots_gOM.log<-log(Meta.data.spatial$roots_gOM)
+Meta.data.spatial$MnP_gOM.log<-log10(Meta.data.spatial$MnP_gOM+0.00027) #min value is 0.000027 but better normal distribution by adding on constant with a tenth higher value
+Meta.data.spatial$Perox_gOM.log<-log10(Meta.data.spatial$Perox_gOM+0.000588)
+Meta.data.spatial$MnPindep_gOM.log<-log10(Meta.data.spatial$MnPindep_gOM+5.350847e-05)
+Meta.data.spatial$roots_gOM.log<-log10(Meta.data.spatial$roots_gOM)
 
 #Then scale all by site/plot
 
-Meta.data.spatial_scaled<-Meta.data.spatial %>% group_by(plot) %>% mutate_at(c("ergosterol_gOM","MnP_gOM","MnP_gOM.log","roots_gOM.log","ph","NC"), ~scale(.,center = TRUE)) #scaling but not centering
+Meta.data.spatial_scaled<-Meta.data.spatial %>% group_by(plot) %>% mutate(across(c("ergosterol_gOM","MnP_gOM","MnP_gOM.log","Perox_gOM","Perox_gOM.log","MnPindep_gOM","MnPindep_gOM.log","roots_gOM.log","ph","NC"), ~scale(.,center = TRUE,scale=TRUE))) #scaling but not centering
+
+Meta.data.spatial_centered<-Meta.data.spatial %>% group_by(plot) %>% mutate(across(c("MnP_gOM","MnP_gOM.log","Perox_gOM","Perox_gOM.log","MnPindep_gOM","MnPindep_gOM.log"), ~scale(.,center = TRUE,scale=FALSE))) #scaling but not centering
 
 #unlist scaled data and add to Metadata
 Meta.data.spatial$ph_scaled<-Meta.data.spatial_scaled$ph[,1]
@@ -107,14 +134,23 @@ Meta.data.spatial$NC_scaled<-Meta.data.spatial_scaled$NC[,1]
 Meta.data.spatial$ergosterol_gOM_scaled<-Meta.data.spatial_scaled$ergosterol_gOM[,1]
 Meta.data.spatial$MnP_gOM_scaled<-Meta.data.spatial_scaled$MnP_gOM[,1]
 Meta.data.spatial$MnP_gOM.log_scaled<-Meta.data.spatial_scaled$MnP_gOM.log[,1]
+Meta.data.spatial$Perox_gOM_scaled<-Meta.data.spatial_scaled$Perox_gOM[,1]
+Meta.data.spatial$Perox_gOM.log_scaled<-Meta.data.spatial_scaled$Perox_gOM.log[,1]
+Meta.data.spatial$MnPindep_gOM_scaled<-Meta.data.spatial_scaled$MnPindep_gOM[,1]
+Meta.data.spatial$MnPindep_gOM.log_scaled<-Meta.data.spatial_scaled$MnPindep_gOM.log[,1]
 Meta.data.spatial$roots_gOM.log_scaled<-Meta.data.spatial_scaled$roots_gOM.log[,1]
+Meta.data.spatial$MnP_gOM_centered<-Meta.data.spatial_centered$MnP_gOM[,1]
+Meta.data.spatial$MnP_gOM.log_centered<-Meta.data.spatial_centered$MnP_gOM.log[,1]
+Meta.data.spatial$Perox_gOM_centered<-Meta.data.spatial_centered$Perox_gOM[,1]
+Meta.data.spatial$Perox_gOM.log_centered<-Meta.data.spatial_centered$Perox_gOM.log[,1]
+Meta.data.spatial$MnPindep_gOM_centered<-Meta.data.spatial_centered$MnPindep_gOM[,1]
+Meta.data.spatial$MnPindep_gOM.log_centered<-Meta.data.spatial_centered$MnPindep_gOM.log[,1]
+
 
 #then visualize with PCA
 pca<-prcomp(Meta.data.spatial[,which(colnames(Meta.data.spatial) %in% c("ph_scaled","NC_scaled"))])
 fviz_pca_biplot(pca)
 
-Meta.data.spatial$pc1<- -1*pca$x[,1] 
-Meta.data.spatial$pc2<- pca$x[,2]
 ```
 
 #write cleaned file
