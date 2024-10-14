@@ -208,6 +208,10 @@ scata.IDs<-colnames(datasetlist.rel.agar.genus) #save them just incase i want ag
 colnames(datasetlist.rel.agar.genus)<-taxsetlist.agar$Genus
 colnames(datasetlist.count.agar.genus)<-taxsetlist.agar$Genus
 
+##I want to make all Tomentella into Thelephora - DOI: 10.12697/fce.2024.61.09
+colnames(datasetlist.rel.agar.genus) <-if_else(colnames(datasetlist.rel.agar.genus) == "Tomentella","Thelephora",colnames(datasetlist.rel.agar.genus))
+colnames(datasetlist.count.agar.genus) <-if_else(colnames(datasetlist.count.agar.genus) == "Tomentella","Thelephora",colnames(datasetlist.count.agar.genus))
+
 #now just rowsum the columns with the same name... 
 #https://stackoverflow.com/questions/25387714/add-columns-together-that-match-a-pattern
 
