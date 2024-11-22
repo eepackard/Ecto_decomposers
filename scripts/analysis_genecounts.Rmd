@@ -120,7 +120,7 @@ Ganoderma.spec<-c("G.boninense","G.lucidum","G.leucocontextum","G.sinense","Gano
 Ganoderma.counts<-c(13,9,10,10,9)
 Ganoderma<-data.frame(Ganoderma.spec,Ganoderma.counts)
 
-Galerina.spec<-c("G. marginata")
+Galerina.spec<-c("G. marginata") #Hymenogastraceae
 Galerina.counts<-c(22)#based on Ruiz-duens and 23 (unannotated) in the published genome... 
 Galerina<-data.frame(Galerina.spec,Galerina.counts)
 
@@ -166,7 +166,7 @@ Hysterangium<-data.frame(Hysterangium.spec,Hysterangium.counts)
 
 #no genomes of Inocybe - family Inocybaceae
 
-Laccaria.spec<-c("L.bicolor","L.amethystina","Laccaria sp1") #Russulaceae
+Laccaria.spec<-c("L.bicolor","L.amethystina","Laccaria sp1") #Hydnangiaceae
 Laccaria.counts<-c(1,1,9)#the seuqnces match to a MnP but I am still not confident these are correct
 Laccaria<-data.frame(Laccaria.spec,Laccaria.counts) #Miyauchi dont include Laccaria sp1
 
@@ -204,7 +204,7 @@ Piloderma.spec<-c("P.byssinum","P.sphaerosporum","P.olivaceum","P.croceum") # fa
 Piloderma.counts<-c(1,2,1,0) #Miyauchi counts 0 in croceum I didnt even see this genome...
 Piloderma<-data.frame(Piloderma.spec,Piloderma.counts)
 
-Pluteus.spec<-c("P.cervinus") # family Atheliaceae
+Pluteus.spec<-c("P.cervinus") # family Plutaceae
 Pluteus.counts<-c(12) 
 Pluteus<-data.frame(Pluteus.spec,Pluteus.counts)
 
@@ -214,11 +214,11 @@ Postia<-data.frame(Postia.spec,Postia.counts)
 
 #no genomes Pseudotomentella #Thelephoraceae
 
-Ramaria.spec<-c("R.rubella") #incertae sedis in Agarciomycetes
+Ramaria.spec<-c("R.rubella") #Gomphaceae Agarciomycetes
 Ramaria.counts<-c(13)
 Ramaria<-data.frame(Ramaria.spec,Ramaria.counts)
 
-Resinicium.spec<-c("R.bicolor") #incertae sedis in Agarciomycetes
+Resinicium.spec<-c("R.bicolor") #Rickinellaceae in Agarciomycetes
 Resinicium.counts<-c(15)
 Resinicium<-data.frame(Resinicium.spec,Resinicium.counts)
 
@@ -230,7 +230,7 @@ Rhodocollybia.spec<-c("R.butyracea1","R.butyracea2") #Omphalotaceae
 Rhodocollybia.counts<-c(2,2)
 Rhodocollybia<-data.frame(Rhodocollybia.spec,Rhodocollybia.counts)
 
-Rickenella.spec<-c("R.fibula","R.mellea") #Repetobasidiaceae
+Rickenella.spec<-c("R.fibula","R.mellea") #Repetobasidiaceae??
 Rickenella.counts<-c(22,25)
 Rickenella<-data.frame(Rickenella.spec,Rickenella.counts)
 
@@ -275,8 +275,6 @@ Thelephora<-data.frame(Thelephora.spec,Thelephora.counts)
 Tricholoma.spec<-c("T. populinum","T. matsutake")
 Tricholoma.counts<-c(0,0) #zero in miyauchi for T. matsutake
 Tricholoma<-data.frame(Tricholoma.spec,Tricholoma.counts)
-
-#no genomes Tomentella - family Thelephoraceae
 
 #no genomes Tomentellopsis - family Thelephoraceae?
 
@@ -332,8 +330,8 @@ Hydnodontaceae.counts<-c(12)
 Hygrophoraceae.taxa<-c("Hygrocybe coccinea")
 Hygrophoraceae.counts<-c(0)
 
-Hymenogastraceae.taxa<-c("Hebeloma brunneifolium","Hebeloma cylindrosporum","Gymnopilus junonius","Gymnopilus chrysopellus")
-Hymenogastraceae.counts<-c(3,3,15,20)
+Hymenogastraceae.taxa<-c("Hebeloma brunneifolium","Hebeloma cylindrosporum","Gymnopilus junonius","Gymnopilus chrysopellus","Galerina marginata")
+Hymenogastraceae.counts<-c(3,3,15,20,22) #also includes galerina based on Matheny 2006 
 
 Inocybaceae.taxa<-c("Inosperma lanatodiscum")
 Inocybaceae.counts<-c(0)
@@ -344,8 +342,8 @@ Mycenaceae.counts<-c(43,8,16,43,23,27,14,10,24,18,17,13,12,7,11,12,12,13,9,30,19
 Thelephoraceae.taxa<-c("T.terrestris","T.ganbajun")
 Thelephoraceae.counts<-c(0,0)
 
-Strophariaceae.taxa<-c("Pholiota alnicola","Pholiota conissans","Pholiota molesta","Pholiota sp.","Stropharia rugosoannulata","Hypholoma sublateritium","Galerina marginata","Agrocybe pediades","Agrocybe Praecox","Psilocybe cubensis", "Psilocybe serbica","Psilocybe subaeruguinosa","Leratiomyces ceres","Leratiomyces erythrocephalus")
-Strophariaceae.counts<-c(14,11,14,14,18,5,22,12,14,9,6,6,27,15)
+Strophariaceae.taxa<-c("Pholiota alnicola","Pholiota conissans","Pholiota molesta","Pholiota sp.","Stropharia rugosoannulata","Hypholoma sublateritium","Agrocybe pediades","Agrocybe Praecox","Psilocybe cubensis", "Psilocybe serbica","Psilocybe subaeruguinosa","Leratiomyces ceres","Leratiomyces erythrocephalus")
+Strophariaceae.counts<-c(14,11,14,14,18,5,12,14,9,6,6,27,15)
 
 Schizoporaceae.taxa<-c("Schizopora paradoxa")
 Schizoporaceae.counts<-c(18)
@@ -358,9 +356,9 @@ family.data$family<-c(rep("Agaricaceae",length(Agaricaceae.counts)),rep("Amyloco
 family.average<-family.data %>% group_by(family) %>% summarize(Mean=mean(Counts))
 family.average[,c(3,4)]<-family.data %>% group_by(family) %>% summarize(SE = sd(Counts)/length(Counts))
 
-family.average<-family.average[c(3,7,3,14,14,7,8,14,3,8,4,6,14,10,4,5,2,14,12,3,4,11,12,2,13,9),]
+family.average<-family.average[c(3,7,3,14,14,7,8,3,8,4,6,14,10,4,5,2,14,12,3,4,11,12,2,13,9),]
 family.average$Genus<-c("Tylospora","Luellia","Amphinema","Pseudotomentella","Tomentellopsis","Trechispora","Hygrophorus",
-"Tomentella","Athelia","Ampulloclitocybe","Tylopilus","Entocybe","Hydnellum","Inocybe","Leccinum","Craterellus","Amylocorticiellum","Thelephoraceae","Xylodon","Byssoporia","Imleria","Xeromphalina","Hyphodontia","Ceraceomyces","Deconica","Naucoria")
+"Athelia","Ampulloclitocybe","Tylopilus","Entocybe","Hydnellum","Inocybe","Leccinum","Craterellus","Amylocorticiellum","Thelephoraceae","Xylodon","Byssoporia","Imleria","Xeromphalina","Hyphodontia","Ceraceomyces","Deconica","Naucoria")
 ```
 
 #add the genera with family averages to the genus average dataset
@@ -369,8 +367,8 @@ Gene.counts<-rbind(genus.average[,c(1,2,4)],family.average[,c(5,2,4)])
 
 ##need to add Clavariaceae and Squamanita as missing data 
 Gene.counts[nrow(Gene.counts)+1,1]<-"Clavariaceae" #seq
-Gene.counts[nrow(Gene.counts)+1,1]<-"Squamanita" #no squamanticea 
-Gene.counts[nrow(Gene.counts)+1,1]<-"Cystoderma" # no squamanticea
+Gene.counts[nrow(Gene.counts)+1,1]<-"Squamanita" #no squamanticea - incertis sedis 
+Gene.counts[nrow(Gene.counts)+1,1]<-"Cystoderma" # no squamanticea - incertis sedis
 Gene.counts[nrow(Gene.counts)+1,1]<-"Clavaria"
 Gene.counts[nrow(Gene.counts)+1,1]<-"Clavulina"#no Clavulinaceae
 ```
