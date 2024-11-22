@@ -22,60 +22,94 @@ library(grDevices)
 
 #read in data
 ```{r}
-sfsi.pine<-read_csv("../clean_data/SFSI_pine.csv")
-sfsi.spruce<-read_csv("../clean_data/SFSI_spruce.csv")
+sfsi.pine<-read_csv("../clean_data/SFSI_pine.rev.csv")
+sfsi.spruce<-read_csv("../clean_data/SFSI_spruce.rev.csv")
+sfsi.fungniche.all<-read_csv("../clean_data/SFSI_total.plus.csv")
 ```
 
 ###frequency plot overall 
-```{r}
-sfsi.pine$agebinned<-as.factor(if_else(between(sfsi.pine$unscaled_age,10,31),"10-31",if_else(between(sfsi.pine$unscaled_age,32,45),"32-45",if_else(between(sfsi.pine$unscaled_age,46,65),"46-65",if_else(between(sfsi.pine$unscaled_age,66,107),"66-107",if_else(between(sfsi.pine$unscaled_age,108,400),">108","miss"))))))
+```{r warning=FALSE}
+quantile(sfsi.pine$unscaled_age, probs = c(0,0.2,0.4,0.6,0.8,1))
+sfsi.pine$agebinned<-as.factor(if_else(between(sfsi.pine$unscaled_age,10,33),"10-33",if_else(between(sfsi.pine$unscaled_age,34,43),"34-43",if_else(between(sfsi.pine$unscaled_age,44,60),"44-60",if_else(between(sfsi.pine$unscaled_age,61,95),"61-95",if_else(between(sfsi.pine$unscaled_age,96,400),">95","miss"))))))
 
-sfsi.spruce$agebinned<-as.factor(if_else(between(sfsi.spruce$unscaled_age,10,28),"10-28",if_else(between(sfsi.spruce$unscaled_age,29,46),"29-46",if_else(between(sfsi.spruce$unscaled_age,47,60),"47-60",if_else(between(sfsi.spruce$unscaled_age,61,108),"61-108",if_else(between(sfsi.spruce$unscaled_age,109,400),">109","miss"))))))
+quantile(sfsi.spruce$unscaled_age, probs = c(0,0.2,0.4,0.6,0.8,1))
+sfsi.spruce$agebinned<-as.factor(if_else(between(sfsi.spruce$unscaled_age,10,24),"10-24",if_else(between(sfsi.spruce$unscaled_age,25,39),"25-39",if_else(between(sfsi.spruce$unscaled_age,40,51),"40-51",if_else(between(sfsi.spruce$unscaled_age,52,75),"52-75",if_else(between(sfsi.spruce$unscaled_age,76,400),">75","miss"))))))
 
-levellist.p<-list('10-31','32-45', '46-65', '66-107','>108')
-levellist.s<-list('10-28','29-46', '47-60', '61-108','>109')
+quantile(sfsi.fungniche.all$unscaled_age, probs = c(0,0.2,0.4,0.6,0.8,1))
+sfsi.fungniche.all$agebinned<-as.factor(if_else(between(sfsi.fungniche.all$unscaled_age,10,28),"10-28",if_else(between(sfsi.fungniche.all$unscaled_age,29,43),"29-43",if_else(between(sfsi.fungniche.all$unscaled_age,44,58),"44-58",if_else(between(sfsi.fungniche.all$unscaled_age,59,89),"59-89",if_else(between(sfsi.fungniche.all$unscaled_age,90,400),">90","miss"))))))
+
+levellist.p<-list('10-33','34-43', '44-60', '61-95','>95')
+levellist.s<-list('10-24','25-39', '40-51', '52-75','>75')
+levellist<-list('10-28','29-43', '44-58', '59-89','>90')
 
 freq.pine<-c()
 for(i in 1:5){
-freq.pine[[i]]<-sum(sfsi.pine[which(sfsi.pine$agebinned == levellist.p[[i]]),which(colnames(sfsi.pine) =="miners.pres")])/nrow(sfsi.pine[which(sfsi.pine$agebinned == levellist.p[[i]]),which(colnames(sfsi.pine) =="miners.pres")])  
+freq.pine[[i]]<-sum(sfsi.pine[which(sfsi.pine$agebinned == levellist.p[[i]]),which(colnames(sfsi.pine) =="miners.pres")])/nrow(sfsi.pine[which(sfsi.pine$agebinned == levellist.p[[i]]),])  
 }
 
-freq.pine<-data.frame(first_column= c(round(as.numeric(freq.pine[[1]]),digits = 2),round(as.numeric(freq.pine[[2]]),digits = 2),round(as.numeric(freq.pine[[3]]),digits = 2),round(as.numeric(freq.pine[[4]]),digits = 2),round(as.numeric(freq.pine[[5]]),digits = 2)),second_column=c('10-31','32-45', '46-65', '66-107','>108'))
+freq.pine<-data.frame(first_column= c(round(as.numeric(freq.pine[[1]]),digits = 2),round(as.numeric(freq.pine[[2]]),digits = 2),round(as.numeric(freq.pine[[3]]),digits = 2),round(as.numeric(freq.pine[[4]]),digits = 2),round(as.numeric(freq.pine[[5]]),digits = 2)),second_column=c('10-33','34-43', '44-60', '61-95','>95'))
 
-freq.pine$second_column<-factor(freq.pine$second_column,levels=c('10-31','32-45', '46-65', '66-107','>108'))
+freq.pine$second_column<-factor(freq.pine$second_column,levels=c('10-33','34-43', '44-60', '61-95','>95'))
 
-numsites.p<-c(118,109,114,110,113)
+numsites.p<-c(65,55,60,58,57)
 
 pine.freq<-ggplot(freq.pine, aes(x = second_column, y = first_column)) +
   geom_bar(fill = "#AACB90", stat = "identity") +
-  geom_text(aes(label = numsites.p,family="Times New Roman"), vjust = -0.3) + 
+  geom_text(aes(label = numsites.p), vjust = -0.3) + 
   xlab("")+
-  ylab("Percent frequency")+
-  scale_y_continuous(limits = c(0,1))+
-  theme_classic()
+  ylab("")+
+  coord_cartesian(ylim = c(0,1),clip = "off")+
+  #scale_y_continuous(limits = c(0,1))+
+  theme_classic()+
+  theme(text = element_text(size=9),plot.margin = unit(c(.06,0,.5,0),"cm"))
 
 freq.spruce<-c()
 for(i in 1:5){
-freq.spruce[[i]]<-sum(sfsi.spruce[which(sfsi.spruce$agebinned == levellist.s[[i]]),which(colnames(sfsi.spruce) =="miners.pres")])/nrow(sfsi.spruce[which(sfsi.spruce$agebinned == levellist.s[[i]]),which(colnames(sfsi.spruce) =="miners.pres")])  
+freq.spruce[[i]]<-sum(sfsi.spruce[which(sfsi.spruce$agebinned == levellist.s[[i]]),which(colnames(sfsi.spruce) =="miners.pres")])/nrow(sfsi.spruce[which(sfsi.spruce$agebinned == levellist.s[[i]]),])  
 }
 
-freq.spruce<-data.frame(first_column= c(round(as.numeric(freq.spruce[[1]]),digits = 2),round(as.numeric(freq.spruce[[2]]),digits = 2),round(as.numeric(freq.spruce[[3]]),digits = 2),round(as.numeric(freq.spruce[[4]]),digits = 2),round(as.numeric(freq.spruce[[5]]),digits = 2)),second_column=c('10-28','29-46', '47-60', '61-108','>109'))
+freq.spruce<-data.frame(first_column= c(round(as.numeric(freq.spruce[[1]]),digits = 2),round(as.numeric(freq.spruce[[2]]),digits = 2),round(as.numeric(freq.spruce[[3]]),digits = 2),round(as.numeric(freq.spruce[[4]]),digits = 2),round(as.numeric(freq.spruce[[5]]),digits = 2)),second_column=c('10-24','25-39', '40-51', '52-75','>75'))
 
-freq.spruce$second_column<-factor(freq.spruce$second_column,levels=c('10-28','29-46', '47-60', '61-108','>109'))
+freq.spruce$second_column<-factor(freq.spruce$second_column,levels=c('10-24','25-39', '40-51', '52-75','>75'))
 
-numsites.s<-c(75,73,74,70,73)
+numsites.s<-c(55,47,51,52,48)
 
 spruce.freq<-ggplot(freq.spruce, aes(x = second_column, y = first_column)) +
   geom_bar(fill = "#415B25", stat = "identity") +
   scale_x_discrete(drop=FALSE)+
-  geom_text(aes(label = numsites.s,family="Times New Roman"), vjust = -0.3) + 
+  geom_text(aes(label = numsites.s), vjust = -0.3) + 
   xlab("Forest age")+
-  ylab("Percent frequency")+
-  scale_y_continuous(limits = c(0,1))+
-  theme_classic()
+  ylab("")+
+  coord_cartesian(ylim = c(0,1),clip = "off")+
+  #scale_y_continuous(limits = c(0,1))+
+  theme_classic()+
+  theme(text = element_text(size=9),plot.margin = unit(c(.06,0,.5,0),"cm"))
 
-#tiff("../figures/guild_frequencyplot.tiff",width = 8000,height = 10000,res = 1000)
-pine.freq+spruce.freq+plot_layout(nrow = 2)+ plot_annotation(tag_levels = "A")
+freq.fungniche.all<-c()
+for(i in 1:5){
+freq.fungniche.all[[i]]<-sum(sfsi.fungniche.all[which(sfsi.fungniche.all$agebinned == levellist[[i]]),which(colnames(sfsi.fungniche.all) =="miners.pres")])/nrow(sfsi.fungniche.all[which(sfsi.fungniche.all$agebinned == levellist[[i]]),])  
+}
+
+freq.fungniche.all<-data.frame(first_column= c(round(as.numeric(freq.fungniche.all[[1]]),digits = 2),round(as.numeric(freq.fungniche.all[[2]]),digits = 2),round(as.numeric(freq.fungniche.all[[3]]),digits = 2),round(as.numeric(freq.fungniche.all[[4]]),digits = 2),round(as.numeric(freq.fungniche.all[[5]]),digits = 2)),second_column=c('10-28','29-43', '44-58', '59-89','>90'))
+
+freq.fungniche.all$second_column<-factor(freq.fungniche.all$second_column,levels=c('10-28','29-43', '44-58', '59-89','>90'))
+
+numsites<-c(119,122,114,109,113)
+
+all.freq<-ggplot(freq.fungniche.all, aes(x = second_column, y = first_column)) +
+  geom_bar(fill = "#5F9B46", stat = "identity") +
+  scale_x_discrete(drop=FALSE)+
+  geom_text(aes(label = numsites), vjust = -0.3) + 
+  xlab("Forest age")+
+  ylab("Frequency")+
+  coord_cartesian(ylim = c(0,1),clip = "off")+
+  #scale_y_continuous(limits = c(0,1))+
+  theme_classic()+
+  theme(text = element_text(size=9),plot.margin = unit(c(.06,0,.5,0),"cm"))
+
+#tiff("../figures/revised/guild_frequencyplot_agecontinuous.tiff",width = 10000,height = 10000,res = 1000)
+#pdf("../figures/revised/guild_frequencyplot_agecontinuous.pdf",width = 4.3,height = 3.8)
+(all.freq|(pine.freq/spruce.freq))+ plot_annotation(tag_levels = "a")
 
 ##binary age category of young and old 
 
@@ -87,146 +121,200 @@ levellist.s.b<-list('young','old')
 
 binary.freq.pine<-c()
 for(i in 1:2){
-binary.freq.pine[[i]]<-sum(sfsi.pine[which(sfsi.pine$agecat == levellist.p.b[[i]]),which(colnames(sfsi.pine) =="miners.pres")])/nrow(sfsi.pine[which(sfsi.pine$agecat == levellist.p.b[[i]]),which(colnames(sfsi.pine) =="miners.pres")])  
+binary.freq.pine[[i]]<-sum(sfsi.pine[which(sfsi.pine$agecat == levellist.p.b[[i]]),which(colnames(sfsi.pine) =="miners.pres")])/nrow(sfsi.pine[which(sfsi.pine$agecat == levellist.p.b[[i]]),])  
 }
 
 binary.freq.pine<-data.frame(first_column= c(round(as.numeric(binary.freq.pine[[1]]),digits = 2),round(as.numeric(binary.freq.pine[[2]]),digits = 2)),second_column=c('young','old'))
 
 binary.freq.pine$second_column<-factor(binary.freq.pine$second_column,levels=c('young','old'))
 
-numsites.p.b<-c("n = 360","n = 204")
+numsites.p.b<-c("n = 204","n = 91")
 
 pine.binary.freq<-ggplot(binary.freq.pine, aes(x = second_column, y = first_column)) +
   geom_bar(fill = "#AACB90", stat = "identity") +
   geom_text(aes(label = numsites.p.b), vjust = -0.3,) + 
-  xlab("Forest age")+
+  xlab("Stand age")+
   ylab("Frequency")+
   scale_y_continuous(limits = c(0,1))+
-  geom_signif(comparisons = list(c("young", "old")), annotations = "*",y_position = 0.9)+
+  #geom_signif(comparisons = list(c("young", "old")), annotations = "*",y_position = 0.9)+
   theme_classic()+
   theme(text = element_text(size=12))
 
 binary.freq.spruce<-c()
 for(i in 1:2){
-binary.freq.spruce[[i]]<-sum(sfsi.spruce[which(sfsi.spruce$agecat == levellist.s.b[[i]]),which(colnames(sfsi.spruce) =="miners.pres")])/nrow(sfsi.spruce[which(sfsi.spruce$agecat == levellist.s.b[[i]]),which(colnames(sfsi.spruce) =="miners.pres")])  
+binary.freq.spruce[[i]]<-sum(sfsi.spruce[which(sfsi.spruce$agecat == levellist.s.b[[i]]),which(colnames(sfsi.spruce) =="miners.pres")])/nrow(sfsi.spruce[which(sfsi.spruce$agecat == levellist.s.b[[i]]),])  
 }
 
 binary.freq.spruce<-data.frame(first_column= c(round(as.numeric(binary.freq.spruce[[1]]),digits = 2),round(as.numeric(binary.freq.spruce[[2]]),digits = 2)),second_column=c('young','old'))
 
 binary.freq.spruce$second_column<-factor(binary.freq.spruce$second_column,levels=c('young','old'))
 
-numsites.s.b<-c("n = 239","n = 126")
+numsites.s.b<-c("n = 197","n = 56")
 
 spruce.binary.freq<-ggplot(binary.freq.spruce, aes(x = second_column, y = first_column)) +
   geom_bar(fill = "#415B25", stat = "identity") +
   scale_x_discrete(drop=FALSE)+
   geom_text(aes(label = numsites.s.b), vjust = -0.3) + 
-  xlab("Forest age")+
+  xlab("Stand age")+
   ylab("Frequency")+
   scale_y_continuous(limits = c(0,1))+
   theme_classic()+
   theme(text = element_text(size=12))
 
 
-#tiff("../figures/guild_binaryage_frequencyplot_pine.tiff",width = 85,height = 100,res = 1000,units = "mm")
-#pdf("../figures/guild_binaryage_frequencyplot_pine.pdf",width = 3.46,height = 3.93)
-pine.binary.freq+spruce.binary.freq+plot_layout(nrow = 2)+ plot_annotation(tag_levels = "A")
+#tiff("../figures/revised/guild_binaryage_frequencyplot_pine.tiff",width = 85,height = 100,res = 1000,units = "mm")
+#pdf("../figures/revised/guild_binaryage_frequencyplot_pine.pdf",width = 3.46,height = 3.93)
+pine.binary.freq+spruce.binary.freq+plot_layout(nrow = 2)+ plot_annotation(tag_levels = "a")
 ```
 
 ##frequency plot overall fertility
-```{r}
-sfsi.pine$fertbinned<-as.factor(if_else(between(sfsi.pine$fert.pca,-3,-0.858936847),"lowest fert",if_else(between(sfsi.pine$fert.pca,-0.858936847,-0.443863327),"low fert",if_else(between(sfsi.pine$fert.pca,-0.443863327,-0.008901232),"mid-fert",if_else(between(sfsi.pine$fert.pca,-0.008901232,0.638079539),"high fert",if_else(between(sfsi.pine$fert.pca,0.638079539,6),"highest fert","miss"))))))
+```{r warning=FALSE}
+quantile(sfsi.pine$fert.pca,probs = c(0,0.2,0.4,0.6,0.8,1))
+sfsi.pine$fertbinned<-as.factor(if_else(between(sfsi.pine$fert.pca,-5,-0.80875699),"lowest fert",if_else(between(sfsi.pine$fert.pca,-0.80875699,-0.48077241),"low fert",if_else(between(sfsi.pine$fert.pca,-0.48077241,-0.05347785),"mid-fert",if_else(between(sfsi.pine$fert.pca,-0.05347785,0.66515469),"high fert",if_else(between(sfsi.pine$fert.pca,0.66515469,5),"highest fert","miss"))))))
 
-sfsi.spruce$fertbinned<-as.factor(if_else(between(sfsi.spruce$fert.pca,-3,-1.090116155),"lowest fert",if_else(between(sfsi.spruce$fert.pca,-1.090116155,-0.553973038),"low fert",if_else(between(sfsi.spruce$fert.pca,-0.553973038,0.009080885),"mid-fert",if_else(between(sfsi.spruce$fert.pca,0.009080885,0.904175886),"high fert",if_else(between(sfsi.spruce$fert.pca,0.904175886,5),"highest fert","miss"))))))
+quantile(sfsi.spruce$fert.pca,probs = c(0,0.2,0.4,0.6,0.8,1))
+sfsi.spruce$fertbinned<-as.factor(if_else(between(sfsi.spruce$fert.pca,-5,-1.1258131),"lowest fert",if_else(between(sfsi.spruce$fert.pca,-1.1258131,-0.5771379),"low fert",if_else(between(sfsi.spruce$fert.pca,-0.5771379,0.0518918),"mid-fert",if_else(between(sfsi.spruce$fert.pca,0.0518918,0.9605729),"high fert",if_else(between(sfsi.spruce$fert.pca,0.9605729,5),"highest fert","miss"))))))
+
+quantile(sfsi.fungniche.all$fert.pca,probs = c(0,0.2,0.4,0.6,0.8,1))
+sfsi.fungniche.all$fertbinned<-as.factor(if_else(between(sfsi.fungniche.all$fert.pca,-5,-1.012727859),"lowest fert",if_else(between(sfsi.fungniche.all$fert.pca,-1.012727859,-0.542465417),"low fert",if_else(between(sfsi.fungniche.all$fert.pca,-0.542465417,-0.008014342),"mid-fert",if_else(between(sfsi.fungniche.all$fert.pca,-0.008014342,0.900271544),"high fert",if_else(between(sfsi.fungniche.all$fert.pca,0.900271544,6),"highest fert","miss"))))))
 
 levellist.p<-list('lowest fert','low fert','mid-fert','high fert','highest fert')
 levellist.s<-list('lowest fert','low fert','mid-fert','high fert','highest fert')
+levellist<-list('lowest fert','low fert','mid-fert','high fert','highest fert')
 
 freq.pine<-c()
 for(i in 1:5){
-freq.pine[[i]]<-sum(sfsi.pine[which(sfsi.pine$fertbinned == levellist.p[[i]]),which(colnames(sfsi.pine) =="miners.pres")])/nrow(sfsi.pine[which(sfsi.pine$fertbinned == levellist.p[[i]]),which(colnames(sfsi.pine) =="miners.pres")])
+freq.pine[[i]]<-sum(sfsi.pine[which(sfsi.pine$fertbinned == levellist.p[[i]]),which(colnames(sfsi.pine) =="miners.pres")])/nrow(sfsi.pine[which(sfsi.pine$fertbinned == levellist.p[[i]]),])
 }
 
 freq.pine<-data.frame(first_column= c(round(as.numeric(freq.pine[[1]]),digits = 2),round(as.numeric(freq.pine[[2]]),digits = 2),round(as.numeric(freq.pine[[3]]),digits = 2),round(as.numeric(freq.pine[[4]]),digits = 2),round(as.numeric(freq.pine[[5]]),digits = 2)),second_column=c('lowest fert','low fert','mid-fert','high fert','highest fert'))
 
 freq.pine$second_column<-factor(freq.pine$second_column,levels=c('lowest fert','low fert','mid-fert','high fert','highest fert'))
 
-numsites.p<-c(113,113,112,113,113)
+numsites.p<-c(59,59,59,59,59)
 
 pine.freq<-ggplot(freq.pine, aes(x = second_column, y = first_column)) +
   geom_bar(fill = "#AACB90", stat = "identity") +
   geom_text(aes(label = numsites.p), vjust = -0.3) + 
+geom_text(aes(x=1,y=-0.20,label="43 \n 3.4"),size=3,stat="unique")+
+  geom_text(aes(x=2,y=-0.20,label="37 \n 3.5"),size=3,stat="unique")+
+  geom_text(aes(x=3,y=-0.20,label="35 \n 3.6"),size=3,stat="unique")+
+  geom_text(aes(x=4,y=-0.20,label="32 \n 3.8"),size=3,stat="unique")+
+  geom_text(aes(x=5,y=-0.20,label="26 \n 4.3"),size=3,stat="unique")+
+  #geom_text(aes(x=6,y=-0.20,label="C/N \n soil pH"),size=3,stat="unique")+
   xlab("")+
-  ylab("Percent frequency")+
-  scale_y_continuous(limits = c(0,1))+
-  theme_classic()
+  ylab("")+
+  coord_cartesian(ylim = c(0,1),clip = "off")+
+  #scale_y_continuous(limits = c(0,1))+
+  theme_classic()+
+  theme(text = element_text(size=9),axis.text.x = element_blank(),plot.margin = unit(c(.06,0,.5,0),"cm"))
 
 freq.spruce<-c()
 for(i in 1:5){
-freq.spruce[[i]]<-sum(sfsi.spruce[which(sfsi.spruce$fertbinned == levellist.s[[i]]),which(colnames(sfsi.spruce) =="miners.pres")])/nrow(sfsi.spruce[which(sfsi.spruce$fertbinned == levellist.s[[i]]),which(colnames(sfsi.spruce) =="miners.pres")])  
+freq.spruce[[i]]<-sum(sfsi.spruce[which(sfsi.spruce$fertbinned == levellist.s[[i]]),which(colnames(sfsi.spruce) =="miners.pres")])/nrow(sfsi.spruce[which(sfsi.spruce$fertbinned == levellist.s[[i]]),])  
 }
 
 freq.spruce<-data.frame(first_column= c(round(as.numeric(freq.spruce[[1]]),digits = 2),round(as.numeric(freq.spruce[[2]]),digits = 2),round(as.numeric(freq.spruce[[3]]),digits = 2),round(as.numeric(freq.spruce[[4]]),digits = 2),round(as.numeric(freq.spruce[[5]]),digits = 2)),second_column=c('lowest fert','low fert','mid-fert','high fert','highest fert'))
 
 freq.spruce$second_column<-factor(freq.spruce$second_column,levels=c('lowest fert','low fert','mid-fert','high fert','highest fert'))
 
-numsites.s<-c(73,73,73,73,73)
+numsites.s<-c(51,50,51,50,51)
 
 spruce.freq<-ggplot(freq.spruce, aes(x = second_column, y = first_column)) +
   geom_bar(fill = "#415B25", stat = "identity") +
   scale_x_discrete(drop=FALSE)+
-  geom_text(aes(label = numsites.s), vjust = -0.3) + 
-  xlab("NC")+
-  ylab("Percent frequency")+
-  scale_y_continuous(limits = c(0,1))+
-  theme_classic()
+  geom_text(aes(label = numsites.s), vjust = -0.3) +
+geom_text(aes(x=1,y=-0.20,label="37 \n 3.5"),size=3,stat="unique")+
+  geom_text(aes(x=2,y=-0.20,label="31 \n 3.6"),size=3,stat="unique")+
+  geom_text(aes(x=3,y=-0.20,label="29 \n 3.8"),size=3,stat="unique")+
+  geom_text(aes(x=4,y=-0.20,label="27 \n 4.1"),size=3,stat="unique")+
+  geom_text(aes(x=5,y=-0.20,label="20 \n 4.6"),size=3,stat="unique")+
+  #geom_text(aes(x=6,y=-0.20,label="C/N \n soil pH"),size=3,stat="unique")+
+  xlab("")+
+  ylab("")+
+  coord_cartesian(ylim = c(0,1),clip = "off")+
+  #scale_y_continuous(limits = c(0,1))+
+  theme_classic()+
+  theme(text = element_text(size=9),axis.text.x = element_blank(),plot.margin = unit(c(.06,0,.5,0),"cm"))
 
-#tiff("../figures/guild_frequencyplot_fert.tiff",width = 8000,height = 10000,res = 1000)
-pine.freq+spruce.freq+plot_layout(nrow = 2)+ plot_annotation(tag_levels = "A")
+freq.fungniche.all<-c()
+for(i in 1:5){
+freq.fungniche.all[[i]]<-sum(sfsi.fungniche.all[which(sfsi.fungniche.all$fertbinned == levellist[[i]]),which(colnames(sfsi.fungniche.all) =="miners.pres")])/nrow(sfsi.fungniche.all[which(sfsi.fungniche.all$fertbinned == levellist[[i]]),])  
+}
+
+freq.fungniche.all<-data.frame(first_column= c(round(as.numeric(freq.fungniche.all[[1]]),digits = 2),round(as.numeric(freq.fungniche.all[[2]]),digits = 2),round(as.numeric(freq.fungniche.all[[3]]),digits = 2),round(as.numeric(freq.fungniche.all[[4]]),digits = 2),round(as.numeric(freq.fungniche.all[[5]]),digits = 2)),second_column=c('lowest fert','low fert','mid-fert','high fert','highest fert'))
+
+freq.fungniche.all$second_column<-factor(freq.fungniche.all$second_column,levels=c('lowest fert','low fert','mid-fert','high fert','highest fert'))
+
+numsites<-c(115,116,115,116,115)
+
+all.freq<-ggplot(freq.fungniche.all, aes(x = second_column, y = first_column)) +
+  geom_bar(fill = "#5F9B46", stat = "identity") +
+  scale_x_discrete(drop=FALSE)+
+  geom_text(aes(label = numsites), vjust = -0.3) +
+geom_text(aes(x=1,y=-0.10,label="41 \n 3.4"),size=3,stat="unique")+
+  geom_text(aes(x=2,y=-0.10,label="35 \n 3.6"),size=3,stat="unique")+
+  geom_text(aes(x=3,y=-0.10,label="32 \n 3.7"),size=3,stat="unique")+
+  geom_text(aes(x=4,y=-0.10,label="29 \n 3.9"),size=3,stat="unique")+
+  geom_text(aes(x=5,y=-0.10,label="23 \n 4.5"),size=3,stat="unique")+
+  #geom_text(aes(x=6,y=-0.20,label="C/N \n soil pH"),size=3,stat="unique")+
+  xlab("")+
+  ylab("Frequency")+
+  coord_cartesian(ylim = c(0,1),clip = "off")+
+  #scale_y_continuous(limits = c(0,1))+
+  theme_classic()+
+  theme(text = element_text(size=9),axis.text.x = element_blank(),plot.margin = unit(c(.06,0,.5,0),"cm"))
+
+#tiff("../figures/revised/guild_frequencyplot_fert.tiff",width = 8000,height = 10000,res = 1000)
+#pdf("../figures/revised/guild_frequencyplot_fert.pdf",width = 4.3,height = 4.0)
+(all.freq|(pine.freq/spruce.freq))+ plot_annotation(tag_levels = "a")
 ```
 
 
-##frequency plot specific taxa soil fertility
+#frequency plot specific taxa soil fertility
 ```{r}
 means.cn.p<-c()
 means.ph.p<-c()
 means.cn.s<-c()
 means.ph.s<-c()
 for (i in 1:5){
-means.cn.p[[i]]<-mean(sfsi.pine[sfsi.pine$fertbinned == levellist.p[[i]],]$unscaled_NC)
+means.cn.p[[i]]<-mean(sfsi.pine[sfsi.pine$fertbinned == levellist.p[[i]],]$unscaled_CN)
 means.ph.p[[i]]<-mean(sfsi.pine[sfsi.pine$fertbinned == levellist.p[[i]],]$unscaled_pH)
-means.cn.s[[i]]<-mean(sfsi.spruce[sfsi.spruce$fertbinned == levellist.s[[i]],]$unscaled_NC)
+means.cn.s[[i]]<-mean(sfsi.spruce[sfsi.spruce$fertbinned == levellist.s[[i]],]$unscaled_CN)
 means.ph.s[[i]]<-mean(sfsi.spruce[sfsi.spruce$fertbinned == levellist.s[[i]],]$unscaled_pH)
 }
 means.cn.p
 means.ph.p
 means.cn.s
 means.ph.s
+```
 
-hsyt.freq.pine<-c()
+##cort c
+```{r warning=FALSE}
+cortc.freq.pine<-c()
 for(i in 1:5){
-hsyt.freq.pine[[i]]<-sum(sfsi.pine[which(sfsi.pine$fertbinned == levellist.p[[i]]),which(colnames(sfsi.pine) =="p Hysterangium")])/nrow(sfsi.pine[which(sfsi.pine$fertbinned == levellist.p[[i]]),which(colnames(sfsi.pine) =="p Hysterangium")])
+cortc.freq.pine[[i]]<-sum(sfsi.pine[which(sfsi.pine$fertbinned == levellist.p[[i]]),which(colnames(sfsi.pine) =="p Cortinarius_comptulus")])/nrow(sfsi.pine[which(sfsi.pine$fertbinned == levellist.p[[i]]),which(colnames(sfsi.pine) =="p Cortinarius_comptulus")])
 }
 
-hsyt.freq.pine<-data.frame(first_column= c(round(as.numeric(hsyt.freq.pine[[1]]),digits = 2),round(as.numeric(hsyt.freq.pine[[2]]),digits = 2),round(as.numeric(hsyt.freq.pine[[3]]),digits = 2),round(as.numeric(hsyt.freq.pine[[4]]),digits = 2),round(as.numeric(hsyt.freq.pine[[5]]),digits = 2)),second_column=c('lowest fert','low fert','mid-fert','high fert','highest fert'))
+cortc.freq.pine<-data.frame(first_column= c(round(as.numeric(cortc.freq.pine[[1]]),digits = 2),round(as.numeric(cortc.freq.pine[[2]]),digits = 2),round(as.numeric(cortc.freq.pine[[3]]),digits = 2),round(as.numeric(cortc.freq.pine[[4]]),digits = 2),round(as.numeric(cortc.freq.pine[[5]]),digits = 2)),second_column=c('lowest fert','low fert','mid-fert','high fert','highest fert'))
 
-hsyt.freq.pine$second_column<-factor(hsyt.freq.pine$second_column,levels=c('lowest fert','low fert','mid-fert','high fert','highest fert'))
+cortc.freq.pine$second_column<-factor(cortc.freq.pine$second_column,levels=c('lowest fert','low fert','mid-fert','high fert','highest fert'))
 
-hsyt.freq.pine$second_column<-ordered(hsyt.freq.pine$second_column,levels=c('lowest fert','low fert','mid-fert','high fert','highest fert'))
+cortc.freq.pine$second_column<-ordered(cortc.freq.pine$second_column,levels=c('lowest fert','low fert','mid-fert','high fert','highest fert'))
 
 
-hsyt.pine.freq<-ggplot(hsyt.freq.pine, aes(x = second_column, y = first_column)) +
+cortc.pine.freq<-ggplot(cortc.freq.pine, aes(x = second_column, y = first_column)) +
   geom_bar(fill = "#AACB90", stat = "identity") +
   #geom_text(aes(label = numsites.p), vjust = -0.3,size=3) + 
   xlab("")+
   ylab("")+
-  geom_text(aes(x=1,y=-0.20,label="0.020 \n 3.4"),size=3,stat="unique")+
-  geom_text(aes(x=2,y=-0.20,label="0.024 \n 3.5"),size=3,stat="unique")+
-  geom_text(aes(x=3,y=-0.20,label="0.027 \n 3.6"),size=3,stat="unique")+
-  geom_text(aes(x=4,y=-0.20,label="0.030 \n 3.8"),size=3,stat="unique")+
-  geom_text(aes(x=5,y=-0.20,label="0.037 \n 4.3"),size=3,stat="unique")+
-  geom_text(aes(x=6,y=-0.20,label="N/C \n soil pH"),size=3,stat="unique")+
-  geom_text(aes(x=3,y=1.1,label="Hysterangium sp.",fontface=3),size=4,stat="unique")+
+  geom_text(aes(x=1,y=-0.20,label="47 \n 3.4"),size=3,stat="unique")+
+  geom_text(aes(x=2,y=-0.20,label="37 \n 3.5"),size=3,stat="unique")+
+  geom_text(aes(x=3,y=-0.20,label="34 \n 3.6"),size=3,stat="unique")+
+  geom_text(aes(x=4,y=-0.20,label="32 \n 3.8"),size=3,stat="unique")+
+  geom_text(aes(x=5,y=-0.20,label="27 \n 4.3"),size=3,stat="unique")+
+  geom_text(aes(x=6,y=-0.20,label="C/N \n soil pH"),size=3,stat="unique")+
+  geom_text(aes(x=3,y=1.1,label="C. comptulus coll.",fontface=3),size=4,stat="unique")+
   annotate("segment",x = 1,xend = 5,y = 0.75, yend = 0.75)+
   annotate("text",label="*",x=3,y=0.8,size=3)+
   #scale_y_continuous(limits = c(-0.05,1))+
@@ -234,131 +322,1144 @@ hsyt.pine.freq<-ggplot(hsyt.freq.pine, aes(x = second_column, y = first_column))
   theme_classic()+
   theme(text = element_text(size=9),axis.text.x = element_blank(),plot.margin = unit(c(.06,.8,.6,0),"cm"))#
 
-cort.se.freq.pine<-c()
+cortc.freq.spru<-c()
 for(i in 1:5){
-cort.se.freq.pine[[i]]<-sum(sfsi.pine[which(sfsi.pine$fertbinned == levellist.p[[i]]),which(colnames(sfsi.pine) =="p Cortinarius_semisanguineus")])/nrow(sfsi.pine[which(sfsi.pine$fertbinned == levellist.p[[i]]),which(colnames(sfsi.pine) =="p Cortinarius_semisanguineus")])
+cortc.freq.spru[[i]]<-sum(sfsi.spruce[which(sfsi.spruce$fertbinned == levellist.p[[i]]),which(colnames(sfsi.spruce) =="p Cortinarius_comptulus")])/nrow(sfsi.spruce[which(sfsi.spruce$fertbinned == levellist.p[[i]]),which(colnames(sfsi.spruce) =="p Cortinarius_comptulus")])
 }
 
-cort.se.freq.pine<-data.frame(first_column= c(round(as.numeric(cort.se.freq.pine[[1]]),digits = 2),round(as.numeric(cort.se.freq.pine[[2]]),digits = 2),round(as.numeric(cort.se.freq.pine[[3]]),digits = 2),round(as.numeric(cort.se.freq.pine[[4]]),digits = 2),round(as.numeric(cort.se.freq.pine[[5]]),digits = 2)),second_column=c('lowest fert','low fert','mid-fert','high fert','highest fert'))
+cortc.freq.spru<-data.frame(first_column= c(round(as.numeric(cortc.freq.spru[[1]]),digits = 2),round(as.numeric(cortc.freq.spru[[2]]),digits = 2),round(as.numeric(cortc.freq.spru[[3]]),digits = 2),round(as.numeric(cortc.freq.spru[[4]]),digits = 2),round(as.numeric(cortc.freq.spru[[5]]),digits = 2)),second_column=c('lowest fert','low fert','mid-fert','high fert','highest fert'))
 
-cort.se.freq.pine$second_column<-factor(cort.se.freq.pine$second_column,levels=c('lowest fert','low fert','mid-fert','high fert','highest fert'))
+cortc.freq.spru$second_column<-factor(cortc.freq.spru$second_column,levels=c('lowest fert','low fert','mid-fert','high fert','highest fert'))
 
-cort.se.freq.pine$second_column<-ordered(cort.se.freq.pine$second_column,levels=c('lowest fert','low fert','mid-fert','high fert','highest fert'))
+cortc.freq.spru$second_column<-ordered(cortc.freq.spru$second_column,levels=c('lowest fert','low fert','mid-fert','high fert','highest fert'))
 
 
-cort.se.pine.freq<-ggplot(cort.se.freq.pine, aes(x = second_column, y = first_column)) +
+cortc.spru.freq<-ggplot(cortc.freq.spru, aes(x = second_column, y = first_column)) +
+  geom_bar(fill = "#415B25", stat = "identity") +
+  #geom_text(aes(label = numsites.p), vjust = -0.3,size=3) + 
+  xlab("")+
+  ylab("")+
+  #geom_text(aes(x=1,y=-0.1,label="37 \n 3.5"),size=3,stat="unique")+
+  #geom_text(aes(x=2,y=-0.1,label="31 \n 3.6"),size=3,stat="unique")+
+  #geom_text(aes(x=3,y=-0.1,label="29 \n 3.8"),size=3,stat="unique")+
+  #geom_text(aes(x=4,y=-0.1,label="27 \n 4.1"),size=3,stat="unique")+
+  #geom_text(aes(x=5,y=-0.1,label="20 \n 4.6"),size=3,stat="unique")+
+  #geom_text(aes(x=6,y=-0.1,label="mean C/N \n mean pH"),size=3,stat="unique")+
+  geom_text(aes(x=3,y=0.55,label="C. comptulus coll.",fontface=3),size=4,stat="unique")+
+  annotate("segment",x = 1,xend = 5,y = 0.47, yend = 0.47)+
+  annotate("text",label="*",x=3,y=0.50,size=3)+
+  #scale_y_continuous(limits = c(0,0.5))+
+  coord_cartesian(ylim = c(0,0.5),clip = "off")+
+  theme_classic()+
+  theme(text = element_text(size=9),axis.text.x = element_blank(),plot.margin = unit(c(.06,.8,.6,0),"cm"))#
+
+cortc.freq<-c()
+for(i in 1:5){
+cortc.freq[[i]]<-sum(sfsi.fungniche.all[which(sfsi.fungniche.all$fertbinned == levellist[[i]]),which(colnames(sfsi.fungniche.all) =="p Cortinarius_comptulus")])/nrow(sfsi.fungniche.all[which(sfsi.fungniche.all$fertbinned == levellist[[i]]),which(colnames(sfsi.fungniche.all) =="p Cortinarius_comptulus")])
+}
+
+cortc.freq<-data.frame(first_column= c(round(as.numeric(cortc.freq[[1]]),digits = 2),round(as.numeric(cortc.freq[[2]]),digits = 2),round(as.numeric(cortc.freq[[3]]),digits = 2),round(as.numeric(cortc.freq[[4]]),digits = 2),round(as.numeric(cortc.freq[[5]]),digits = 2)),second_column=c('lowest fert','low fert','mid-fert','high fert','highest fert'))
+
+cortc.freq$second_column<-factor(cortc.freq$second_column,levels=c('lowest fert','low fert','mid-fert','high fert','highest fert'))
+
+cortc.freq$second_column<-ordered(cortc.freq$second_column,levels=c('lowest fert','low fert','mid-fert','high fert','highest fert'))
+
+
+cortc.freq.plot<-ggplot(cortc.freq, aes(x = second_column, y = first_column)) +
+  geom_bar(fill = "#415B25", stat = "identity") +
+  #geom_text(aes(label = numsites.p), vjust = -0.3,size=3) + 
+  xlab("")+
+  ylab("")+
+  geom_text(aes(x=1,y=-0.10,label="41 \n 3.4"),size=3,stat="unique")+
+  geom_text(aes(x=2,y=-0.10,label="35 \n 3.6"),size=3,stat="unique")+
+  geom_text(aes(x=3,y=-0.10,label="32 \n 3.7"),size=3,stat="unique")+
+  geom_text(aes(x=4,y=-0.10,label="29 \n 3.9"),size=3,stat="unique")+
+  geom_text(aes(x=5,y=-0.10,label="23 \n 4.5"),size=3,stat="unique")+
+  #geom_text(aes(x=6,y=-0.1,label="C/N \n soil pH"),size=3,stat="unique")+
+  geom_text(aes(x=3,y=0.55,label="C. comptulus coll.",fontface=3),size=4,stat="unique")+
+  annotate("segment",x = 1,xend = 5,y = 0.47, yend = 0.47)+
+  annotate("text",label="*",x=3,y=0.50,size=3)+
+  #scale_y_continuous(limits = c(0,0.5))+
+  coord_cartesian(ylim = c(0,0.5),clip = "off")+
+  theme_classic()+
+  theme(text = element_text(size=9),axis.text.x = element_blank(),plot.margin = unit(c(.06,.8,.6,0),"cm"))#
+```
+
+##gaut
+```{r warning=FALSE}
+gaut.freq.pine<-c()
+for(i in 1:5){
+gaut.freq.pine[[i]]<-sum(sfsi.pine[which(sfsi.pine$fertbinned == levellist.p[[i]]),which(colnames(sfsi.pine) =="p Gautieria_monticola")])/nrow(sfsi.pine[which(sfsi.pine$fertbinned == levellist.p[[i]]),which(colnames(sfsi.pine) =="p Gautieria_monticola")])
+}
+
+gaut.freq.pine<-data.frame(first_column= c(round(as.numeric(gaut.freq.pine[[1]]),digits = 2),round(as.numeric(gaut.freq.pine[[2]]),digits = 2),round(as.numeric(gaut.freq.pine[[3]]),digits = 2),round(as.numeric(gaut.freq.pine[[4]]),digits = 2),round(as.numeric(gaut.freq.pine[[5]]),digits = 2)),second_column=c('lowest fert','low fert','mid-fert','high fert','highest fert'))
+
+gaut.freq.pine$second_column<-factor(gaut.freq.pine$second_column,levels=c('lowest fert','low fert','mid-fert','high fert','highest fert'))
+
+gaut.freq.pine$second_column<-ordered(gaut.freq.pine$second_column,levels=c('lowest fert','low fert','mid-fert','high fert','highest fert'))
+
+
+gaut.pine.freq<-ggplot(gaut.freq.pine, aes(x = second_column, y = first_column)) +
   geom_bar(fill = "#AACB90", stat = "identity") +
   #geom_text(aes(label = numsites.p), vjust = -0.3,size=3) + 
   xlab("")+
   ylab("Frequency")+
-  geom_text(aes(x=1,y=-0.20,label="0.020 \n 3.4"),size=3,stat="unique")+
-  geom_text(aes(x=2,y=-0.20,label="0.024 \n 3.5"),size=3,stat="unique")+
-  geom_text(aes(x=3,y=-0.20,label="0.027 \n 3.6"),size=3,stat="unique")+
-  geom_text(aes(x=4,y=-0.20,label="0.030 \n 3.8"),size=3,stat="unique")+
-  geom_text(aes(x=5,y=-0.20,label="0.037 \n 4.3"),size=3,stat="unique")+
-  geom_text(aes(x=6,y=-0.20,label="N/C \n soil pH"),size=3,stat="unique")+
-  geom_text(aes(x=3,y=1.1,label="Cortinarius semisanguineus col.",fontface=3),size=4,stat="unique")+
-  #annotate("text",x=3,y=1.1,label="Cortinarius semisanguineus sl.",size=4,fontface="italic")+
-  annotate("segment",x = 1,xend = 5,y = 0.75, yend = 0.75)+
-  annotate("text",label="*",x=3,y=0.8,size=3)+
+  #geom_text(aes(x=1,y=-0.05,label="43 \n 3.4"),size=3,stat="unique")+
+  #geom_text(aes(x=2,y=-0.05,label="37 \n 3.5"),size=3,stat="unique")+
+  #geom_text(aes(x=3,y=-0.05,label="35 \n 3.6"),size=3,stat="unique")+
+  #geom_text(aes(x=4,y=-0.05,label="32 \n 3.8"),size=3,stat="unique")+
+  #geom_text(aes(x=5,y=-0.05,label="26 \n 4.3"),size=3,stat="unique")+
+  #geom_text(aes(x=6,y=-0.05,label="mean C/N \n mean pH"),size=3,stat="unique")+
+  geom_text(aes(x=3,y=0.275,label="G. cf. ortthii",fontface=3),size=4,stat="unique")+
+  annotate("segment",x = 1,xend = 5,y = 0.23, yend = 0.23)+
+  annotate("text",label="*",x=3,y=0.25,size=3)+
   #scale_y_continuous(limits = c(-0.05,1))+
-  coord_cartesian(ylim = c(0,1),clip = "off")+
+  coord_cartesian(ylim = c(0,.25),clip = "off")+
   theme_classic()+
-  theme(text = element_text(size=9),axis.text.x = element_blank(),plot.margin = unit(c(0.06,.9,.6,0),"cm"))#plot.margin = unit(c(1,1,5,2),"cm")
+  theme(text = element_text(size=9),axis.text.x = element_blank(),plot.margin = unit(c(.06,.8,.6,0),"cm"))#
 
-hsyt.freq.spruce<-c()
+gaut.freq.spru<-c()
 for(i in 1:5){
-hsyt.freq.spruce[[i]]<-sum(sfsi.spruce[which(sfsi.spruce$fertbinned == levellist.s[[i]]),which(colnames(sfsi.spruce) =="p Hysterangium")])/nrow(sfsi.spruce[which(sfsi.spruce$fertbinned == levellist.s[[i]]),which(colnames(sfsi.spruce) =="p Hysterangium")])  
+gaut.freq.spru[[i]]<-sum(sfsi.spruce[which(sfsi.spruce$fertbinned == levellist.p[[i]]),which(colnames(sfsi.spruce) =="p Gautieria_monticola")])/nrow(sfsi.spruce[which(sfsi.spruce$fertbinned == levellist.p[[i]]),which(colnames(sfsi.spruce) =="p Gautieria_monticola")])
 }
 
-hsyt.freq.spruce<-data.frame(first_column= c(round(as.numeric(hsyt.freq.spruce[[1]]),digits = 2),round(as.numeric(hsyt.freq.spruce[[2]]),digits = 2),round(as.numeric(hsyt.freq.spruce[[3]]),digits = 2),round(as.numeric(hsyt.freq.spruce[[4]]),digits = 2),round(as.numeric(hsyt.freq.spruce[[5]]),digits = 2)),second_column=c('lowest fert','low fert','mid-fert','high fert','highest fert'))
+gaut.freq.spru<-data.frame(first_column= c(round(as.numeric(gaut.freq.spru[[1]]),digits = 2),round(as.numeric(gaut.freq.spru[[2]]),digits = 2),round(as.numeric(gaut.freq.spru[[3]]),digits = 2),round(as.numeric(gaut.freq.spru[[4]]),digits = 2),round(as.numeric(gaut.freq.spru[[5]]),digits = 2)),second_column=c('lowest fert','low fert','mid-fert','high fert','highest fert'))
 
-hsyt.freq.spruce$second_column<-factor(hsyt.freq.spruce$second_column,levels=c('lowest fert','low fert','mid-fert','high fert','highest fert'))
+gaut.freq.spru$second_column<-factor(gaut.freq.spru$second_column,levels=c('lowest fert','low fert','mid-fert','high fert','highest fert'))
 
-hsyt.freq.spruce$second_column<-ordered(hsyt.freq.spruce$second_column,levels=c('lowest fert','low fert','mid-fert','high fert','highest fert'))
+gaut.freq.spru$second_column<-ordered(gaut.freq.spru$second_column,levels=c('lowest fert','low fert','mid-fert','high fert','highest fert'))
 
-numsites.s<-c(73,73,73,73,73)
 
-hsyt.spruce.freq<-ggplot(hsyt.freq.spruce, aes(x = second_column, y = first_column)) +
+gaut.spru.freq<-ggplot(gaut.freq.spru, aes(x = second_column, y = first_column)) +
   geom_bar(fill = "#415B25", stat = "identity") +
-  scale_x_discrete(drop=FALSE)+
-  #geom_text(aes(label = numsites.s), vjust = -0.3,size=3) + 
+  #geom_text(aes(label = numsites.p), vjust = -0.3,size=3) + 
   xlab("")+
   ylab("")+
-  geom_text(aes(x=1,y=-0.20,label="0.026 \n 3.5"),size=3,stat="unique")+
-  geom_text(aes(x=2,y=-0.20,label="0.030 \n 3.7"),size=3,stat="unique")+
-  geom_text(aes(x=3,y=-0.20,label="0.034 \n 3.8"),size=3,stat="unique")+
-  geom_text(aes(x=4,y=-0.20,label="0.037 \n 4.1"),size=3,stat="unique")+
-  geom_text(aes(x=5,y=-0.20,label="0.048 \n 4.6"),size=3,stat="unique")+
-  geom_text(aes(x=6,y=-0.20,label="N/C \n soil pH"),size=3,stat="unique")+
+  geom_text(aes(x=1,y=-0.20,label="47 \n 3.4"),size=3,stat="unique")+
+  geom_text(aes(x=2,y=-0.20,label="37 \n 3.5"),size=3,stat="unique")+
+  geom_text(aes(x=3,y=-0.20,label="34 \n 3.6"),size=3,stat="unique")+
+  geom_text(aes(x=4,y=-0.20,label="32 \n 3.8"),size=3,stat="unique")+
+  geom_text(aes(x=5,y=-0.20,label="27 \n 4.3"),size=3,stat="unique")+
+  geom_text(aes(x=6,y=-0.20,label="C/N \n soil pH"),size=3,stat="unique")+
+  #geom_text(aes(x=3,y=1.1,label="Gautieria cf. ortthii",fontface=3),size=4,stat="unique")+
   annotate("segment",x = 1,xend = 5,y = 0.75, yend = 0.75)+
   annotate("text",label="*",x=3,y=0.8,size=3)+
-  #annotate("segment",x=1,xend = 5,y=-0.35,yend = -0.35,arrow=arrow(type = "open",length = unit(0.3,"cm")))+
-  geom_text(aes(x=3,y=-0.4,label="Soil fertility"),stat="unique")+
   #scale_y_continuous(limits = c(-0.05,1))+
   coord_cartesian(ylim = c(0,1),clip = "off")+
   theme_classic()+
-  theme(text = element_text(size=9),axis.text.x = element_blank(),plot.margin = unit(c(0,0.8,.9,0),"cm"))#
-  
+  theme(text = element_text(size=9),axis.text.x = element_blank(),plot.margin = unit(c(.06,.8,.6,0),"cm"))#
 
-cort.se.freq.spruce<-c()
+gaut.freq.all<-c()
 for(i in 1:5){
-cort.se.freq.spruce[[i]]<-sum(sfsi.spruce[which(sfsi.spruce$fertbinned == levellist.s[[i]]),which(colnames(sfsi.spruce) =="p Cortinarius_semisanguineus")])/nrow(sfsi.spruce[which(sfsi.spruce$fertbinned == levellist.s[[i]]),which(colnames(sfsi.spruce) =="p Cortinarius_semisanguineus")])  
+gaut.freq.all[[i]]<-sum(sfsi.fungniche.all[which(sfsi.fungniche.all$fertbinned == levellist[[i]]),which(colnames(sfsi.fungniche.all) =="p Gautieria_monticola")])/nrow(sfsi.fungniche.all[which(sfsi.fungniche.all$fertbinned == levellist[[i]]),which(colnames(sfsi.fungniche.all) =="p Gautieria_monticola")])
 }
 
-cort.se.freq.spruce<-data.frame(first_column= c(round(as.numeric(cort.se.freq.spruce[[1]]),digits = 2),round(as.numeric(cort.se.freq.spruce[[2]]),digits = 2),round(as.numeric(cort.se.freq.spruce[[3]]),digits = 2),round(as.numeric(cort.se.freq.spruce[[4]]),digits = 2),round(as.numeric(cort.se.freq.spruce[[5]]),digits = 2)),second_column=c('lowest fert','low fert','mid-fert','high fert','highest fert'))
+gaut.freq.all<-data.frame(first_column= c(round(as.numeric(gaut.freq.all[[1]]),digits = 2),round(as.numeric(gaut.freq.all[[2]]),digits = 2),round(as.numeric(gaut.freq.all[[3]]),digits = 2),round(as.numeric(gaut.freq.all[[4]]),digits = 2),round(as.numeric(gaut.freq.all[[5]]),digits = 2)),second_column=c('lowest fert','low fert','mid-fert','high fert','highest fert'))
 
-cort.se.freq.spruce$second_column<-factor(cort.se.freq.spruce$second_column,levels=c('lowest fert','low fert','mid-fert','high fert','highest fert'))
+gaut.freq.all$second_column<-factor(gaut.freq.all$second_column,levels=c('lowest fert','low fert','mid-fert','high fert','highest fert'))
 
-cort.se.freq.spruce$second_column<-ordered(cort.se.freq.spruce$second_column,levels=c('lowest fert','low fert','mid-fert','high fert','highest fert'))
+gaut.freq.all$second_column<-ordered(gaut.freq.all$second_column,levels=c('lowest fert','low fert','mid-fert','high fert','highest fert'))
 
 
-cort.se.spruce.freq<-ggplot(cort.se.freq.spruce, aes(x = second_column, y = first_column)) +
+gaut.all.freq<-ggplot(gaut.freq.all, aes(x = second_column, y = first_column)) +
   geom_bar(fill = "#415B25", stat = "identity") +
-  scale_x_discrete(drop=FALSE)+
-  #geom_text(aes(label = numsites.s), vjust = -0.3,size=3) + 
+  #geom_text(aes(label = numsites.p), vjust = -0.3,size=3) + 
   xlab("")+
-  ylab("Frequency")+
-  #geom_link(aes(x=0.6,xend=5.4,y=-0.1,yend=-0.1,color="red"),arrow = arrow(),show.legend = FALSE)+
-  #scale_color_gradient(low = "yellow",high = "red")+
-  geom_text(aes(x=1,y=-0.20,label="0.026 \n 3.5"),size=3,stat="unique")+
-  geom_text(aes(x=2,y=-0.20,label="0.030 \n 3.7"),size=3,stat="unique")+
-  geom_text(aes(x=3,y=-0.20,label="0.034 \n 3.8"),size=3,stat="unique")+
-  geom_text(aes(x=4,y=-0.20,label="0.037 \n 4.1"),size=3,stat="unique")+
-  geom_text(aes(x=5,y=-0.20,label="0.048 \n 4.6"),size=3,stat="unique")+
-  geom_text(aes(x=6,y=-0.20,label="N/C \n soil pH"),size=3,stat="unique")+
-  #annotate("segment",x=1,xend = 5,y=-0.35,yend = -0.35,arrow=arrow(type = "open",length = unit(0.3,"cm")))+
-  geom_text(aes(x=3,y=-0.4,label="Soil fertility"),stat="unique")+
+  ylab("")+
+  geom_text(aes(x=1,y=-0.20,label="47 \n 3.4"),size=3,stat="unique")+
+  geom_text(aes(x=2,y=-0.20,label="37 \n 3.5"),size=3,stat="unique")+
+  geom_text(aes(x=3,y=-0.20,label="34 \n 3.6"),size=3,stat="unique")+
+  geom_text(aes(x=4,y=-0.20,label="32 \n 3.8"),size=3,stat="unique")+
+  geom_text(aes(x=5,y=-0.20,label="27 \n 4.3"),size=3,stat="unique")+
+  geom_text(aes(x=6,y=-0.20,label="C/N \n soil pH"),size=3,stat="unique")+
+  #geom_text(aes(x=3,y=1.1,label="Gautieria cf. ortthii",fontface=3),size=4,stat="unique")+
+  annotate("segment",x = 1,xend = 5,y = 0.75, yend = 0.75)+
+  annotate("text",label="*",x=3,y=0.8,size=3)+
+  #scale_y_continuous(limits = c(-0.05,1))+
   coord_cartesian(ylim = c(0,1),clip = "off")+
   theme_classic()+
-  theme(text = element_text(size=9),axis.text.x = element_blank(),plot.margin = unit(c(0,.9,.9,0),"cm"))#plot.margin = unit(c(1,1,5,2),"cm")
+  theme(text = element_text(size=9),axis.text.x = element_blank(),plot.margin = unit(c(.06,.8,.6,0),"cm"))#
+```
 
-cort.se.pine.freq+hsyt.pine.freq+cort.se.spruce.freq+hsyt.spruce.freq
+##lactn
+```{r warning=FALSE}
+lactn.freq.pine<-c()
+for(i in 1:5){
+lactn.freq.pine[[i]]<-sum(sfsi.pine[which(sfsi.pine$fertbinned == levellist.p[[i]]),which(colnames(sfsi.pine) =="p Lactarius_necator")])/nrow(sfsi.pine[which(sfsi.pine$fertbinned == levellist.p[[i]]),which(colnames(sfsi.pine) =="p Lactarius_necator")])
+}
 
-#tiff("../figures/freq_hsyt_cort_fert.tiff",res = 1000,width = 175,height = 120,units = "mm")
-#pdf("../figures/freq_hsyt_cort_fert.pdf",width = 7.08,height = 4.72)
-cort.se.pine.freq+hsyt.pine.freq+cort.se.spruce.freq+hsyt.spruce.freq+plot_annotation(tag_levels = "A")
+lactn.freq.pine<-data.frame(first_column= c(round(as.numeric(lactn.freq.pine[[1]]),digits = 2),round(as.numeric(lactn.freq.pine[[2]]),digits = 2),round(as.numeric(lactn.freq.pine[[3]]),digits = 2),round(as.numeric(lactn.freq.pine[[4]]),digits = 2),round(as.numeric(lactn.freq.pine[[5]]),digits = 2)),second_column=c('lowest fert','low fert','mid-fert','high fert','highest fert'))
+
+lactn.freq.pine$second_column<-factor(lactn.freq.pine$second_column,levels=c('lowest fert','low fert','mid-fert','high fert','highest fert'))
+
+lactn.freq.pine$second_column<-ordered(lactn.freq.pine$second_column,levels=c('lowest fert','low fert','mid-fert','high fert','highest fert'))
+
+
+lactn.pine.freq<-ggplot(lactn.freq.pine, aes(x = second_column, y = first_column)) +
+  geom_bar(fill = "#AACB90", stat = "identity") +
+  #geom_text(aes(label = numsites.p), vjust = -0.3,size=3) + 
+  xlab("")+
+  ylab("")+
+  geom_text(aes(x=1,y=-0.20,label="47 \n 3.4"),size=3,stat="unique")+
+  geom_text(aes(x=2,y=-0.20,label="37 \n 3.5"),size=3,stat="unique")+
+  geom_text(aes(x=3,y=-0.20,label="34 \n 3.6"),size=3,stat="unique")+
+  geom_text(aes(x=4,y=-0.20,label="32 \n 3.8"),size=3,stat="unique")+
+  geom_text(aes(x=5,y=-0.20,label="27 \n 4.3"),size=3,stat="unique")+
+  geom_text(aes(x=6,y=-0.20,label="C/N \n soil pH"),size=3,stat="unique")+
+  geom_text(aes(x=3,y=1.1,label="L. necator",fontface=3),size=4,stat="unique")+
+  annotate("segment",x = 1,xend = 5,y = 0.75, yend = 0.75)+
+  annotate("text",label="*",x=3,y=0.8,size=3)+
+  #scale_y_continuous(limits = c(-0.05,1))+
+  coord_cartesian(ylim = c(0,1),clip = "off")+
+  theme_classic()+
+  theme(text = element_text(size=9),axis.text.x = element_blank(),plot.margin = unit(c(.06,.8,.6,0),"cm"))#
+
+lactn.freq.spru<-c()
+for(i in 1:5){
+lactn.freq.spru[[i]]<-sum(sfsi.spruce[which(sfsi.spruce$fertbinned == levellist.p[[i]]),which(colnames(sfsi.spruce) =="p Lactarius_necator")])/nrow(sfsi.spruce[which(sfsi.spruce$fertbinned == levellist.p[[i]]),which(colnames(sfsi.spruce) =="p Lactarius_necator")])
+}
+
+lactn.freq.spru<-data.frame(first_column= c(round(as.numeric(lactn.freq.spru[[1]]),digits = 2),round(as.numeric(lactn.freq.spru[[2]]),digits = 2),round(as.numeric(lactn.freq.spru[[3]]),digits = 2),round(as.numeric(lactn.freq.spru[[4]]),digits = 2),round(as.numeric(lactn.freq.spru[[5]]),digits = 2)),second_column=c('lowest fert','low fert','mid-fert','high fert','highest fert'))
+
+lactn.freq.spru$second_column<-factor(lactn.freq.spru$second_column,levels=c('lowest fert','low fert','mid-fert','high fert','highest fert'))
+
+lactn.freq.spru$second_column<-ordered(lactn.freq.spru$second_column,levels=c('lowest fert','low fert','mid-fert','high fert','highest fert'))
+
+
+lactn.spru.freq<-ggplot(lactn.freq.spru, aes(x = second_column, y = first_column)) +
+  geom_bar(fill = "#415B25", stat = "identity") +
+  #geom_text(aes(label = numsites.p), vjust = -0.3,size=3) + 
+  xlab("")+
+  ylab("")+
+  geom_text(aes(x=1,y=-0.20,label="47 \n 3.4"),size=3,stat="unique")+
+  geom_text(aes(x=2,y=-0.20,label="37 \n 3.5"),size=3,stat="unique")+
+  geom_text(aes(x=3,y=-0.20,label="34 \n 3.6"),size=3,stat="unique")+
+  geom_text(aes(x=4,y=-0.20,label="32 \n 3.8"),size=3,stat="unique")+
+  geom_text(aes(x=5,y=-0.20,label="27 \n 4.3"),size=3,stat="unique")+
+  geom_text(aes(x=6,y=-0.20,label="C/N \n soil pH"),size=3,stat="unique")+
+  #geom_text(aes(x=3,y=1.1,label="L. necator",fontface=3),size=4,stat="unique")+
+  #annotate("segment",x = 1,xend = 5,y = 0.75, yend = 0.75)+
+  #annotate("text",label="*",x=3,y=0.8,size=3)+
+  #scale_y_continuous(limits = c(-0.05,1))+
+  coord_cartesian(ylim = c(0,1),clip = "off")+
+  theme_classic()+
+  theme(text = element_text(size=9),axis.text.x = element_blank(),plot.margin = unit(c(.06,.8,.6,0),"cm"))#
+
+lactn.freq.all<-c()
+for(i in 1:5){
+lactn.freq.all[[i]]<-sum(sfsi.fungniche.all[which(sfsi.fungniche.all$fertbinned == levellist[[i]]),which(colnames(sfsi.fungniche.all) =="p Lactarius_necator")])/nrow(sfsi.fungniche.all[which(sfsi.fungniche.all$fertbinned == levellist[[i]]),which(colnames(sfsi.fungniche.all) =="p Lactarius_necator")])
+}
+
+lactn.freq.all<-data.frame(first_column= c(round(as.numeric(lactn.freq.all[[1]]),digits = 2),round(as.numeric(lactn.freq.all[[2]]),digits = 2),round(as.numeric(lactn.freq.all[[3]]),digits = 2),round(as.numeric(lactn.freq.all[[4]]),digits = 2),round(as.numeric(lactn.freq.all[[5]]),digits = 2)),second_column=c('lowest fert','low fert','mid-fert','high fert','highest fert'))
+
+lactn.freq.all$second_column<-factor(lactn.freq.all$second_column,levels=c('lowest fert','low fert','mid-fert','high fert','highest fert'))
+
+lactn.freq.all$second_column<-ordered(lactn.freq.all$second_column,levels=c('lowest fert','low fert','mid-fert','high fert','highest fert'))
+
+
+lactn.all.freq<-ggplot(lactn.freq.all, aes(x = second_column, y = first_column)) +
+  geom_bar(fill = "#415B25", stat = "identity") +
+  #geom_text(aes(label = numsites.p), vjust = -0.3,size=3) + 
+  xlab("")+
+  ylab("")+
+  geom_text(aes(x=1,y=-0.20,label="47 \n 3.4"),size=3,stat="unique")+
+  geom_text(aes(x=2,y=-0.20,label="37 \n 3.5"),size=3,stat="unique")+
+  geom_text(aes(x=3,y=-0.20,label="34 \n 3.6"),size=3,stat="unique")+
+  geom_text(aes(x=4,y=-0.20,label="32 \n 3.8"),size=3,stat="unique")+
+  geom_text(aes(x=5,y=-0.20,label="27 \n 4.3"),size=3,stat="unique")+
+  geom_text(aes(x=6,y=-0.20,label="C/N \n soil pH"),size=3,stat="unique")+
+  #geom_text(aes(x=3,y=1.1,label="L. necator",fontface=3),size=4,stat="unique")+
+  #annotate("segment",x = 1,xend = 5,y = 0.75, yend = 0.75)+
+  #annotate("text",label="*",x=3,y=0.8,size=3)+
+  #scale_y_continuous(limits = c(-0.05,1))+
+  coord_cartesian(ylim = c(0,1),clip = "off")+
+  theme_classic()+
+  theme(text = element_text(size=9),axis.text.x = element_blank(),plot.margin = unit(c(.06,.8,.6,0),"cm"))#
+```
+
+##cortf
+```{r warning=FALSE}
+cortf.freq.pine<-c()
+for(i in 1:5){
+cortf.freq.pine[[i]]<-sum(sfsi.pine[which(sfsi.pine$fertbinned == levellist.p[[i]]),which(colnames(sfsi.pine) =="p Cortinarius_fulvescens_coll.")])/nrow(sfsi.pine[which(sfsi.pine$fertbinned == levellist.p[[i]]),which(colnames(sfsi.pine) =="p Cortinarius_fulvescens_coll.")])
+}
+
+cortf.freq.pine<-data.frame(first_column= c(round(as.numeric(cortf.freq.pine[[1]]),digits = 2),round(as.numeric(cortf.freq.pine[[2]]),digits = 2),round(as.numeric(cortf.freq.pine[[3]]),digits = 2),round(as.numeric(cortf.freq.pine[[4]]),digits = 2),round(as.numeric(cortf.freq.pine[[5]]),digits = 2)),second_column=c('lowest fert','low fert','mid-fert','high fert','highest fert'))
+
+cortf.freq.pine$second_column<-factor(cortf.freq.pine$second_column,levels=c('lowest fert','low fert','mid-fert','high fert','highest fert'))
+
+cortf.freq.pine$second_column<-ordered(cortf.freq.pine$second_column,levels=c('lowest fert','low fert','mid-fert','high fert','highest fert'))
+
+
+cortf.pine.freq<-ggplot(cortf.freq.pine, aes(x = second_column, y = first_column)) +
+  geom_bar(fill = "#AACB90", stat = "identity") +
+  #geom_text(aes(label = numsites.p), vjust = -0.3,size=3) + 
+  xlab("")+
+  ylab("")+
+  geom_text(aes(x=1,y=-0.20,label="47 \n 3.4"),size=3,stat="unique")+
+  geom_text(aes(x=2,y=-0.20,label="37 \n 3.5"),size=3,stat="unique")+
+  geom_text(aes(x=3,y=-0.20,label="34 \n 3.6"),size=3,stat="unique")+
+  geom_text(aes(x=4,y=-0.20,label="32 \n 3.8"),size=3,stat="unique")+
+  geom_text(aes(x=5,y=-0.20,label="27 \n 4.3"),size=3,stat="unique")+
+  geom_text(aes(x=6,y=-0.20,label="C/N \n soil pH"),size=3,stat="unique")+
+  geom_text(aes(x=3,y=1.1,label="C. fulvescens coll.",fontface=3),size=4,stat="unique")+
+  annotate("segment",x = 1,xend = 5,y = 0.75, yend = 0.75)+
+  annotate("text",label="*",x=3,y=0.8,size=3)+
+  #scale_y_continuous(limits = c(-0.05,1))+
+  coord_cartesian(ylim = c(0,1),clip = "off")+
+  theme_classic()+
+  theme(text = element_text(size=9),axis.text.x = element_blank(),plot.margin = unit(c(.06,.8,.6,0),"cm"))#
+
+cortf.freq.spru<-c()
+for(i in 1:5){
+cortf.freq.spru[[i]]<-sum(sfsi.spruce[which(sfsi.spruce$fertbinned == levellist.p[[i]]),which(colnames(sfsi.spruce) =="p Cortinarius_fulvescens_coll.")])/nrow(sfsi.spruce[which(sfsi.spruce$fertbinned == levellist.p[[i]]),which(colnames(sfsi.spruce) =="p Cortinarius_fulvescens_coll.")])
+}
+
+cortf.freq.spru<-data.frame(first_column= c(round(as.numeric(cortf.freq.spru[[1]]),digits = 2),round(as.numeric(cortf.freq.spru[[2]]),digits = 2),round(as.numeric(cortf.freq.spru[[3]]),digits = 2),round(as.numeric(cortf.freq.spru[[4]]),digits = 2),round(as.numeric(cortf.freq.spru[[5]]),digits = 2)),second_column=c('lowest fert','low fert','mid-fert','high fert','highest fert'))
+
+cortf.freq.spru$second_column<-factor(cortf.freq.spru$second_column,levels=c('lowest fert','low fert','mid-fert','high fert','highest fert'))
+
+cortf.freq.spru$second_column<-ordered(cortf.freq.spru$second_column,levels=c('lowest fert','low fert','mid-fert','high fert','highest fert'))
+
+
+cortf.spru.freq<-ggplot(cortf.freq.spru, aes(x = second_column, y = first_column)) +
+  geom_bar(fill = "#415B25", stat = "identity") +
+  #geom_text(aes(label = numsites.p), vjust = -0.3,size=3) + 
+  xlab("")+
+  ylab("")+
+  geom_text(aes(x=1,y=-0.05,label="37 \n 3.5"),size=3,stat="unique")+
+  geom_text(aes(x=2,y=-0.05,label="31 \n 3.6"),size=3,stat="unique")+
+  geom_text(aes(x=3,y=-0.05,label="29 \n 3.8"),size=3,stat="unique")+
+  geom_text(aes(x=4,y=-0.05,label="27 \n 4.1"),size=3,stat="unique")+
+  geom_text(aes(x=5,y=-0.05,label="20 \n 4.6"),size=3,stat="unique")+
+  geom_text(aes(x=6,y=-0.05,label="mean C/N \n mean pH"),size=3,stat="unique")+
+  geom_text(aes(x=3,y=0.275,label="C. fulvescens coll.",fontface=3),size=4,stat="unique")+
+  annotate("segment",x = 1,xend = 5,y = 0.23, yend = 0.23)+
+  annotate("text",label="*",x=3,y=0.25,size=3)+
+  #scale_y_continuous(limits = c(-0.05,1))+
+  coord_cartesian(ylim = c(0,0.25),clip = "off")+
+  theme_classic()+
+  theme(text = element_text(size=9),axis.text.x = element_blank(),plot.margin = unit(c(.06,.8,.6,0),"cm"))#
+
+cortf.freq.all<-c()
+for(i in 1:5){
+cortf.freq.all[[i]]<-sum(sfsi.fungniche.all[which(sfsi.fungniche.all$fertbinned == levellist[[i]]),which(colnames(sfsi.fungniche.all) =="p Cortinarius_fulvescens_coll.")])/nrow(sfsi.fungniche.all[which(sfsi.fungniche.all$fertbinned == levellist[[i]]),which(colnames(sfsi.fungniche.all) =="p Cortinarius_fulvescens_coll.")])
+}
+
+cortf.freq.all<-data.frame(first_column= c(round(as.numeric(cortf.freq.all[[1]]),digits = 2),round(as.numeric(cortf.freq.all[[2]]),digits = 2),round(as.numeric(cortf.freq.all[[3]]),digits = 2),round(as.numeric(cortf.freq.all[[4]]),digits = 2),round(as.numeric(cortf.freq.all[[5]]),digits = 2)),second_column=c('lowest fert','low fert','mid-fert','high fert','highest fert'))
+
+cortf.freq.all$second_column<-factor(cortf.freq.all$second_column,levels=c('lowest fert','low fert','mid-fert','high fert','highest fert'))
+
+cortf.freq.all$second_column<-ordered(cortf.freq.all$second_column,levels=c('lowest fert','low fert','mid-fert','high fert','highest fert'))
+
+
+cortf.all.freq<-ggplot(cortf.freq.all, aes(x = second_column, y = first_column)) +
+  geom_bar(fill = "#415B25", stat = "identity") +
+  #geom_text(aes(label = numsites.p), vjust = -0.3,size=3) + 
+  xlab("")+
+  ylab("")+
+  geom_text(aes(x=1,y=-0.05,label="37 \n 3.5"),size=3,stat="unique")+
+  geom_text(aes(x=2,y=-0.05,label="31 \n 3.6"),size=3,stat="unique")+
+  geom_text(aes(x=3,y=-0.05,label="29 \n 3.8"),size=3,stat="unique")+
+  geom_text(aes(x=4,y=-0.05,label="27 \n 4.1"),size=3,stat="unique")+
+  geom_text(aes(x=5,y=-0.05,label="20 \n 4.6"),size=3,stat="unique")+
+  geom_text(aes(x=6,y=-0.05,label="C/N \n soil pH"),size=3,stat="unique")+
+  geom_text(aes(x=3,y=0.275,label="C. fulvescens coll.",fontface=3),size=4,stat="unique")+
+  annotate("segment",x = 1,xend = 5,y = 0.23, yend = 0.23)+
+  annotate("text",label="*",x=3,y=0.25,size=3)+
+  #scale_y_continuous(limits = c(-0.05,1))+
+  coord_cartesian(ylim = c(0,0.25),clip = "off")+
+  theme_classic()+
+  theme(text = element_text(size=9),axis.text.x = element_blank(),plot.margin = unit(c(.06,.8,.6,0),"cm"))#
+```
+
+##lactt
+```{r warning=FALSE}
+lactt.freq.pine<-c()
+for(i in 1:5){
+lactt.freq.pine[[i]]<-sum(sfsi.pine[which(sfsi.pine$fertbinned == levellist.p[[i]]),which(colnames(sfsi.pine) =="p Lactarius_tabidus")])/nrow(sfsi.pine[which(sfsi.pine$fertbinned == levellist.p[[i]]),which(colnames(sfsi.pine) =="p Lactarius_tabidus")])
+}
+
+lactt.freq.pine<-data.frame(first_column= c(round(as.numeric(lactt.freq.pine[[1]]),digits = 2),round(as.numeric(lactt.freq.pine[[2]]),digits = 2),round(as.numeric(lactt.freq.pine[[3]]),digits = 2),round(as.numeric(lactt.freq.pine[[4]]),digits = 2),round(as.numeric(lactt.freq.pine[[5]]),digits = 2)),second_column=c('lowest fert','low fert','mid-fert','high fert','highest fert'))
+
+lactt.freq.pine$second_column<-factor(lactt.freq.pine$second_column,levels=c('lowest fert','low fert','mid-fert','high fert','highest fert'))
+
+lactt.freq.pine$second_column<-ordered(lactt.freq.pine$second_column,levels=c('lowest fert','low fert','mid-fert','high fert','highest fert'))
+
+
+lactt.pine.freq<-ggplot(lactt.freq.pine, aes(x = second_column, y = first_column)) +
+  geom_bar(fill = "#AACB90", stat = "identity") +
+  #geom_text(aes(label = numsites.p), vjust = -0.3,size=3) + 
+  xlab("")+
+  ylab("")+
+  geom_text(aes(x=1,y=-0.20,label="47 \n 3.4"),size=3,stat="unique")+
+  geom_text(aes(x=2,y=-0.20,label="37 \n 3.5"),size=3,stat="unique")+
+  geom_text(aes(x=3,y=-0.20,label="34 \n 3.6"),size=3,stat="unique")+
+  geom_text(aes(x=4,y=-0.20,label="32 \n 3.8"),size=3,stat="unique")+
+  geom_text(aes(x=5,y=-0.20,label="27 \n 4.3"),size=3,stat="unique")+
+  geom_text(aes(x=6,y=-0.20,label="C/N \n soil pH"),size=3,stat="unique")+
+  geom_text(aes(x=3,y=1.1,label="L. tabidus",fontface=3),size=4,stat="unique")+
+  #annotate("segment",x = 1,xend = 5,y = 0.75, yend = 0.75)+
+  #annotate("text",label="*",x=3,y=0.8,size=3)+
+  #scale_y_continuous(limits = c(-0.05,1))+
+  coord_cartesian(ylim = c(0,1),clip = "off")+
+  theme_classic()+
+  theme(text = element_text(size=9),axis.text.x = element_blank(),plot.margin = unit(c(.06,.8,.6,0),"cm"))#
+
+lactt.freq.spru<-c()
+for(i in 1:5){
+lactt.freq.spru[[i]]<-sum(sfsi.spruce[which(sfsi.spruce$fertbinned == levellist.p[[i]]),which(colnames(sfsi.spruce) =="p Lactarius_tabidus")])/nrow(sfsi.spruce[which(sfsi.spruce$fertbinned == levellist.p[[i]]),which(colnames(sfsi.spruce) =="p Lactarius_tabidus")])
+}
+
+lactt.freq.spru<-data.frame(first_column= c(round(as.numeric(lactt.freq.spru[[1]]),digits = 2),round(as.numeric(lactt.freq.spru[[2]]),digits = 2),round(as.numeric(lactt.freq.spru[[3]]),digits = 2),round(as.numeric(lactt.freq.spru[[4]]),digits = 2),round(as.numeric(lactt.freq.spru[[5]]),digits = 2)),second_column=c('lowest fert','low fert','mid-fert','high fert','highest fert'))
+
+lactt.freq.spru$second_column<-factor(lactt.freq.spru$second_column,levels=c('lowest fert','low fert','mid-fert','high fert','highest fert'))
+
+lactt.freq.spru$second_column<-ordered(lactt.freq.spru$second_column,levels=c('lowest fert','low fert','mid-fert','high fert','highest fert'))
+
+
+lactt.spru.freq<-ggplot(lactt.freq.spru, aes(x = second_column, y = first_column)) +
+  geom_bar(fill = "#415B25", stat = "identity") +
+  #geom_text(aes(label = numsites.p), vjust = -0.3,size=3) + 
+  xlab("")+
+  ylab("")+
+  geom_text(aes(x=1,y=-0.20,label="47 \n 3.4"),size=3,stat="unique")+
+  geom_text(aes(x=2,y=-0.20,label="37 \n 3.5"),size=3,stat="unique")+
+  geom_text(aes(x=3,y=-0.20,label="34 \n 3.6"),size=3,stat="unique")+
+  geom_text(aes(x=4,y=-0.20,label="32 \n 3.8"),size=3,stat="unique")+
+  geom_text(aes(x=5,y=-0.20,label="27 \n 4.3"),size=3,stat="unique")+
+  geom_text(aes(x=6,y=-0.20,label="C/N \n soil pH"),size=3,stat="unique")+
+  #geom_text(aes(x=3,y=1.1,label="Lactarius_tabidus",fontface=3),size=4,stat="unique")+
+  annotate("segment",x = 1,xend = 5,y = 0.75, yend = 0.75)+
+  annotate("text",label="*",x=3,y=0.8,size=3)+
+  #scale_y_continuous(limits = c(-0.05,1))+
+  coord_cartesian(ylim = c(0,1),clip = "off")+
+  theme_classic()+
+  theme(text = element_text(size=9),axis.text.x = element_blank(),plot.margin = unit(c(.06,.8,.6,0),"cm"))#
+
+lactt.freq.all<-c()
+for(i in 1:5){
+lactt.freq.all[[i]]<-sum(sfsi.fungniche.all[which(sfsi.fungniche.all$fertbinned == levellist[[i]]),which(colnames(sfsi.fungniche.all) =="p Lactarius_tabidus")])/nrow(sfsi.fungniche.all[which(sfsi.fungniche.all$fertbinned == levellist[[i]]),which(colnames(sfsi.fungniche.all) =="p Lactarius_tabidus")])
+}
+
+lactt.freq.all<-data.frame(first_column= c(round(as.numeric(lactt.freq.all[[1]]),digits = 2),round(as.numeric(lactt.freq.all[[2]]),digits = 2),round(as.numeric(lactt.freq.all[[3]]),digits = 2),round(as.numeric(lactt.freq.all[[4]]),digits = 2),round(as.numeric(lactt.freq.all[[5]]),digits = 2)),second_column=c('lowest fert','low fert','mid-fert','high fert','highest fert'))
+
+lactt.freq.all$second_column<-factor(lactt.freq.all$second_column,levels=c('lowest fert','low fert','mid-fert','high fert','highest fert'))
+
+lactt.freq.all$second_column<-ordered(lactt.freq.all$second_column,levels=c('lowest fert','low fert','mid-fert','high fert','highest fert'))
+
+
+lactt.all.freq<-ggplot(lactt.freq.all, aes(x = second_column, y = first_column)) +
+  geom_bar(fill = "#415B25", stat = "identity") +
+  #geom_text(aes(label = numsites.p), vjust = -0.3,size=3) + 
+  xlab("")+
+  ylab("")+
+  geom_text(aes(x=1,y=-0.20,label="47 \n 3.4"),size=3,stat="unique")+
+  geom_text(aes(x=2,y=-0.20,label="37 \n 3.5"),size=3,stat="unique")+
+  geom_text(aes(x=3,y=-0.20,label="34 \n 3.6"),size=3,stat="unique")+
+  geom_text(aes(x=4,y=-0.20,label="32 \n 3.8"),size=3,stat="unique")+
+  geom_text(aes(x=5,y=-0.20,label="27 \n 4.3"),size=3,stat="unique")+
+  geom_text(aes(x=6,y=-0.20,label="C/N \n soil pH"),size=3,stat="unique")+
+  #geom_text(aes(x=3,y=1.1,label="Lactarius_tabidus",fontface=3),size=4,stat="unique")+
+  annotate("segment",x = 1,xend = 5,y = 0.75, yend = 0.75)+
+  annotate("text",label="*",x=3,y=0.8,size=3)+
+  #scale_y_continuous(limits = c(-0.05,1))+
+  coord_cartesian(ylim = c(0,1),clip = "off")+
+  theme_classic()+
+  theme(text = element_text(size=9),axis.text.x = element_blank(),plot.margin = unit(c(.06,.8,.6,0),"cm"))#
+```
+
+##corta
+```{r warning=FALSE}
+corta.freq.pine<-c()
+for(i in 1:5){
+corta.freq.pine[[i]]<-sum(sfsi.pine[which(sfsi.pine$fertbinned == levellist.p[[i]]),which(colnames(sfsi.pine) =="p Cortinarius_anomalus")])/nrow(sfsi.pine[which(sfsi.pine$fertbinned == levellist.p[[i]]),which(colnames(sfsi.pine) =="p Cortinarius_anomalus")])
+}
+
+corta.freq.pine<-data.frame(first_column= c(round(as.numeric(corta.freq.pine[[1]]),digits = 2),round(as.numeric(corta.freq.pine[[2]]),digits = 2),round(as.numeric(corta.freq.pine[[3]]),digits = 2),round(as.numeric(corta.freq.pine[[4]]),digits = 2),round(as.numeric(corta.freq.pine[[5]]),digits = 2)),second_column=c('lowest fert','low fert','mid-fert','high fert','highest fert'))
+
+corta.freq.pine$second_column<-factor(corta.freq.pine$second_column,levels=c('lowest fert','low fert','mid-fert','high fert','highest fert'))
+
+corta.freq.pine$second_column<-ordered(corta.freq.pine$second_column,levels=c('lowest fert','low fert','mid-fert','high fert','highest fert'))
+
+
+corta.pine.freq<-ggplot(corta.freq.pine, aes(x = second_column, y = first_column)) +
+  geom_bar(fill = "#AACB90", stat = "identity") +
+  #geom_text(aes(label = numsites.p), vjust = -0.3,size=3) + 
+  xlab("")+
+  ylab("")+
+  geom_text(aes(x=1,y=-0.20,label="47 \n 3.4"),size=3,stat="unique")+
+  geom_text(aes(x=2,y=-0.20,label="37 \n 3.5"),size=3,stat="unique")+
+  geom_text(aes(x=3,y=-0.20,label="34 \n 3.6"),size=3,stat="unique")+
+  geom_text(aes(x=4,y=-0.20,label="32 \n 3.8"),size=3,stat="unique")+
+  geom_text(aes(x=5,y=-0.20,label="27 \n 4.3"),size=3,stat="unique")+
+  geom_text(aes(x=6,y=-0.20,label="C/N \n soil pH"),size=3,stat="unique")+
+  geom_text(aes(x=3,y=1.1,label="C. anomalus",fontface=3),size=4,stat="unique")+
+  annotate("segment",x = 1,xend = 5,y = 0.75, yend = 0.75)+
+  annotate("text",label="*",x=3,y=0.8,size=3)+
+  #scale_y_continuous(limits = c(-0.05,1))+
+  coord_cartesian(ylim = c(0,1),clip = "off")+
+  theme_classic()+
+  theme(text = element_text(size=9),axis.text.x = element_blank(),plot.margin = unit(c(.06,.8,.6,0),"cm"))#
+
+corta.freq.spru<-c()
+for(i in 1:5){
+corta.freq.spru[[i]]<-sum(sfsi.spruce[which(sfsi.spruce$fertbinned == levellist.p[[i]]),which(colnames(sfsi.spruce) =="p Cortinarius_anomalus")])/nrow(sfsi.spruce[which(sfsi.spruce$fertbinned == levellist.p[[i]]),which(colnames(sfsi.spruce) =="p Cortinarius_anomalus")])
+}
+
+corta.freq.spru<-data.frame(first_column= c(round(as.numeric(corta.freq.spru[[1]]),digits = 2),round(as.numeric(corta.freq.spru[[2]]),digits = 2),round(as.numeric(corta.freq.spru[[3]]),digits = 2),round(as.numeric(corta.freq.spru[[4]]),digits = 2),round(as.numeric(corta.freq.spru[[5]]),digits = 2)),second_column=c('lowest fert','low fert','mid-fert','high fert','highest fert'))
+
+corta.freq.spru$second_column<-factor(corta.freq.spru$second_column,levels=c('lowest fert','low fert','mid-fert','high fert','highest fert'))
+
+corta.freq.spru$second_column<-ordered(corta.freq.spru$second_column,levels=c('lowest fert','low fert','mid-fert','high fert','highest fert'))
+
+
+corta.spru.freq<-ggplot(corta.freq.spru, aes(x = second_column, y = first_column)) +
+  geom_bar(fill = "#415B25", stat = "identity") +
+  #geom_text(aes(label = numsites.p), vjust = -0.3,size=3) + 
+  xlab("")+
+  ylab("")+
+  geom_text(aes(x=1,y=-0.20,label="47 \n 3.4"),size=3,stat="unique")+
+  geom_text(aes(x=2,y=-0.20,label="37 \n 3.5"),size=3,stat="unique")+
+  geom_text(aes(x=3,y=-0.20,label="34 \n 3.6"),size=3,stat="unique")+
+  geom_text(aes(x=4,y=-0.20,label="32 \n 3.8"),size=3,stat="unique")+
+  geom_text(aes(x=5,y=-0.20,label="27 \n 4.3"),size=3,stat="unique")+
+  geom_text(aes(x=6,y=-0.20,label="C/N \n soil pH"),size=3,stat="unique")+
+  #geom_text(aes(x=3,y=1.1,label="Cortinarius_anomalus",fontface=3),size=4,stat="unique")+
+  #annotate("segment",x = 1,xend = 5,y = 0.75, yend = 0.75)+
+  #annotate("text",label="*",x=3,y=0.8,size=3)+
+  #scale_y_continuous(limits = c(-0.05,1))+
+  coord_cartesian(ylim = c(0,1),clip = "off")+
+  theme_classic()+
+  theme(text = element_text(size=9),axis.text.x = element_blank(),plot.margin = unit(c(.06,.8,.6,0),"cm"))#
+
+corta.freq.all<-c()
+for(i in 1:5){
+corta.freq.all[[i]]<-sum(sfsi.fungniche.all[which(sfsi.fungniche.all$fertbinned == levellist.p[[i]]),which(colnames(sfsi.fungniche.all) =="p Cortinarius_anomalus")])/nrow(sfsi.fungniche.all[which(sfsi.fungniche.all$fertbinned == levellist.p[[i]]),which(colnames(sfsi.fungniche.all) =="p Cortinarius_anomalus")])
+}
+
+corta.freq.all<-data.frame(first_column= c(round(as.numeric(corta.freq.all[[1]]),digits = 2),round(as.numeric(corta.freq.all[[2]]),digits = 2),round(as.numeric(corta.freq.all[[3]]),digits = 2),round(as.numeric(corta.freq.all[[4]]),digits = 2),round(as.numeric(corta.freq.all[[5]]),digits = 2)),second_column=c('lowest fert','low fert','mid-fert','high fert','highest fert'))
+
+corta.freq.all$second_column<-factor(corta.freq.all$second_column,levels=c('lowest fert','low fert','mid-fert','high fert','highest fert'))
+
+corta.freq.all$second_column<-ordered(corta.freq.all$second_column,levels=c('lowest fert','low fert','mid-fert','high fert','highest fert'))
+
+
+corta.all.freq<-ggplot(corta.freq.all, aes(x = second_column, y = first_column)) +
+  geom_bar(fill = "#415B25", stat = "identity") +
+  #geom_text(aes(label = numsites.p), vjust = -0.3,size=3) + 
+  xlab("")+
+  ylab("")+
+  geom_text(aes(x=1,y=-0.20,label="47 \n 3.4"),size=3,stat="unique")+
+  geom_text(aes(x=2,y=-0.20,label="37 \n 3.5"),size=3,stat="unique")+
+  geom_text(aes(x=3,y=-0.20,label="34 \n 3.6"),size=3,stat="unique")+
+  geom_text(aes(x=4,y=-0.20,label="32 \n 3.8"),size=3,stat="unique")+
+  geom_text(aes(x=5,y=-0.20,label="27 \n 4.3"),size=3,stat="unique")+
+  geom_text(aes(x=6,y=-0.20,label="C/N \n soil pH"),size=3,stat="unique")+
+  #geom_text(aes(x=3,y=1.1,label="Cortinarius_anomalus",fontface=3),size=4,stat="unique")+
+  #annotate("segment",x = 1,xend = 5,y = 0.75, yend = 0.75)+
+  #annotate("text",label="*",x=3,y=0.8,size=3)+
+  #scale_y_continuous(limits = c(-0.05,1))+
+  coord_cartesian(ylim = c(0,1),clip = "off")+
+  theme_classic()+
+  theme(text = element_text(size=9),axis.text.x = element_blank(),plot.margin = unit(c(.06,.8,.6,0),"cm"))#
+```
+
+##russa
+```{r warning=FALSE}
+russa.freq.pine<-c()
+for(i in 1:5){
+russa.freq.pine[[i]]<-sum(sfsi.pine[which(sfsi.pine$fertbinned == levellist.p[[i]]),which(colnames(sfsi.pine) =="p Russula_aquosa")])/nrow(sfsi.pine[which(sfsi.pine$fertbinned == levellist.p[[i]]),which(colnames(sfsi.pine) =="p Russula_aquosa")])
+}
+
+russa.freq.pine<-data.frame(first_column= c(round(as.numeric(russa.freq.pine[[1]]),digits = 2),round(as.numeric(russa.freq.pine[[2]]),digits = 2),round(as.numeric(russa.freq.pine[[3]]),digits = 2),round(as.numeric(russa.freq.pine[[4]]),digits = 2),round(as.numeric(russa.freq.pine[[5]]),digits = 2)),second_column=c('lowest fert','low fert','mid-fert','high fert','highest fert'))
+
+russa.freq.pine$second_column<-factor(russa.freq.pine$second_column,levels=c('lowest fert','low fert','mid-fert','high fert','highest fert'))
+
+russa.freq.pine$second_column<-ordered(russa.freq.pine$second_column,levels=c('lowest fert','low fert','mid-fert','high fert','highest fert'))
+
+
+russa.pine.freq<-ggplot(russa.freq.pine, aes(x = second_column, y = first_column)) +
+  geom_bar(fill = "#AACB90", stat = "identity") +
+  #geom_text(aes(label = numsites.p), vjust = -0.3,size=3) + 
+  xlab("Soil Fertility")+
+  ylab("Frequency")+
+  geom_text(aes(x=1,y=-0.05,label="43 \n 3.4"),size=3,stat="unique")+
+  geom_text(aes(x=2,y=-0.05,label="37 \n 3.5"),size=3,stat="unique")+
+  geom_text(aes(x=3,y=-0.05,label="35 \n 3.6"),size=3,stat="unique")+
+  geom_text(aes(x=4,y=-0.05,label="32 \n 3.8"),size=3,stat="unique")+
+  geom_text(aes(x=5,y=-0.05,label="26 \n 4.3"),size=3,stat="unique")+
+  geom_text(aes(x=6,y=-0.05,label="mean C/N \n mean pH"),size=3,stat="unique")+
+  geom_text(aes(x=3,y=0.275,label="Russula aquosa",fontface=3),size=4,stat="unique")+
+  annotate("segment",x = 1,xend = 5,y = 0.23, yend = 0.23)+
+  annotate("text",label="*",x=3,y=0.25,size=3)+
+  #scale_y_continuous(limits = c(-0.05,1))+
+  coord_cartesian(ylim = c(0,0.25),clip = "off")+
+  theme_classic()+
+  theme(text = element_text(size=9),axis.text.x = element_blank(),plot.margin = unit(c(.06,.8,.6,0),"cm"))#
+
+russa.freq.spru<-c()
+for(i in 1:5){
+russa.freq.spru[[i]]<-sum(sfsi.spruce[which(sfsi.spruce$fertbinned == levellist.p[[i]]),which(colnames(sfsi.spruce) =="p Russula_aquosa")])/nrow(sfsi.spruce[which(sfsi.spruce$fertbinned == levellist.p[[i]]),which(colnames(sfsi.spruce) =="p Russula_aquosa")])
+}
+
+russa.freq.spru<-data.frame(first_column= c(round(as.numeric(russa.freq.spru[[1]]),digits = 2),round(as.numeric(russa.freq.spru[[2]]),digits = 2),round(as.numeric(russa.freq.spru[[3]]),digits = 2),round(as.numeric(russa.freq.spru[[4]]),digits = 2),round(as.numeric(russa.freq.spru[[5]]),digits = 2)),second_column=c('lowest fert','low fert','mid-fert','high fert','highest fert'))
+
+russa.freq.spru$second_column<-factor(russa.freq.spru$second_column,levels=c('lowest fert','low fert','mid-fert','high fert','highest fert'))
+
+russa.freq.spru$second_column<-ordered(russa.freq.spru$second_column,levels=c('lowest fert','low fert','mid-fert','high fert','highest fert'))
+
+
+russa.spru.freq<-ggplot(russa.freq.spru, aes(x = second_column, y = first_column)) +
+  geom_bar(fill = "#415B25", stat = "identity") +
+  #geom_text(aes(label = numsites.p), vjust = -0.3,size=3) + 
+  xlab("")+
+  ylab("")+
+  geom_text(aes(x=1,y=-0.20,label="47 \n 3.4"),size=3,stat="unique")+
+  geom_text(aes(x=2,y=-0.20,label="37 \n 3.5"),size=3,stat="unique")+
+  geom_text(aes(x=3,y=-0.20,label="34 \n 3.6"),size=3,stat="unique")+
+  geom_text(aes(x=4,y=-0.20,label="32 \n 3.8"),size=3,stat="unique")+
+  geom_text(aes(x=5,y=-0.20,label="27 \n 4.3"),size=3,stat="unique")+
+  geom_text(aes(x=6,y=-0.20,label="C/N \n soil pH"),size=3,stat="unique")+
+  #geom_text(aes(x=3,y=1.1,label="Russula_aquosa",fontface=3),size=4,stat="unique")+
+  #annotate("segment",x = 1,xend = 5,y = 0.75, yend = 0.75)+
+  #annotate("text",label="*",x=3,y=0.8,size=3)+
+  #scale_y_continuous(limits = c(-0.05,1))+
+  coord_cartesian(ylim = c(0,1),clip = "off")+
+  theme_classic()+
+  theme(text = element_text(size=9),axis.text.x = element_blank(),plot.margin = unit(c(.06,.8,.6,0),"cm"))#
+
+russa.freq.all<-c()
+for(i in 1:5){
+russa.freq.all[[i]]<-sum(sfsi.fungniche.all[which(sfsi.fungniche.all$fertbinned == levellist[[i]]),which(colnames(sfsi.fungniche.all) =="p Russula_aquosa")])/nrow(sfsi.fungniche.all[which(sfsi.fungniche.all$fertbinned == levellist[[i]]),which(colnames(sfsi.fungniche.all) =="p Russula_aquosa")])
+}
+
+russa.freq.all<-data.frame(first_column= c(round(as.numeric(russa.freq.all[[1]]),digits = 2),round(as.numeric(russa.freq.all[[2]]),digits = 2),round(as.numeric(russa.freq.all[[3]]),digits = 2),round(as.numeric(russa.freq.all[[4]]),digits = 2),round(as.numeric(russa.freq.all[[5]]),digits = 2)),second_column=c('lowest fert','low fert','mid-fert','high fert','highest fert'))
+
+russa.freq.all$second_column<-factor(russa.freq.all$second_column,levels=c('lowest fert','low fert','mid-fert','high fert','highest fert'))
+
+russa.freq.all$second_column<-ordered(russa.freq.all$second_column,levels=c('lowest fert','low fert','mid-fert','high fert','highest fert'))
+
+
+russa.all.freq<-ggplot(russa.freq.all, aes(x = second_column, y = first_column)) +
+  geom_bar(fill = "#415B25", stat = "identity") +
+  #geom_text(aes(label = numsites.p), vjust = -0.3,size=3) + 
+  xlab("")+
+  ylab("")+
+  geom_text(aes(x=1,y=-0.20,label="47 \n 3.4"),size=3,stat="unique")+
+  geom_text(aes(x=2,y=-0.20,label="37 \n 3.5"),size=3,stat="unique")+
+  geom_text(aes(x=3,y=-0.20,label="34 \n 3.6"),size=3,stat="unique")+
+  geom_text(aes(x=4,y=-0.20,label="32 \n 3.8"),size=3,stat="unique")+
+  geom_text(aes(x=5,y=-0.20,label="27 \n 4.3"),size=3,stat="unique")+
+  geom_text(aes(x=6,y=-0.20,label="C/N \n soil pH"),size=3,stat="unique")+
+  #geom_text(aes(x=3,y=1.1,label="Russula_aquosa",fontface=3),size=4,stat="unique")+
+  #annotate("segment",x = 1,xend = 5,y = 0.75, yend = 0.75)+
+  #annotate("text",label="*",x=3,y=0.8,size=3)+
+  #scale_y_continuous(limits = c(-0.05,1))+
+  coord_cartesian(ylim = c(0,1),clip = "off")+
+  theme_classic()+
+  theme(text = element_text(size=9),axis.text.x = element_blank(),plot.margin = unit(c(.06,.8,.6,0),"cm"))#
+```
+
+##cortm
+```{r warning=FALSE}
+cortm.freq.pine<-c()
+for(i in 1:5){
+cortm.freq.pine[[i]]<-sum(sfsi.pine[which(sfsi.pine$fertbinned == levellist.p[[i]]),which(colnames(sfsi.pine) =="p Cortinarius_mucosus.alpinus.fennoscandicus.trivialis")])/nrow(sfsi.pine[which(sfsi.pine$fertbinned == levellist.p[[i]]),which(colnames(sfsi.pine) =="p Cortinarius_mucosus.alpinus.fennoscandicus.trivialis")])
+}
+
+cortm.freq.pine<-data.frame(first_column= c(round(as.numeric(cortm.freq.pine[[1]]),digits = 2),round(as.numeric(cortm.freq.pine[[2]]),digits = 2),round(as.numeric(cortm.freq.pine[[3]]),digits = 2),round(as.numeric(cortm.freq.pine[[4]]),digits = 2),round(as.numeric(cortm.freq.pine[[5]]),digits = 2)),second_column=c('lowest fert','low fert','mid-fert','high fert','highest fert'))
+
+cortm.freq.pine$second_column<-factor(cortm.freq.pine$second_column,levels=c('lowest fert','low fert','mid-fert','high fert','highest fert'))
+
+cortm.freq.pine$second_column<-ordered(cortm.freq.pine$second_column,levels=c('lowest fert','low fert','mid-fert','high fert','highest fert'))
+
+
+cortm.pine.freq<-ggplot(cortm.freq.pine, aes(x = second_column, y = first_column)) +
+  geom_bar(fill = "#AACB90", stat = "identity") +
+  #geom_text(aes(label = numsites.p), vjust = -0.3,size=3) + 
+  xlab("")+
+  ylab("")+
+  geom_text(aes(x=1,y=-0.20,label="47 \n 3.4"),size=3,stat="unique")+
+  geom_text(aes(x=2,y=-0.20,label="37 \n 3.5"),size=3,stat="unique")+
+  geom_text(aes(x=3,y=-0.20,label="34 \n 3.6"),size=3,stat="unique")+
+  geom_text(aes(x=4,y=-0.20,label="32 \n 3.8"),size=3,stat="unique")+
+  geom_text(aes(x=5,y=-0.20,label="27 \n 4.3"),size=3,stat="unique")+
+  geom_text(aes(x=6,y=-0.20,label="C/N \n soil pH"),size=3,stat="unique")+
+  geom_text(aes(x=3,y=1.1,label="C. mucosus coll.",fontface=3),size=4,stat="unique")+
+  annotate("segment",x = 1,xend = 5,y = 0.75, yend = 0.75)+
+  annotate("text",label="*",x=3,y=0.8,size=3)+
+  #scale_y_continuous(limits = c(-0.05,1))+
+  coord_cartesian(ylim = c(0,1),clip = "off")+
+  theme_classic()+
+  theme(text = element_text(size=9),axis.text.x = element_blank(),plot.margin = unit(c(.06,.8,.6,0),"cm"))#
+
+cortm.freq.spru<-c()
+for(i in 1:5){
+cortm.freq.spru[[i]]<-sum(sfsi.spruce[which(sfsi.spruce$fertbinned == levellist.p[[i]]),which(colnames(sfsi.spruce) =="p Cortinarius_mucosus.alpinus.fennoscandicus.trivialis")])/nrow(sfsi.spruce[which(sfsi.spruce$fertbinned == levellist.p[[i]]),which(colnames(sfsi.spruce) =="p Cortinarius_mucosus.alpinus.fennoscandicus.trivialis")])
+}
+
+cortm.freq.spru<-data.frame(first_column= c(round(as.numeric(cortm.freq.spru[[1]]),digits = 2),round(as.numeric(cortm.freq.spru[[2]]),digits = 2),round(as.numeric(cortm.freq.spru[[3]]),digits = 2),round(as.numeric(cortm.freq.spru[[4]]),digits = 2),round(as.numeric(cortm.freq.spru[[5]]),digits = 2)),second_column=c('lowest fert','low fert','mid-fert','high fert','highest fert'))
+
+cortm.freq.spru$second_column<-factor(cortm.freq.spru$second_column,levels=c('lowest fert','low fert','mid-fert','high fert','highest fert'))
+
+cortm.freq.spru$second_column<-ordered(cortm.freq.spru$second_column,levels=c('lowest fert','low fert','mid-fert','high fert','highest fert'))
+
+
+cortm.spru.freq<-ggplot(cortm.freq.spru, aes(x = second_column, y = first_column)) +
+  geom_bar(fill = "#415B25", stat = "identity") +
+  #geom_text(aes(label = numsites.p), vjust = -0.3,size=3) + 
+  xlab("")+
+  ylab("")+
+  geom_text(aes(x=1,y=-0.20,label="47 \n 3.4"),size=3,stat="unique")+
+  geom_text(aes(x=2,y=-0.20,label="37 \n 3.5"),size=3,stat="unique")+
+  geom_text(aes(x=3,y=-0.20,label="34 \n 3.6"),size=3,stat="unique")+
+  geom_text(aes(x=4,y=-0.20,label="32 \n 3.8"),size=3,stat="unique")+
+  geom_text(aes(x=5,y=-0.20,label="27 \n 4.3"),size=3,stat="unique")+
+  geom_text(aes(x=6,y=-0.20,label="C/N \n soil pH"),size=3,stat="unique")+
+  #geom_text(aes(x=3,y=1.1,label="Cortinarius mucosus",fontface=3),size=4,stat="unique")+
+  #annotate("segment",x = 1,xend = 5,y = 0.75, yend = 0.75)+
+  #annotate("text",label="*",x=3,y=0.8,size=3)+
+  #scale_y_continuous(limits = c(-0.05,1))+
+  coord_cartesian(ylim = c(0,1),clip = "off")+
+  theme_classic()+
+  theme(text = element_text(size=9),axis.text.x = element_blank(),plot.margin = unit(c(.06,.8,.6,0),"cm"))#
+
+cortm.freq.all<-c()
+for(i in 1:5){
+cortm.freq.all[[i]]<-sum(sfsi.fungniche.all[which(sfsi.fungniche.all$fertbinned == levellist.p[[i]]),which(colnames(sfsi.fungniche.all) =="p Cortinarius_mucosus.alpinus.fennoscandicus.trivialis")])/nrow(sfsi.fungniche.all[which(sfsi.fungniche.all$fertbinned == levellist.p[[i]]),which(colnames(sfsi.fungniche.all) =="p Cortinarius_mucosus.alpinus.fennoscandicus.trivialis")])
+}
+
+cortm.freq.all<-data.frame(first_column= c(round(as.numeric(cortm.freq.all[[1]]),digits = 2),round(as.numeric(cortm.freq.all[[2]]),digits = 2),round(as.numeric(cortm.freq.all[[3]]),digits = 2),round(as.numeric(cortm.freq.all[[4]]),digits = 2),round(as.numeric(cortm.freq.all[[5]]),digits = 2)),second_column=c('lowest fert','low fert','mid-fert','high fert','highest fert'))
+
+cortm.freq.all$second_column<-factor(cortm.freq.all$second_column,levels=c('lowest fert','low fert','mid-fert','high fert','highest fert'))
+
+cortm.freq.all$second_column<-ordered(cortm.freq.all$second_column,levels=c('lowest fert','low fert','mid-fert','high fert','highest fert'))
+
+
+cortm.all.freq<-ggplot(cortm.freq.all, aes(x = second_column, y = first_column)) +
+  geom_bar(fill = "#415B25", stat = "identity") +
+  #geom_text(aes(label = numsites.p), vjust = -0.3,size=3) + 
+  xlab("")+
+  ylab("")+
+  geom_text(aes(x=1,y=-0.20,label="47 \n 3.4"),size=3,stat="unique")+
+  geom_text(aes(x=2,y=-0.20,label="37 \n 3.5"),size=3,stat="unique")+
+  geom_text(aes(x=3,y=-0.20,label="34 \n 3.6"),size=3,stat="unique")+
+  geom_text(aes(x=4,y=-0.20,label="32 \n 3.8"),size=3,stat="unique")+
+  geom_text(aes(x=5,y=-0.20,label="27 \n 4.3"),size=3,stat="unique")+
+  geom_text(aes(x=6,y=-0.20,label="C/N \n soil pH"),size=3,stat="unique")+
+  #geom_text(aes(x=3,y=1.1,label="Cortinarius mucosus",fontface=3),size=4,stat="unique")+
+  #annotate("segment",x = 1,xend = 5,y = 0.75, yend = 0.75)+
+  #annotate("text",label="*",x=3,y=0.8,size=3)+
+  #scale_y_continuous(limits = c(-0.05,1))+
+  coord_cartesian(ylim = c(0,1),clip = "off")+
+  theme_classic()+
+  theme(text = element_text(size=9),axis.text.x = element_blank(),plot.margin = unit(c(.06,.8,.6,0),"cm"))#
+```
+
+##corts
+```{r warning=FALSE}
+corts.freq.pine<-c()
+for(i in 1:5){
+corts.freq.pine[[i]]<-sum(sfsi.pine[which(sfsi.pine$fertbinned == levellist.p[[i]]),which(colnames(sfsi.pine) =="p Cortinarius_spilomeus")])/nrow(sfsi.pine[which(sfsi.pine$fertbinned == levellist.p[[i]]),which(colnames(sfsi.pine) =="p Cortinarius_spilomeus")])
+}
+
+corts.freq.pine<-data.frame(first_column= c(round(as.numeric(corts.freq.pine[[1]]),digits = 2),round(as.numeric(corts.freq.pine[[2]]),digits = 2),round(as.numeric(corts.freq.pine[[3]]),digits = 2),round(as.numeric(corts.freq.pine[[4]]),digits = 2),round(as.numeric(corts.freq.pine[[5]]),digits = 2)),second_column=c('lowest fert','low fert','mid-fert','high fert','highest fert'))
+
+corts.freq.pine$second_column<-factor(corts.freq.pine$second_column,levels=c('lowest fert','low fert','mid-fert','high fert','highest fert'))
+
+corts.freq.pine$second_column<-ordered(corts.freq.pine$second_column,levels=c('lowest fert','low fert','mid-fert','high fert','highest fert'))
+
+
+corts.pine.freq<-ggplot(corts.freq.pine, aes(x = second_column, y = first_column)) +
+  geom_bar(fill = "#AACB90", stat = "identity") +
+  #geom_text(aes(label = numsites.p), vjust = -0.3,size=3) + 
+  xlab("")+
+  ylab("")+
+  geom_text(aes(x=1,y=-0.20,label="47 \n 3.4"),size=3,stat="unique")+
+  geom_text(aes(x=2,y=-0.20,label="37 \n 3.5"),size=3,stat="unique")+
+  geom_text(aes(x=3,y=-0.20,label="34 \n 3.6"),size=3,stat="unique")+
+  geom_text(aes(x=4,y=-0.20,label="32 \n 3.8"),size=3,stat="unique")+
+  geom_text(aes(x=5,y=-0.20,label="27 \n 4.3"),size=3,stat="unique")+
+  geom_text(aes(x=6,y=-0.20,label="C/N \n soil pH"),size=3,stat="unique")+
+  geom_text(aes(x=3,y=1.1,label="C. spilomeus",fontface=3),size=4,stat="unique")+
+  annotate("segment",x = 1,xend = 5,y = 0.75, yend = 0.75)+
+  annotate("text",label="*",x=3,y=0.8,size=3)+
+  #scale_y_continuous(limits = c(-0.05,1))+
+  coord_cartesian(ylim = c(0,1),clip = "off")+
+  theme_classic()+
+  theme(text = element_text(size=9),axis.text.x = element_blank(),plot.margin = unit(c(.06,.8,.6,0),"cm"))#
+
+corts.freq.spru<-c()
+for(i in 1:5){
+corts.freq.spru[[i]]<-sum(sfsi.spruce[which(sfsi.spruce$fertbinned == levellist.p[[i]]),which(colnames(sfsi.spruce) =="p Cortinarius_spilomeus")])/nrow(sfsi.spruce[which(sfsi.spruce$fertbinned == levellist.p[[i]]),which(colnames(sfsi.spruce) =="p Cortinarius_spilomeus")])
+}
+
+corts.freq.spru<-data.frame(first_column= c(round(as.numeric(corts.freq.spru[[1]]),digits = 2),round(as.numeric(corts.freq.spru[[2]]),digits = 2),round(as.numeric(corts.freq.spru[[3]]),digits = 2),round(as.numeric(corts.freq.spru[[4]]),digits = 2),round(as.numeric(corts.freq.spru[[5]]),digits = 2)),second_column=c('lowest fert','low fert','mid-fert','high fert','highest fert'))
+
+corts.freq.spru$second_column<-factor(corts.freq.spru$second_column,levels=c('lowest fert','low fert','mid-fert','high fert','highest fert'))
+
+corts.freq.spru$second_column<-ordered(corts.freq.spru$second_column,levels=c('lowest fert','low fert','mid-fert','high fert','highest fert'))
+
+
+corts.spru.freq<-ggplot(corts.freq.spru, aes(x = second_column, y = first_column)) +
+  geom_bar(fill = "#415B25", stat = "identity") +
+  #geom_text(aes(label = numsites.p), vjust = -0.3,size=3) + 
+  xlab("")+
+  ylab("")+
+  geom_text(aes(x=1,y=-0.20,label="47 \n 3.4"),size=3,stat="unique")+
+  geom_text(aes(x=2,y=-0.20,label="37 \n 3.5"),size=3,stat="unique")+
+  geom_text(aes(x=3,y=-0.20,label="34 \n 3.6"),size=3,stat="unique")+
+  geom_text(aes(x=4,y=-0.20,label="32 \n 3.8"),size=3,stat="unique")+
+  geom_text(aes(x=5,y=-0.20,label="27 \n 4.3"),size=3,stat="unique")+
+  geom_text(aes(x=6,y=-0.20,label="C/N \n soil pH"),size=3,stat="unique")+
+  #geom_text(aes(x=3,y=1.1,label="Cortinarius_spilomeus",fontface=3),size=4,stat="unique")+
+  #annotate("segment",x = 1,xend = 5,y = 0.75, yend = 0.75)+
+  #annotate("text",label="*",x=3,y=0.8,size=3)+
+  #scale_y_continuous(limits = c(-0.05,1))+
+  coord_cartesian(ylim = c(0,1),clip = "off")+
+  theme_classic()+
+  theme(text = element_text(size=9),axis.text.x = element_blank(),plot.margin = unit(c(.06,.8,.6,0),"cm"))#
+
+corts.freq.all<-c()
+for(i in 1:5){
+corts.freq.all[[i]]<-sum(sfsi.fungniche.all[which(sfsi.fungniche.all$fertbinned == levellist.p[[i]]),which(colnames(sfsi.fungniche.all) =="p Cortinarius_spilomeus")])/nrow(sfsi.fungniche.all[which(sfsi.fungniche.all$fertbinned == levellist.p[[i]]),which(colnames(sfsi.fungniche.all) =="p Cortinarius_spilomeus")])
+}
+
+corts.freq.all<-data.frame(first_column= c(round(as.numeric(corts.freq.all[[1]]),digits = 2),round(as.numeric(corts.freq.all[[2]]),digits = 2),round(as.numeric(corts.freq.all[[3]]),digits = 2),round(as.numeric(corts.freq.all[[4]]),digits = 2),round(as.numeric(corts.freq.all[[5]]),digits = 2)),second_column=c('lowest fert','low fert','mid-fert','high fert','highest fert'))
+
+corts.freq.all$second_column<-factor(corts.freq.all$second_column,levels=c('lowest fert','low fert','mid-fert','high fert','highest fert'))
+
+corts.freq.all$second_column<-ordered(corts.freq.all$second_column,levels=c('lowest fert','low fert','mid-fert','high fert','highest fert'))
+
+
+corts.all.freq<-ggplot(corts.freq.all, aes(x = second_column, y = first_column)) +
+  geom_bar(fill = "#415B25", stat = "identity") +
+  #geom_text(aes(label = numsites.p), vjust = -0.3,size=3) + 
+  xlab("")+
+  ylab("")+
+  geom_text(aes(x=1,y=-0.20,label="47 \n 3.4"),size=3,stat="unique")+
+  geom_text(aes(x=2,y=-0.20,label="37 \n 3.5"),size=3,stat="unique")+
+  geom_text(aes(x=3,y=-0.20,label="34 \n 3.6"),size=3,stat="unique")+
+  geom_text(aes(x=4,y=-0.20,label="32 \n 3.8"),size=3,stat="unique")+
+  geom_text(aes(x=5,y=-0.20,label="27 \n 4.3"),size=3,stat="unique")+
+  geom_text(aes(x=6,y=-0.20,label="C/N \n soil pH"),size=3,stat="unique")+
+  #geom_text(aes(x=3,y=1.1,label="Cortinarius_spilomeus",fontface=3),size=4,stat="unique")+
+  #annotate("segment",x = 1,xend = 5,y = 0.75, yend = 0.75)+
+  #annotate("text",label="*",x=3,y=0.8,size=3)+
+  #scale_y_continuous(limits = c(-0.05,1))+
+  coord_cartesian(ylim = c(0,1),clip = "off")+
+  theme_classic()+
+  theme(text = element_text(size=9),axis.text.x = element_blank(),plot.margin = unit(c(.06,.8,.6,0),"cm"))#
+```
+
+##russr
+```{r warning=FALSE}
+russr.freq.pine<-c()
+for(i in 1:5){
+russr.freq.pine[[i]]<-sum(sfsi.pine[which(sfsi.pine$fertbinned == levellist.p[[i]]),which(colnames(sfsi.pine) =="p Russula_rhodopus")])/nrow(sfsi.pine[which(sfsi.pine$fertbinned == levellist.p[[i]]),which(colnames(sfsi.pine) =="p Russula_rhodopus")])
+}
+
+russr.freq.pine<-data.frame(first_column= c(round(as.numeric(russr.freq.pine[[1]]),digits = 2),round(as.numeric(russr.freq.pine[[2]]),digits = 2),round(as.numeric(russr.freq.pine[[3]]),digits = 2),round(as.numeric(russr.freq.pine[[4]]),digits = 2),round(as.numeric(russr.freq.pine[[5]]),digits = 2)),second_column=c('lowest fert','low fert','mid-fert','high fert','highest fert'))
+
+russr.freq.pine$second_column<-factor(russr.freq.pine$second_column,levels=c('lowest fert','low fert','mid-fert','high fert','highest fert'))
+
+russr.freq.pine$second_column<-ordered(russr.freq.pine$second_column,levels=c('lowest fert','low fert','mid-fert','high fert','highest fert'))
+
+
+russr.pine.freq<-ggplot(russr.freq.pine, aes(x = second_column, y = first_column)) +
+  geom_bar(fill = "#AACB90", stat = "identity") +
+  #geom_text(aes(label = numsites.p), vjust = -0.3,size=3) + 
+  xlab("")+
+  ylab("")+
+  geom_text(aes(x=1,y=-0.20,label="47 \n 3.4"),size=3,stat="unique")+
+  geom_text(aes(x=2,y=-0.20,label="37 \n 3.5"),size=3,stat="unique")+
+  geom_text(aes(x=3,y=-0.20,label="34 \n 3.6"),size=3,stat="unique")+
+  geom_text(aes(x=4,y=-0.20,label="32 \n 3.8"),size=3,stat="unique")+
+  geom_text(aes(x=5,y=-0.20,label="27 \n 4.3"),size=3,stat="unique")+
+  geom_text(aes(x=6,y=-0.20,label="C/N \n soil pH"),size=3,stat="unique")+
+  geom_text(aes(x=3,y=1.1,label="R. rhodopus",fontface=3),size=4,stat="unique")+
+  annotate("segment",x = 1,xend = 5,y = 0.75, yend = 0.75)+
+  annotate("text",label="*",x=3,y=0.8,size=3)+
+  #scale_y_continuous(limits = c(-0.05,1))+
+  coord_cartesian(ylim = c(0,1),clip = "off")+
+  theme_classic()+
+  theme(text = element_text(size=9),axis.text.x = element_blank(),plot.margin = unit(c(.06,.8,.6,0),"cm"))#
+
+russr.freq.spru<-c()
+for(i in 1:5){
+russr.freq.spru[[i]]<-sum(sfsi.spruce[which(sfsi.spruce$fertbinned == levellist.p[[i]]),which(colnames(sfsi.spruce) =="p Russula_rhodopus")])/nrow(sfsi.spruce[which(sfsi.spruce$fertbinned == levellist.p[[i]]),which(colnames(sfsi.spruce) =="p Russula_rhodopus")])
+}
+
+russr.freq.spru<-data.frame(first_column= c(round(as.numeric(russr.freq.spru[[1]]),digits = 2),round(as.numeric(russr.freq.spru[[2]]),digits = 2),round(as.numeric(russr.freq.spru[[3]]),digits = 2),round(as.numeric(russr.freq.spru[[4]]),digits = 2),round(as.numeric(russr.freq.spru[[5]]),digits = 2)),second_column=c('lowest fert','low fert','mid-fert','high fert','highest fert'))
+
+russr.freq.spru$second_column<-factor(russr.freq.spru$second_column,levels=c('lowest fert','low fert','mid-fert','high fert','highest fert'))
+
+russr.freq.spru$second_column<-ordered(russr.freq.spru$second_column,levels=c('lowest fert','low fert','mid-fert','high fert','highest fert'))
+
+
+russr.spru.freq<-ggplot(russr.freq.spru, aes(x = second_column, y = first_column)) +
+  geom_bar(fill = "#415B25", stat = "identity") +
+  #geom_text(aes(label = numsites.p), vjust = -0.3,size=3) + 
+  xlab("")+
+  ylab("")+
+  geom_text(aes(x=1,y=-0.20,label="47 \n 3.4"),size=3,stat="unique")+
+  geom_text(aes(x=2,y=-0.20,label="37 \n 3.5"),size=3,stat="unique")+
+  geom_text(aes(x=3,y=-0.20,label="34 \n 3.6"),size=3,stat="unique")+
+  geom_text(aes(x=4,y=-0.20,label="32 \n 3.8"),size=3,stat="unique")+
+  geom_text(aes(x=5,y=-0.20,label="27 \n 4.3"),size=3,stat="unique")+
+  geom_text(aes(x=6,y=-0.20,label="C/N \n soil pH"),size=3,stat="unique")+
+  #geom_text(aes(x=3,y=1.1,label="Russula_rhodopus",fontface=3),size=4,stat="unique")+
+  #annotate("segment",x = 1,xend = 5,y = 0.75, yend = 0.75)+
+  #annotate("text",label="*",x=3,y=0.8,size=3)+
+  #scale_y_continuous(limits = c(-0.05,1))+
+  coord_cartesian(ylim = c(0,1),clip = "off")+
+  theme_classic()+
+  theme(text = element_text(size=9),axis.text.x = element_blank(),plot.margin = unit(c(.06,.8,.6,0),"cm"))#
+
+russr.freq.all<-c()
+for(i in 1:5){
+russr.freq.all[[i]]<-sum(sfsi.fungniche.all[which(sfsi.fungniche.all$fertbinned == levellist.p[[i]]),which(colnames(sfsi.fungniche.all) =="p Russula_rhodopus")])/nrow(sfsi.fungniche.all[which(sfsi.fungniche.all$fertbinned == levellist.p[[i]]),which(colnames(sfsi.fungniche.all) =="p Russula_rhodopus")])
+}
+
+russr.freq.all<-data.frame(first_column= c(round(as.numeric(russr.freq.all[[1]]),digits = 2),round(as.numeric(russr.freq.all[[2]]),digits = 2),round(as.numeric(russr.freq.all[[3]]),digits = 2),round(as.numeric(russr.freq.all[[4]]),digits = 2),round(as.numeric(russr.freq.all[[5]]),digits = 2)),second_column=c('lowest fert','low fert','mid-fert','high fert','highest fert'))
+
+russr.freq.all$second_column<-factor(russr.freq.all$second_column,levels=c('lowest fert','low fert','mid-fert','high fert','highest fert'))
+
+russr.freq.all$second_column<-ordered(russr.freq.all$second_column,levels=c('lowest fert','low fert','mid-fert','high fert','highest fert'))
+
+
+russr.all.freq<-ggplot(russr.freq.all, aes(x = second_column, y = first_column)) +
+  geom_bar(fill = "#415B25", stat = "identity") +
+  #geom_text(aes(label = numsites.p), vjust = -0.3,size=3) + 
+  xlab("")+
+  ylab("")+
+  geom_text(aes(x=1,y=-0.20,label="47 \n 3.4"),size=3,stat="unique")+
+  geom_text(aes(x=2,y=-0.20,label="37 \n 3.5"),size=3,stat="unique")+
+  geom_text(aes(x=3,y=-0.20,label="34 \n 3.6"),size=3,stat="unique")+
+  geom_text(aes(x=4,y=-0.20,label="32 \n 3.8"),size=3,stat="unique")+
+  geom_text(aes(x=5,y=-0.20,label="27 \n 4.3"),size=3,stat="unique")+
+  geom_text(aes(x=6,y=-0.20,label="C/N \n soil pH"),size=3,stat="unique")+
+  #geom_text(aes(x=3,y=1.1,label="Russula_rhodopus",fontface=3),size=4,stat="unique")+
+  #annotate("segment",x = 1,xend = 5,y = 0.75, yend = 0.75)+
+  #annotate("text",label="*",x=3,y=0.8,size=3)+
+  #scale_y_continuous(limits = c(-0.05,1))+
+  coord_cartesian(ylim = c(0,1),clip = "off")+
+  theme_classic()+
+  theme(text = element_text(size=9),axis.text.x = element_blank(),plot.margin = unit(c(.06,.8,.6,0),"cm"))#
+```
+
+###save plots
+```{r warning=FALSE}
+#tiff("../figures/revised/freq_sig_fert.tiff",res = 1000,width = 175,height = 120,units = "mm")
+#pdf("../figures/revised/freq_sig_fert.pdf",width = 7.08,height = 4.72)
+gaut.pine.freq+cortc.spru.freq+russa.pine.freq+cortf.spru.freq+plot_annotation(tag_levels = "a")
+
+#tiff("../figures/revised/freq_all_sig_fert.tiff",width=800,height=300,units="mm",res = 1000)
+cortc.pine.freq+gaut.pine.freq+lactn.pine.freq+cortf.pine.freq+lactt.pine.freq+corta.pine.freq+cortc.spru.freq+gaut.spru.freq+lactn.spru.freq+cortf.spru.freq+lactt.spru.freq+corta.spru.freq+plot_annotation(tag_levels = "a")+plot_layout(nrow = 2)
+
+cortc.freq.plot+gaut.all.freq+lactn.all.freq+cortf.all.freq+lactt.all.freq+corta.all.freq+russa.all.freq+russr.all.freq+corts.all.freq+cortm.all.freq
+```
+
+##age cortf
+```{r warning=FALSE}
+levellist.s<-list('10-24','25-39', '40-51', '52-75','>75')
+
+cortf.freq.age.spru<-c()
+for(i in 1:5){
+cortf.freq.age.spru[[i]]<-sum(sfsi.spruce[which(sfsi.spruce$agebinned == levellist.s[[i]]),which(colnames(sfsi.spruce) =="p Cortinarius_fulvescens_coll.")])/nrow(sfsi.spruce[which(sfsi.spruce$agebinned == levellist.s[[i]]),which(colnames(sfsi.spruce) =="Cortinarius_fulvescens_coll.")])
+}
+
+
+freq.cortf.age<-data.frame(first_column= c(round(as.numeric(cortf.freq.age.spru[[1]]),digits = 2),round(as.numeric(cortf.freq.age.spru[[2]]),digits = 2),round(as.numeric(cortf.freq.age.spru[[3]]),digits = 2),round(as.numeric(cortf.freq.age.spru[[4]]),digits = 2),round(as.numeric(cortf.freq.age.spru[[5]]),digits = 2)),second_column=c('10-24','25-39', '40-51', '52-75','>75'))
+
+freq.cortf.age$second_column<-factor(freq.cortf.age$second_column,levels=c('10-24','25-39', '40-51', '52-75','>75'))
+
+
+cortf.spru.freq.age<-ggplot(freq.cortf.age, aes(x = second_column, y = first_column)) +
+  geom_bar(fill = "#415B25", stat = "identity") +
+  #geom_text(aes(label = numsites.p), vjust = -0.3,size=3) + 
+  xlab("")+
+  ylab("")+
+  #geom_text(aes(x=1,y=1.1,label="Cortinarius fulvescens",fontface=3),size=4,stat="unique")+
+  #annotate("segment",x = 1,xend = 5,y = 0.75, yend = 0.75)+
+  annotate("text",label="Cortinarius fulvescens coll.",x=3,y=0.27,size=3,fontface="italic")+
+  #scale_y_continuous(limits = c(-0.05,1))+
+  coord_cartesian(ylim = c(0,0.25),clip = "off")+
+  theme_classic()+
+  theme(text = element_text(size=9),axis.text.x = element_blank(),plot.margin = unit(c(.06,.8,.6,0),"cm"))#
+
+```
+
+##age cortc
+```{r warning=FALSE}
+levellist.s<-list('10-24','25-39', '40-51', '52-75','>75')
+
+cortc.freq.age.spru<-c()
+for(i in 1:5){
+cortc.freq.age.spru[[i]]<-sum(sfsi.spruce[which(sfsi.spruce$agebinned == levellist.s[[i]]),which(colnames(sfsi.spruce) =="p Cortinarius_comptulus")])/nrow(sfsi.spruce[which(sfsi.spruce$agebinned == levellist.s[[i]]),which(colnames(sfsi.spruce) =="Cortinarius_comptulus")])
+}
+
+
+freq.cortc.age<-data.frame(first_column= c(round(as.numeric(cortc.freq.age.spru[[1]]),digits = 2),round(as.numeric(cortc.freq.age.spru[[2]]),digits = 2),round(as.numeric(cortc.freq.age.spru[[3]]),digits = 2),round(as.numeric(cortc.freq.age.spru[[4]]),digits = 2),round(as.numeric(cortc.freq.age.spru[[5]]),digits = 2)),second_column=c('10-24','25-39', '40-51', '52-75','>75'))
+
+freq.cortc.age$second_column<-factor(freq.cortc.age$second_column,levels=c('10-24','25-39', '40-51', '52-75','>75'))
+
+
+cortc.spru.freq.age<-ggplot(freq.cortc.age, aes(x = second_column, y = first_column)) +
+  geom_bar(fill = "#415B25", stat = "identity") +
+  #geom_text(aes(label = numsites.p), vjust = -0.3,size=3) + 
+  xlab("")+
+  ylab("")+
+  #geom_text(aes(x=1,y=1.1,label="Cortinarius comptulus",fontface=3),size=4,stat="unique")+
+  #annotate("segment",x = 1,xend = 5,y = 0.75, yend = 0.75)+
+  annotate("text",label="Cortinarius comptulus coll.",x=3,y=0.27,size=3,fontface="italic")+
+  #scale_y_continuous(limits = c(-0.05,1))+
+  coord_cartesian(ylim = c(0,0.25),clip = "off")+
+  theme_classic()+
+  theme(text = element_text(size=9),axis.text.x = element_blank(),plot.margin = unit(c(.06,.8,.6,0),"cm"))#
+
+```
+
+##age corts
+```{r warning=FALSE}
+corts.freq.age.spru<-c()
+for(i in 1:5){
+corts.freq.age.spru[[i]]<-sum(sfsi.spruce[which(sfsi.spruce$agebinned == levellist.s[[i]]),which(colnames(sfsi.spruce) =="p Cortinarius_spilomeus")])/nrow(sfsi.spruce[which(sfsi.spruce$agebinned == levellist.s[[i]]),which(colnames(sfsi.spruce) =="Cortinarius_spilomeus")])
+}
+
+
+freq.corts.age<-data.frame(first_column= c(round(as.numeric(corts.freq.age.spru[[1]]),digits = 2),round(as.numeric(corts.freq.age.spru[[2]]),digits = 2),round(as.numeric(corts.freq.age.spru[[3]]),digits = 2),round(as.numeric(corts.freq.age.spru[[4]]),digits = 2),round(as.numeric(corts.freq.age.spru[[5]]),digits = 2)),second_column=c('10-24','25-39', '40-51', '52-75','>75'))
+
+freq.corts.age$second_column<-factor(freq.corts.age$second_column,levels=c('10-24','25-39', '40-51', '52-75','>75'))
+
+
+corts.spru.freq.age<-ggplot(freq.corts.age, aes(x = second_column, y = first_column)) +
+  geom_bar(fill = "#415B25", stat = "identity") +
+  #geom_text(aes(label = numsites.p), vjust = -0.3,size=3) + 
+  xlab("")+
+  ylab("")+
+  #geom_text(aes(x=1,y=1.1,label="Cortinarius_spilomeus",fontface=3),size=4,stat="unique")+
+  #annotate("segment",x = 1,xend = 5,y = 0.75, yend = 0.75)+
+  annotate("text",label="Cortinarius spilomeus",x=3,y=0.27,size=3,fontface="italic")+
+  #scale_y_continuous(limits = c(-0.05,1))+
+  coord_cartesian(ylim = c(0,0.25),clip = "off")+
+  theme_classic()+
+  theme(text = element_text(size=9),axis.text.x = element_blank(),plot.margin = unit(c(.06,.8,.6,0),"cm"))#
+
+```
+
+##age lactn
+```{r warning=FALSE}
+levellist.s<-list('10-24','25-39', '40-51', '52-75','>75')
+
+lactn.freq.age.spru<-c()
+for(i in 1:5){
+lactn.freq.age.spru[[i]]<-sum(sfsi.spruce[which(sfsi.spruce$agebinned == levellist.s[[i]]),which(colnames(sfsi.spruce) =="p Lactarius_necator")])/nrow(sfsi.spruce[which(sfsi.spruce$agebinned == levellist.s[[i]]),which(colnames(sfsi.spruce) =="Lactarius_necator")])
+}
+
+
+freq.lactn.age<-data.frame(first_column= c(round(as.numeric(lactn.freq.age.spru[[1]]),digits = 2),round(as.numeric(lactn.freq.age.spru[[2]]),digits = 2),round(as.numeric(lactn.freq.age.spru[[3]]),digits = 2),round(as.numeric(lactn.freq.age.spru[[4]]),digits = 2),round(as.numeric(lactn.freq.age.spru[[5]]),digits = 2)),second_column=c('10-24','25-39', '40-51', '52-75','>75'))
+
+freq.lactn.age$second_column<-factor(freq.lactn.age$second_column,levels=c('10-24','25-39', '40-51', '52-75','>75'))
+
+
+lactn.spru.freq.age<-ggplot(freq.lactn.age, aes(x = second_column, y = first_column)) +
+  geom_bar(fill = "#415B25", stat = "identity") +
+  #geom_text(aes(label = numsites.p), vjust = -0.3,size=3) + 
+  xlab("")+
+  ylab("")+
+  #geom_text(aes(x=1,y=1.1,label="Lactarius necator",fontface=3),size=4,stat="unique")+
+  #annotate("segment",x = 1,xend = 5,y = 0.75, yend = 0.75)+
+  annotate("text",label="Lactarius necator",x=3,y=0.27,size=3,fontface="italic")+
+  #scale_y_continuous(limits = c(-0.05,1))+
+  coord_cartesian(ylim = c(0,0.25),clip = "off")+
+  theme_classic()+
+  theme(text = element_text(size=9),plot.margin = unit(c(.06,.8,.6,0),"cm"))#,axis.text.x = element_blank()
+
+```
+
+##age russa
+```{r warning=FALSE}
+russa.freq.age.spru<-c()
+for(i in 1:5){
+russa.freq.age.spru[[i]]<-sum(sfsi.spruce[which(sfsi.spruce$agebinned == levellist.s[[i]]),which(colnames(sfsi.spruce) =="p Russula_aquosa")])/nrow(sfsi.spruce[which(sfsi.spruce$agebinned == levellist.s[[i]]),which(colnames(sfsi.spruce) =="Russula_aquosa")])
+}
+
+
+freq.russa.age<-data.frame(first_column= c(round(as.numeric(russa.freq.age.spru[[1]]),digits = 2),round(as.numeric(russa.freq.age.spru[[2]]),digits = 2),round(as.numeric(russa.freq.age.spru[[3]]),digits = 2),round(as.numeric(russa.freq.age.spru[[4]]),digits = 2),round(as.numeric(russa.freq.age.spru[[5]]),digits = 2)),second_column=c('10-24','25-39', '40-51', '52-75','>75'))
+
+freq.russa.age$second_column<-factor(freq.russa.age$second_column,levels=c('10-24','25-39', '40-51', '52-75','>75'))
+
+
+russa.spru.freq.age<-ggplot(freq.russa.age, aes(x = second_column, y = first_column)) +
+  geom_bar(fill = "#415B25", stat = "identity") +
+  #geom_text(aes(label = numsites.p), vjust = -0.3,size=3) + 
+  xlab("")+
+  ylab("")+
+  #geom_text(aes(x=1,y=1.1,label="Russula_aquosa",fontface=3),size=4,stat="unique")+
+  #annotate("segment",x = 1,xend = 5,y = 0.75, yend = 0.75)+
+  annotate("text",label="Russula aquosa",x=3,y=0.27,size=3,fontface="italic")+
+  #scale_y_continuous(limits = c(-0.05,1))+
+  coord_cartesian(ylim = c(0,0.25),clip = "off")+
+  theme_classic()+
+  theme(text = element_text(size=9),plot.margin = unit(c(.06,.8,.6,0),"cm"))#,axis.text.x = element_blank()
+
+```
+
+##age russr
+```{r warning=FALSE}
+russr.freq.age.spru<-c()
+for(i in 1:5){
+russr.freq.age.spru[[i]]<-sum(sfsi.spruce[which(sfsi.spruce$agebinned == levellist.s[[i]]),which(colnames(sfsi.spruce) =="p Russula_rhodopus")])/nrow(sfsi.spruce[which(sfsi.spruce$agebinned == levellist.s[[i]]),which(colnames(sfsi.spruce) =="Russula_rhodopus")])
+}
+
+
+freq.russr.age<-data.frame(first_column= c(round(as.numeric(russr.freq.age.spru[[1]]),digits = 2),round(as.numeric(russr.freq.age.spru[[2]]),digits = 2),round(as.numeric(russr.freq.age.spru[[3]]),digits = 2),round(as.numeric(russr.freq.age.spru[[4]]),digits = 2),round(as.numeric(russr.freq.age.spru[[5]]),digits = 2)),second_column=c('10-24','25-39', '40-51', '52-75','>75'))
+
+freq.russr.age$second_column<-factor(freq.russr.age$second_column,levels=c('10-24','25-39', '40-51', '52-75','>75'))
+
+
+russr.spru.freq.age<-ggplot(freq.russr.age, aes(x = second_column, y = first_column)) +
+  geom_bar(fill = "#415B25", stat = "identity") +
+  #geom_text(aes(label = numsites.p), vjust = -0.3,size=3) + 
+  xlab("")+
+  ylab("")+
+  #geom_text(aes(x=1,y=1.1,label="Russula rhodopus",fontface=3),size=4,stat="unique")+
+  #annotate("segment",x = 1,xend = 5,y = 0.75, yend = 0.75)+
+  annotate("text",label="Russula rhodopus",x=3,y=0.27,size=3,fontface="italic")+
+  #scale_y_continuous(limits = c(-0.05,1))+
+  coord_cartesian(ylim = c(0,0.25),clip = "off")+
+  theme_classic()+
+  theme(text = element_text(size=9),plot.margin = unit(c(.06,.8,.6,0),"cm"))#,axis.text.x = element_blank()
+
+```
+
+### save age plots
+```{r warning=FALSE}
+#tiff("../figures/revised/freq_sig_age.tiff",res = 1000,width = 160,height = 90,units = "mm")
+#pdf("../figures/revised/freq_sig_age.pdf",width = 7.08,height = 3.5)
+cortf.spru.freq.age+corts.spru.freq.age+cortc.spru.freq.age+lactn.spru.freq.age+russa.spru.freq.age+russr.spru.freq.age+plot_annotation(tag_levels = "a")+plot_layout(nrow = 2)
 ```
 
 
-
-#read in data
+#read in data 
 ```{r}
-sfsi.pine.pres<-read_csv("../clean_data/SFSI_pine_guildpresent.csv")
-sfsi.spruce.pres<-read_csv("../clean_data/SFSI_spruce_guildpresent.csv")
+sfsi.pine.pres<-read_csv("../clean_data/SFSI_pine_guildpresent.rev.csv")
+sfsi.spruce.pres<-read_csv("../clean_data/SFSI_spruce_guildpresent.rev.csv")
 ```
 
-###relative abundance plot overall
-```{r}
-pine.plot<-ggplot(sfsi.pine.pres)+geom_point(aes(x=age_log,y=log10(sfsi.pine.pres$miners.rel)))+
-  geom_smooth(aes(x=age_log,y=log10(sfsi.pine.pres$miners.rel)),method = "lm")+
+###relative abundance plot overall forest age
+```{r warning=FALSE}
+pine.plot<-ggplot(sfsi.pine.pres)+geom_point(aes(x=unscaled_age,y=log10(sfsi.pine.pres$miners.relecm)))+
+  geom_smooth(aes(x=unscaled_age,y=log10(sfsi.pine.pres$miners.relecm)),method = "lm")+
   xlab("Forest age (years)")+
   ylab("Relative abundance of potential ectomycorrhizal decomposers (log scale) \n \n ")+
   #scale_x_continuous(breaks = c(10,50,100,150,200))+
-  annotate("text",x=-2.5,y=0,label="100 %",size=3)+
-  annotate("text",x=-2.5,y=-1,label="10 %",size=3)+
-  annotate("text",x=-2.5,y=-2,label="1 %",size=3)+
-  annotate("text",x=-2.5,y=-3,label="0.1 %",size=3)+
+  #annotate("text",x=-2.5,y=0,label="100 %",size=3)+
+  #annotate("text",x=-2.5,y=-1,label="10 %",size=3)+
+  #annotate("text",x=-2.5,y=-2,label="1 %",size=3)+
+  #annotate("text",x=-2.5,y=-3,label="0.1 %",size=3)+
   #annotate("text",x=155,y= -0.1,label= "p=0.032")+
   #scale_y_continuous(limits = c(-3.3,0))+
   #coord_cartesian(clip = "off",xlim = c(0,210))+
@@ -370,15 +1471,15 @@ spruce.plot<-ggplot(sfsi.spruce.pres)+geom_point(aes(x=unscaled_age,y=log10(mine
   geom_smooth(aes(x=unscaled_age,y=log10(miners.relecm)),method = "lm",se=FALSE)+
   xlab("Forest age (years)")+
   ylab("")+
-  annotate("text",x=0,y=0,label="100 %")+
-  annotate("text",x=0,y=-1,label="10 %")+
-  annotate("text",x=0,y=-2,label="1 %")+
-  annotate("text",x=0,y=-3,label="0.1 %")+
+  #annotate("text",x=0,y=0,label="100 %")+
+  #annotate("text",x=0,y=-1,label="10 %")+
+  #annotate("text",x=0,y=-2,label="1 %")+
+  #annotate("text",x=0,y=-3,label="0.1 %")+
   #scale_x_continuous(limits=c(0,150),breaks = c(10,50,100,150,200))+
-  annotate("text",x=100,y= -0.1,label= "p=0.438")+
-  theme_classic()
+  #annotate("text",x=100,y= -0.1,label= "p=0.438")+
+  theme_classic()+
+  theme(text=element_text(size = 12),axis.text.y = element_blank())
 
-pine.plot+spruce.plot
 
 #tiff("../figures/guild_niche_age.tiff",res = 1000,width = 16000,height = 8000)
 pine.plot+spruce.plot+plot_annotation(tag_levels = "A")
@@ -388,13 +1489,13 @@ sfsi.spruce.pres$agecat<-factor(sfsi.spruce.pres$agecat,levels=c('young','old'))
 
 pine.plot.categ<-ggplot(sfsi.pine.pres)+geom_jitter(aes(x=agecat,y=log10(miners.relecm)),position = position_jitter(0.08))+
   stat_summary(aes(x=agecat,y=log10(miners.relecm)),fun.y =   "mean",geom = "point",colour="red",size=3)+
-  stat_summary(aes(x=agecat,y=log10(miners.relecm)),fun.ymin = function(x) mean(x) - sd(x), fun.ymax = function(x) mean(x) + sd(x),geom = "linerange",colour="red",lwd=1)+
+  stat_summary(aes(x=agecat,y=log10(miners.relecm)),fun.data =   "mean_se",geom = "linerange",colour="red")+
   xlab("Forest age")+
   ylab("")+
-  annotate("text",x=-0,y=0,label="100 %",size=3)+
-  annotate("text",x=-0.0001,y=-1,label="10 %",size=3)+
-  annotate("text",x=-0.0001,y=-2,label="1 %",size=3)+
-  annotate("text",x=-0.0001,y=-3,label="0.1 %",size=3)+
+  #annotate("text",x=-0,y=0,label="100 %",size=3)+
+  #annotate("text",x=-0.0001,y=-1,label="10 %",size=3)+
+  #annotate("text",x=-0.0001,y=-2,label="1 %",size=3)+
+  #annotate("text",x=-0.0001,y=-3,label="0.1 %",size=3)+
   coord_cartesian(clip = "off",xlim = c(1,2))+
   scale_y_continuous(limits = c(-3.3,0))+
   theme_classic()+
@@ -406,41 +1507,114 @@ spruce.plot.categ<-ggplot(sfsi.spruce.pres)+geom_jitter(aes(x=agecat,y=log10(min
   stat_summary(aes(x=agecat,y=log10(miners.relecm)),fun.data =   "mean_se",geom = "linerange",colour="red")+
   xlab("Forest age")+
   ylab("Potential guild \n relative abundance amoung ECM (logged) \n ")+
-  annotate("text",x=-0.1,y=0,label="100 %",size=1.5)+
-  annotate("text",x=-0.1,y=-1,label="10 %")+
-  annotate("text",x=-0.1,y=-2,label="1 %")+
-  annotate("text",x=-0.1,y=-3,label="0.1 %")+
+  #annotate("text",x=-0.1,y=0,label="100 %",size=1.5)+
+  #annotate("text",x=-0.1,y=-1,label="10 %")+
+  #annotate("text",x=-0.1,y=-2,label="1 %")+
+  #annotate("text",x=-0.1,y=-3,label="0.1 %")+
   scale_y_continuous(limits = c(-3.3,0))+
   coord_cartesian(clip = "off")+
   theme_classic()+
   theme(axis.title=element_text(size = 12),axis.text.y = element_blank())
 
-#tiff("../figures/guild_niche_age_pine_confint.tiff",res = 1000,width = 175,height = 120,units="mm")
-pine.plot+pine.plot.categ+plot_layout(widths = c(4,2))+plot_annotation(tag_levels = "A")
+#tiff("../figures/revised/guild_niche_age_relabun.tiff",res = 1000,width = 175,height = 120,units="mm")
+#pdf("../figures/revised/guild_niche_age_relabun.pdf",width=8,height=4)
+pine.plot+spruce.plot+plot_annotation(tag_levels = "a")
 
-spruce.plot.categ
 ```
 
+
+```{r warning=FALSE}
+pine.plot.fert.ecm<-ggplot(sfsi.pine.pres)+geom_point(aes(x=sfsi.pine.pres$fert.pca,y=log10(sfsi.pine.pres$miners.relecm)))+
+  geom_smooth(aes(x=sfsi.pine.pres$fert.pca,y=log10(sfsi.pine.pres$miners.relecm)),method = "lm")+
+  xlab("Soil fertility index")+
+  ylab("Relative abundance of potential ectomycorrhizal decomposers (log scale) \n \n ")+
+  #scale_x_continuous(breaks = c(10,50,100,150,200))+
+  #annotate("text",x=-2.5,y=0,label="100 %",size=3)+
+  #annotate("text",x=-2.5,y=-1,label="10 %",size=3)+
+  #annotate("text",x=-2.5,y=-2,label="1 %",size=3)+
+  #annotate("text",x=-2.5,y=-3,label="0.1 %",size=3)+
+  #annotate("text",x=155,y= -0.1,label= "p=0.032")+
+  #scale_y_continuous(limits = c(-3.3,0))+
+  #coord_cartesian(clip = "off",xlim = c(0,210))+
+  theme_classic()+
+  theme(text=element_text(size = 12),axis.text.y = element_blank())
+  
+
+spruce.plot.fert.ecm<-ggplot(sfsi.spruce.pres)+geom_point(aes(x=fert.pca,y=log10(miners.relecm)))+
+  geom_smooth(aes(x=fert.pca,y=log10(miners.relecm)),method = "lm")+
+  xlab("Soil fertility index")+
+  ylab("")+
+  #annotate("text",x=-2.5,y=0,label="100 %",size=3)+
+  #annotate("text",x=-2.5,y=-1,label="10 %",size=3)+
+  #annotate("text",x=-2.5,y=-2,label="1 %",size=3)+
+  #annotate("text",x=-2.5,y=-3,label="0.1 %",size=3)+
+  #scale_x_continuous(limits=c(0,150),breaks = c(10,50,100,150,200))+
+  #annotate("text",x=100,y= -0.1,label= "p=0.438")+
+  theme_classic()+
+  theme(text=element_text(size = 12),axis.text.y = element_blank())
+
+pine.plot.fert<-ggplot(sfsi.pine.pres)+geom_point(aes(x=sfsi.pine.pres$fert.pca,y=log10(sfsi.pine.pres$miners.rel)))+
+  geom_smooth(aes(x=sfsi.pine.pres$fert.pca,y=log10(sfsi.pine.pres$miners.rel)),method = "lm")+
+  xlab("Soil fertility index")+
+  ylab("Relative abundance of potential ectomycorrhizal decomposers (log scale) \n \n ")+
+  #scale_x_continuous(breaks = c(10,50,100,150,200))+
+  #annotate("text",x=-2.5,y=0,label="100 %",size=3)+
+  #annotate("text",x=-2.5,y=-1,label="10 %",size=3)+
+  #annotate("text",x=-2.5,y=-2,label="1 %",size=3)+
+  #annotate("text",x=-2.5,y=-3,label="0.1 %",size=3)+
+  #annotate("text",x=155,y= -0.1,label= "p=0.032")+
+  #scale_y_continuous(limits = c(-3.3,0))+
+  #coord_cartesian(clip = "off",xlim = c(0,210))+
+  theme_classic()+
+  theme(text=element_text(size = 12),axis.text.y = element_blank())
+  
+
+spruce.plot.fert<-ggplot(sfsi.spruce.pres)+geom_point(aes(x=fert.pca,y=log10(miners.rel)))+
+  geom_smooth(aes(x=fert.pca,y=log10(miners.rel)),method = "lm")+
+  xlab("Soil fertility index")+
+  ylab("")+
+  #annotate("text",x=-2.5,y=0,label="100 %",size=3)+
+  #annotate("text",x=-2.5,y=-1,label="10 %",size=3)+
+  #annotate("text",x=-2.5,y=-2,label="1 %",size=3)+
+  #annotate("text",x=-2.5,y=-3,label="0.1 %",size=3)+
+  #scale_x_continuous(limits=c(0,150),breaks = c(10,50,100,150,200))+
+  #annotate("text",x=100,y= -0.1,label= "p=0.438")+
+  theme_classic()+
+  theme(text=element_text(size = 12),axis.text.y = element_blank())
+
+pine.plot.fert+spruce.plot.fert
+
+#tiff("../figures/revised/guild_niche_fert_relabun.tiff",res = 1000,width = 240,height = 120,units="mm")
+#pdf("../figures/revised/guild_niche_fert_relabun.pdf",width = 8,height = 4)
+pine.plot.fert.ecm+spruce.plot.fert.ecm+plot_annotation(tag_levels = "a")
+
+#tiff("../figures/guild_niche_age.tiff",res = 1000,width = 16000,height = 8000)
+#pine.plot+spruce.plot+plot_annotation(tag_levels = "A")
+
+#tiff("../figures/guild_niche_age_pine_confint.tiff",res = 1000,width = 175,height = 120,units="mm")
+#pine.plot+pine.plot.categ+plot_layout(widths = c(4,2))+plot_annotation(tag_levels = "A")
+
+```
 
 #read in data
 ```{r}
-sfsi.fungniche<-read_csv("../clean_data/SFSI_total.csv")
-sfsi.pres<-read_csv("../clean_data/SFSI_present.csv")
+sfsi.fungniche<-read_csv("../clean_data/SFSI_total.rev.csv")
+sfsi.pres<-read_csv("../clean_data/SFSI_present.rev.csv")
 ```
 
 ###frequncey plot spruce vs pine
-```{r}
-freq.guild.pine<-sum(sfsi.fungniche[which(sfsi.fungniche$tree_dom == "Pine"),which(colnames(sfsi.fungniche) =="miners.pres")])/564  
-freq.guild.spruce<-sum(sfsi.fungniche[which(sfsi.fungniche$tree_dom == "Spruce"),which(colnames(sfsi.fungniche) =="miners.pres")])/365 
+```{r warning=FALSE}
+freq.guild.pine<-sum(sfsi.fungniche[which(sfsi.fungniche$tree_dom == "Pine"),which(colnames(sfsi.fungniche) =="miners.pres")])/nrow(sfsi.pine) 
+freq.guild.spruce<-sum(sfsi.fungniche[which(sfsi.fungniche$tree_dom == "Spruce"),which(colnames(sfsi.fungniche) =="miners.pres")])/nrow(sfsi.spruce) 
 
 freq.guild.p.v.s<-c(freq.guild.pine,freq.guild.spruce)
 species<-c("Pine","Spruce")
 freq.guild.p.v.s<-data.frame(freq.guild.p.v.s,species)
 
 spr.v.pine.freq<-ggplot(freq.guild.p.v.s, aes(x = species, y = freq.guild.p.v.s)) +
-  geom_bar(fill = "seagreen", stat = "identity") +
+  geom_bar(fill = "#5F9B46", stat = "identity") +
   xlab("Dominant host species")+
-  ylab("Percent frequency")+
+  ylab("Frequency")+
   scale_y_continuous(limits = c(0,1))+
   theme_classic()+
   theme(axis.title=element_text(size = 12))
@@ -448,120 +1622,204 @@ spr.v.pine.freq<-ggplot(freq.guild.p.v.s, aes(x = species, y = freq.guild.p.v.s)
 spr.v.pine.freq
 ```
 ###frequncey plot spruce vs pine specific taxa
-```{r}
-freq.lact.all.pine<-sum(sfsi.fungniche[which(sfsi.fungniche$tree_dom == "Pine"),which(colnames(sfsi.fungniche) =="p Lactarius_vietus")])/564
-freq.lact.all.spruce<-sum(sfsi.fungniche[which(sfsi.fungniche$tree_dom == "Spruce"),which(colnames(sfsi.fungniche) =="p Lactarius_vietus")])/365
+```{r warning=FALSE}
+freq.lactn.all.pine<-sum(sfsi.fungniche[which(sfsi.fungniche$tree_dom == "Pine"),which(colnames(sfsi.fungniche) =="p Lactarius_necator")])/nrow(sfsi.pine)
+freq.lactn.all.spruce<-sum(sfsi.fungniche[which(sfsi.fungniche$tree_dom == "Spruce"),which(colnames(sfsi.fungniche) =="p Lactarius_necator")])/nrow(sfsi.spruce)
 
-freq.lact.p.v.s<-c(freq.lact.all.pine,freq.lact.all.spruce)
+freq.lactn.p.v.s<-c(freq.lactn.all.pine,freq.lactn.all.spruce)
 species<-c("Pine","Spruce")
-freq.lact.p.v.s<-data.frame(freq.lact.p.v.s,species)
+freq.lactn.p.v.s<-data.frame(freq.lactn.p.v.s,species)
 
-lact.spr.v.pine.freq<-ggplot(freq.lact.p.v.s, aes(x = species, y = freq.lact.p.v.s)) +
-  geom_bar(fill = "seagreen", stat = "identity") +
-  xlab("")+
-  ylab("Frequency")+
-  annotate("text",x=1.5,y=1.0,label="L. vietus",size=4,fontface="italic")+
-  scale_y_continuous(limits = c(0,1))+
-  theme_classic()+
-  theme(axis.title=element_text(size = 12))
-
-lact.spr.v.pine.freq
-
-freq.gaut.all.pine<-sum(sfsi.fungniche[which(sfsi.fungniche$tree_dom == "Pine"),which(colnames(sfsi.fungniche) =="p Gautieria_monticola")])/564
-freq.gaut.all.spruce<-sum(sfsi.fungniche[which(sfsi.fungniche$tree_dom == "Spruce"),which(colnames(sfsi.fungniche) =="p Gautieria_monticola")])/365 
-
-freq.gaut.p.v.s<-c(freq.gaut.all.pine,freq.gaut.all.spruce)
-species<-c("Pine","Spruce")
-freq.gaut.p.v.s<-data.frame(freq.gaut.p.v.s,species)
-
-gaut.spr.v.pine.freq<-ggplot(freq.gaut.p.v.s, aes(x = species, y = freq.gaut.p.v.s)) +
-  geom_bar(fill = "seagreen", stat = "identity") +
+lactn.spr.v.pine.freq<-ggplot(freq.lactn.p.v.s, aes(x = species, y = freq.lactn.p.v.s)) +
+  geom_bar(fill = "#5F9B46", stat = "identity") +
   xlab("")+
   ylab("")+
-  annotate("text",x=1.5,y=1.0,label="G. cf. otthii",size=4,fontface="italic")+
-  scale_y_continuous(limits = c(0,1))+
+  annotate("text",x=1.5,y=0.26,label="L. necator",size=4,fontface="italic")+
+  #annotate("segment",x = 1,xend = 2,y = 0.75, yend = 0.75)+
+  #annotate("text",label="*",x=1.5,y=0.8,size=3)+
+  scale_y_continuous(limits = c(0,0.26))+
   theme_classic()+
   theme(axis.title=element_text(size = 12))
 
-gaut.spr.v.pine.freq
 
-freq.russ.all.pine<-sum(sfsi.fungniche[which(sfsi.fungniche$tree_dom == "Pine"),which(colnames(sfsi.fungniche) =="p Russula_aquosa")])/564
-freq.russ.all.spruce<-sum(sfsi.fungniche[which(sfsi.fungniche$tree_dom == "Spruce"),which(colnames(sfsi.fungniche) =="p Russula_aquosa")])/365 
-
-freq.russ.p.v.s<-c(freq.russ.all.pine,freq.russ.all.spruce)
-species<-c("Pine","Spruce")
-freq.russ.p.v.s<-data.frame(freq.russ.p.v.s,species)
-
-russ.spr.v.pine.freq<-ggplot(freq.russ.p.v.s, aes(x = species, y = freq.russ.p.v.s)) +
-  geom_bar(fill = "seagreen", stat = "identity") +
-  xlab("")+
-  ylab("")+
-  annotate("text",x=1.5,y=1.0,label="R. aquosa",size=4,fontface="italic")+
-  scale_y_continuous(limits = c(0,1))+
-  theme_classic()+
-  theme(axis.title=element_text(size = 12))
-
-gaut.spr.v.pine.freq
-
-freq.cortc.all.pine<-sum(sfsi.fungniche[which(sfsi.fungniche$tree_dom == "Pine"),which(colnames(sfsi.fungniche) =="p Cortinarius_comptulus")])/564
-freq.cortc.all.spruce<-sum(sfsi.fungniche[which(sfsi.fungniche$tree_dom == "Spruce"),which(colnames(sfsi.fungniche) =="p Cortinarius_comptulus")])/365 
+freq.cortc.all.pine<-sum(sfsi.fungniche[which(sfsi.fungniche$tree_dom == "Pine"),which(colnames(sfsi.fungniche) =="p Cortinarius_comptulus")])/nrow(sfsi.pine)
+freq.cortc.all.spruce<-sum(sfsi.fungniche[which(sfsi.fungniche$tree_dom == "Spruce"),which(colnames(sfsi.fungniche) =="p Cortinarius_comptulus")])/nrow(sfsi.spruce)
 
 freq.cortc.p.v.s<-c(freq.cortc.all.pine,freq.cortc.all.spruce)
 species<-c("Pine","Spruce")
 freq.cortc.p.v.s<-data.frame(freq.cortc.p.v.s,species)
 
 cortc.spr.v.pine.freq<-ggplot(freq.cortc.p.v.s, aes(x = species, y = freq.cortc.p.v.s)) +
-  geom_bar(fill = "seagreen", stat = "identity") +
-  xlab("Dominant host species")+
-  ylab("")+
-  annotate("text",x=1.5,y=1.0,label="C. comptulus col.",size=4,fontface="italic")+
-  scale_y_continuous(limits = c(0,1))+
+  geom_bar(fill = "#5F9B46", stat = "identity") +
+  xlab("")+
+  ylab("Frequency")+
+  annotate("text",x=1.5,y=0.26,label="C. comptulus coll.",size=4,fontface="italic")+
+  #annotate("segment",x = 1,xend = 2,y = 0.75, yend = 0.75)+
+  #annotate("text",label="*",x=1.5,y=0.8,size=3)+
+  scale_y_continuous(limits = c(0,0.26))+
   theme_classic()+
   theme(axis.title=element_text(size = 12))
 
-cortc.spr.v.pine.freq
+freq.gaut.all.pine<-sum(sfsi.fungniche[which(sfsi.fungniche$tree_dom == "Pine"),which(colnames(sfsi.fungniche) =="p Gautieria_monticola")])/nrow(sfsi.pine)
+freq.gaut.all.spruce<-sum(sfsi.fungniche[which(sfsi.fungniche$tree_dom == "Spruce"),which(colnames(sfsi.fungniche) =="p Gautieria_monticola")])/nrow(sfsi.spruce)
 
-freq.corts.all.pine<-sum(sfsi.fungniche[which(sfsi.fungniche$tree_dom == "Pine"),which(colnames(sfsi.fungniche) =="p Cortinarius_semisanguineus")])/564 
-freq.corts.all.spruce<-sum(sfsi.fungniche[which(sfsi.fungniche$tree_dom == "Spruce"),which(colnames(sfsi.fungniche) =="p Cortinarius_semisanguineus")])/365 
+freq.gaut.p.v.s<-c(freq.gaut.all.pine,freq.gaut.all.spruce)
+species<-c("Pine","Spruce")
+freq.gaut.p.v.s<-data.frame(freq.gaut.p.v.s,species)
+
+gaut.spr.v.pine.freq<-ggplot(freq.gaut.p.v.s, aes(x = species, y = freq.gaut.p.v.s)) +
+  geom_bar(fill = "#5F9B46", stat = "identity") +
+  xlab("")+
+  ylab("")+
+  annotate("text",x=1.5,y=0.26,label="G. cf. otthii",size=4,fontface="italic")+
+  annotate("segment",x = 1,xend = 2,y = 0.25, yend = 0.25)+
+  annotate("text",label="*",x=1.5,y=0.24,size=3)+
+  scale_y_continuous(limits = c(0,0.26))+
+  theme_classic()+
+  theme(axis.title=element_text(size = 12))
+
+
+freq.russa.all.pine<-sum(sfsi.fungniche[which(sfsi.fungniche$tree_dom == "Pine"),which(colnames(sfsi.fungniche) =="p Russula_aquosa")])/nrow(sfsi.pine)
+freq.russa.all.spruce<-sum(sfsi.fungniche[which(sfsi.fungniche$tree_dom == "Spruce"),which(colnames(sfsi.fungniche) =="p Russula_aquosa")])/nrow(sfsi.spruce)  
+
+freq.russa.p.v.s<-c(freq.russa.all.pine,freq.russa.all.spruce)
+species<-c("Pine","Spruce")
+freq.russa.p.v.s<-data.frame(freq.russa.p.v.s,species)
+
+russa.spr.v.pine.freq<-ggplot(freq.russa.p.v.s, aes(x = species, y = freq.russa.p.v.s)) +
+  geom_bar(fill = "#5F9B46", stat = "identity") +
+  xlab("")+
+  ylab("Frequency")+
+  annotate("text",x=1.5,y=0.26,label="R. aquosa",size=4,fontface="italic")+
+  #annotate("segment",x = 1,xend = 2,y = 0.75, yend = 0.75)+
+  #annotate("text",label="*",x=1.5,y=0.8,size=3)+
+  scale_y_continuous(limits = c(0,0.26))+
+  theme_classic()+
+  theme(axis.title=element_text(size = 12))
+
+
+freq.cortf.all.pine<-sum(sfsi.fungniche[which(sfsi.fungniche$tree_dom == "Pine"),which(colnames(sfsi.fungniche) =="p Cortinarius_fulvescens_coll.")])/nrow(sfsi.pine)
+freq.cortf.all.spruce<-sum(sfsi.fungniche[which(sfsi.fungniche$tree_dom == "Spruce"),which(colnames(sfsi.fungniche) =="p Cortinarius_fulvescens_coll.")])/nrow(sfsi.spruce)  
+
+freq.cortf.p.v.s<-c(freq.cortf.all.pine,freq.cortf.all.spruce)
+species<-c("Pine","Spruce")
+freq.cortf.p.v.s<-data.frame(freq.cortf.p.v.s,species)
+
+cortf.spr.v.pine.freq<-ggplot(freq.cortf.p.v.s, aes(x = species, y = freq.cortf.p.v.s)) +
+  geom_bar(fill = "#5F9B46", stat = "identity") +
+  xlab("")+
+  ylab("")+
+  annotate("text",x=1.5,y=0.26,label="C. fulvescens coll.",size=4,fontface="italic")+
+  #annotate("segment",x = 1,xend = 2,y = 0.75, yend = 0.75)+
+  #annotate("text",label="*",x=1.5,y=0.8,size=3)+
+  scale_y_continuous(limits = c(0,0.26))+
+  theme_classic()+
+  theme(axis.title=element_text(size = 12))
+
+
+freq.corta.all.pine<-sum(sfsi.fungniche[which(sfsi.fungniche$tree_dom == "Pine"),which(colnames(sfsi.fungniche) =="p Cortinarius_anomalus")])/nrow(sfsi.pine)
+freq.corta.all.spruce<-sum(sfsi.fungniche[which(sfsi.fungniche$tree_dom == "Spruce"),which(colnames(sfsi.fungniche) =="p Cortinarius_anomalus")])/nrow(sfsi.spruce)  
+
+freq.corta.p.v.s<-c(freq.corta.all.pine,freq.corta.all.spruce)
+species<-c("Pine","Spruce")
+freq.corta.p.v.s<-data.frame(freq.corta.p.v.s,species)
+
+corta.spr.v.pine.freq<-ggplot(freq.corta.p.v.s, aes(x = species, y = freq.corta.p.v.s)) +
+  geom_bar(fill = "#5F9B46", stat = "identity") +
+  xlab("")+
+  ylab("")+
+  annotate("text",x=1.5,y=0.26,label="C. anomalus",size=4,fontface="italic")+
+  #annotate("segment",x = 1,xend = 2,y = 0.65, yend = 0.65)+
+  #annotate("text",label="*",x=1.5,y=0.7,size=3)+
+  scale_y_continuous(limits = c(0,0.26))+
+  theme_classic()+
+  theme(axis.title=element_text(size = 12))
+
+
+freq.lactt.all.pine<-sum(sfsi.fungniche[which(sfsi.fungniche$tree_dom == "Pine"),which(colnames(sfsi.fungniche) =="p Lactarius_tabidus")])/nrow(sfsi.pine)
+freq.lactt.all.spruce<-sum(sfsi.fungniche[which(sfsi.fungniche$tree_dom == "Spruce"),which(colnames(sfsi.fungniche) =="p Lactarius_tabidus")])/nrow(sfsi.spruce)
+
+freq.lactt.p.v.s<-c(freq.lactt.all.pine,freq.lactt.all.spruce)
+species<-c("Pine","Spruce")
+freq.lactt.p.v.s<-data.frame(freq.lactt.p.v.s,species)
+
+lactt.spr.v.pine.freq<-ggplot(freq.lactt.p.v.s, aes(x = species, y = freq.lactt.p.v.s)) +
+  geom_bar(fill = "#5F9B46", stat = "identity") +
+  xlab("")+
+  ylab("")+
+  annotate("text",x=1.5,y=0.26,label="L. tabidus",size=4,fontface="italic")+
+  #annotate("segment",x = 1,xend = 2,y = 0.75, yend = 0.75)+
+  #annotate("text",label="*",x=1.5,y=0.8,size=3)+
+  scale_y_continuous(limits = c(0,0.26))+
+  theme_classic()+
+  theme(axis.title=element_text(size = 12))
+
+
+freq.cortm.all.pine<-sum(sfsi.fungniche[which(sfsi.fungniche$tree_dom == "Pine"),which(colnames(sfsi.fungniche) =="p Cortinarius_mucosus.alpinus.fennoscandicus.trivialis")])/nrow(sfsi.pine)
+freq.cortm.all.spruce<-sum(sfsi.fungniche[which(sfsi.fungniche$tree_dom == "Spruce"),which(colnames(sfsi.fungniche) =="p Cortinarius_mucosus.alpinus.fennoscandicus.trivialis")])/nrow(sfsi.spruce)
+
+freq.cortm.p.v.s<-c(freq.cortm.all.pine,freq.cortm.all.spruce)
+species<-c("Pine","Spruce")
+freq.cortm.p.v.s<-data.frame(freq.cortm.p.v.s,species)
+
+cortm.spr.v.pine.freq<-ggplot(freq.cortm.p.v.s, aes(x = species, y = freq.cortm.p.v.s)) +
+  geom_bar(fill = "#5F9B46", stat = "identity") +
+  xlab("")+
+  ylab("")+
+  annotate("text",x=1.5,y=0.26,label="C. mucosus coll.",size=4,fontface="italic")+
+  annotate("segment",x = 1,xend = 2,y = 0.25, yend = 0.25)+
+  annotate("text",label="*",x=1.5,y=0.24,size=3)+
+  scale_y_continuous(limits = c(0,0.26))+
+  theme_classic()+
+  theme(axis.title=element_text(size = 12))
+
+
+freq.russr.all.pine<-sum(sfsi.fungniche[which(sfsi.fungniche$tree_dom == "Pine"),which(colnames(sfsi.fungniche) =="p Russula_rhodopus")])/nrow(sfsi.pine)
+freq.russr.all.spruce<-sum(sfsi.fungniche[which(sfsi.fungniche$tree_dom == "Spruce"),which(colnames(sfsi.fungniche) =="p Russula_rhodopus")])/nrow(sfsi.spruce)
+
+freq.russr.p.v.s<-c(freq.russr.all.pine,freq.russr.all.spruce)
+species<-c("Pine","Spruce")
+freq.russr.p.v.s<-data.frame(freq.russr.p.v.s,species)
+
+russr.spr.v.pine.freq<-ggplot(freq.russr.p.v.s, aes(x = species, y = freq.russr.p.v.s)) +
+  geom_bar(fill = "#5F9B46", stat = "identity") +
+  xlab("")+
+  ylab("")+
+  annotate("text",x=1.5,y=0.26,label="R. rhodopus",size=4,fontface="italic")+
+  #annotate("segment",x = 1,xend = 2,y = 0.75, yend = 0.75)+
+  #annotate("text",label="*",x=1.5,y=0.8,size=3)+
+  scale_y_continuous(limits = c(0,0.26))+
+  theme_classic()+
+  theme(axis.title=element_text(size = 12))
+
+
+freq.corts.all.pine<-sum(sfsi.fungniche[which(sfsi.fungniche$tree_dom == "Pine"),which(colnames(sfsi.fungniche) =="p Cortinarius_spilomeus")])/nrow(sfsi.pine)
+freq.corts.all.spruce<-sum(sfsi.fungniche[which(sfsi.fungniche$tree_dom == "Spruce"),which(colnames(sfsi.fungniche) =="p Cortinarius_spilomeus")])/nrow(sfsi.spruce)
 
 freq.corts.p.v.s<-c(freq.corts.all.pine,freq.corts.all.spruce)
 species<-c("Pine","Spruce")
 freq.corts.p.v.s<-data.frame(freq.corts.p.v.s,species)
 
 corts.spr.v.pine.freq<-ggplot(freq.corts.p.v.s, aes(x = species, y = freq.corts.p.v.s)) +
-  geom_bar(fill = "seagreen", stat = "identity") +
-  xlab("Dominant host species")+
+  geom_bar(fill = "#5F9B46", stat = "identity") +
+  xlab("")+
   ylab("")+
-  annotate("text",x=1.5,y=0.90,label="C. semisanguineus \n /omniosus col.",size=4,fontface="italic")+
-  scale_y_continuous(limits = c(0,1))+
+  annotate("text",x=1.5,y=0.26,label="C. spilomeus",size=4,fontface="italic")+
+  #annotate("segment",x = 1,xend = 2,y = 0.75, yend = 0.75)+
+  #annotate("text",label="*",x=1.5,y=0.8,size=3)+
+  scale_y_continuous(limits = c(0,0.26))+
   theme_classic()+
   theme(axis.title=element_text(size = 12))
 
-corts.spr.v.pine.freq
 
-freq.hyst.all.pine<-sum(sfsi.fungniche[which(sfsi.fungniche$tree_dom == "Pine"),which(colnames(sfsi.fungniche) =="p Hysterangium")])/564
-freq.hyst.all.spruce<-sum(sfsi.fungniche[which(sfsi.fungniche$tree_dom == "Spruce"),which(colnames(sfsi.fungniche) =="p Hysterangium")])/365 
+#tiff("../figures/revised/fungniche.pine.vs.spruce_individ.tiff",res = 1000,width = 10000,height = 6000,units = "px")
 
-freq.hyst.p.v.s<-c(freq.hyst.all.pine,freq.hyst.all.spruce)
-species<-c("Pine","Spruce")
-freq.hyst.p.v.s<-data.frame(freq.hyst.p.v.s,species)
-
-hyst.spr.v.pine.freq<-ggplot(freq.hyst.p.v.s, aes(x = species, y = freq.hyst.p.v.s)) +
-  geom_bar(fill = "seagreen", stat = "identity") +
-  xlab("Dominant host species")+
-  ylab("Frequency")+
-  annotate("text",x=1.5,y=1.0,label="Hysterangium sp.",size=4,fontface="italic")+
-  scale_y_continuous(limits = c(0,1))+
-  theme_classic()+
-  theme(axis.title=element_text(size = 12))
-
-#tiff("../figures/fungniche.pine.vs.spruce_individ.tiff",res = 1000,width = 10000,height = 6000,units = "px")
-lact.spr.v.pine.freq+gaut.spr.v.pine.freq+russ.spr.v.pine.freq+hyst.spr.v.pine.freq+corts.spr.v.pine.freq+cortc.spr.v.pine.freq+plot_annotation(tag_levels = "A")
+cortc.spr.v.pine.freq+gaut.spr.v.pine.freq+lactn.spr.v.pine.freq+cortf.spr.v.pine.freq+lactt.spr.v.pine.freq+russa.spr.v.pine.freq+corta.spr.v.pine.freq+cortm.spr.v.pine.freq+russr.spr.v.pine.freq+corts.spr.v.pine.freq+plot_annotation(tag_levels = "A")+plot_layout(nrow = 2)
 
 ```
 
 ###relative abundance plot spruce vs pine
-```{r}
+```{r warning=FALSE}
 spr.v.pine.plot.categ<-ggplot(sfsi.pres)+geom_jitter(aes(x=tree_dom,y=log10(miners.rel)),position = position_jitter(0.08))+
   stat_summary(aes(x=tree_dom,y=log10(miners.rel)),fun.y =   "mean",geom = "point",colour="red")+
   stat_summary(aes(x=tree_dom,y=log10(miners.rel)),fun.data =   "mean_se",geom = "linerange",colour="red")+
@@ -576,8 +1834,70 @@ spr.v.pine.plot.categ<-ggplot(sfsi.pres)+geom_jitter(aes(x=tree_dom,y=log10(mine
   theme_classic()+
   theme(axis.title=element_text(size = 12),axis.text.y = element_blank())
 
-#tiff("../figures/fungniche.pine.vs.spruce.tiff",res = 1000,width = 6000,height = 6000,units = "px")
-spr.v.pine.freq+spr.v.pine.plot.categ+plot_annotation(tag_levels = "A")
+#tiff("../figures/revised/fungniche.pine.vs.spruce.tiff",res = 1000,width = 6000,height = 6000,units = "px")
+spr.v.pine.freq+spr.v.pine.plot.categ+plot_annotation(tag_levels = "a")
+```
+
+#Read in data
+```{r}
+Meta.data.spatial<-read_csv("../clean_data/Clean_spatial_study_metadata.csv")
+```
+
+### MnP across sites
+```{r}
+MnP.byplot.raw<-ggplot(Meta.data.spatial)+
+  geom_jitter(aes(x=reorder(plot,MnP_gOM),y=MnP_gOM,color=species),position = position_jitter(0.1),pch=1)+
+  scale_color_manual(values=c("#AACB90","#415B25"))+
+  stat_summary(aes(x=reorder(plot,MnP_gOM),y=MnP_gOM),fun.y="mean",geom = "point",colour="red")+
+  stat_summary(aes(x=reorder(plot,MnP_gOM),y=MnP_gOM),fun.data = "mean_se",geom = "linerange",colour="red")+
+  labs(x="Plot",y="MnP activity per gOM")+
+  theme_classic()
+
+ggplot(Meta.data.spatial)+
+  geom_jitter(aes(x=reorder(plot,MnP_gOM),y=MnP_gOM.log,color=species),position = position_jitter(0.1),pch=1)+
+  scale_color_manual(values=c("#AACB90","#415B25"))+
+  stat_summary(aes(x=reorder(plot,MnP_gOM),y=MnP_gOM.log),fun="mean",geom = "point",colour="red")+
+  stat_summary(aes(x=reorder(plot,MnP_gOM),y=MnP_gOM.log),fun.data = "mean_se",geom = "linerange",colour="red")+
+  labs(x="Plot",y="MnP activity per gOM (log-transformed)")+
+  theme_classic()
+
+ggplot(Meta.data.spatial)+
+  geom_jitter(aes(x=reorder(plot,MnP_gOM),y=MnP_gOM_scaled,color=species),position = position_jitter(0.1),pch=1)+
+  scale_color_manual(values=c("#AACB90","#415B25"))+
+  stat_summary(aes(x=reorder(plot,MnP_gOM),y=MnP_gOM_scaled),fun.y="mean",geom = "point",colour="red")+
+  stat_summary(aes(x=reorder(plot,MnP_gOM),y=MnP_gOM_scaled),fun.data = "mean_se",geom = "linerange",colour="red")+
+  labs(x="Plot",y="MnP activity per gOM scaled")+
+  theme_classic()
+
+
+ggplot(Meta.data.spatial)+
+  geom_jitter(aes(x=reorder(plot,MnP_gOM),y=MnP_gOM_centered,color=species),position = position_jitter(0.1),pch=1)+
+  scale_color_manual(values=c("#AACB90","#415B25"))+
+  stat_summary(aes(x=reorder(plot,MnP_gOM),y=MnP_gOM_centered),fun.y="mean",geom = "point",colour="red")+
+  stat_summary(aes(x=reorder(plot,MnP_gOM),y=MnP_gOM_centered),fun.data = "mean_se",geom = "linerange",colour="red")+
+  labs(x="Plot",y="MnP activity per gOM centered")+
+  theme_classic()
+
+MnP.byplot.raw
+
+ggplot(Meta.data.spatial)+
+  geom_jitter(aes(x=reorder(plot,MnP_gOM),y=MnP_gOM.log_scaled,color=species),position = position_jitter(0.1),pch=1)+
+  scale_color_manual(values=c("#AACB90","#415B25"))+
+  stat_summary(aes(x=reorder(plot,MnP_gOM),y=MnP_gOM.log_scaled),fun.y="mean",geom = "point",colour="red")+
+  stat_summary(aes(x=reorder(plot,MnP_gOM),y=MnP_gOM.log_scaled),fun.data = "mean_se",geom = "linerange",colour="red")+
+  labs(x="Plot",y="MnP activity per gOM (log-transformed) scaled")+
+  theme_classic()
+
+ggplot(Meta.data.spatial)+
+  geom_jitter(aes(x=reorder(plot,MnP_gOM),y=MnP_gOM.log_centered,color=species),position = position_jitter(0.1),pch=1)+
+  scale_color_manual(values=c("#AACB90","#415B25"))+
+  stat_summary(aes(x=reorder(plot,MnP_gOM),y=MnP_gOM.log_centered),fun.y="mean",geom = "point",colour="red")+
+  stat_summary(aes(x=reorder(plot,MnP_gOM),y=MnP_gOM.log_centered),fun.data = "mean_se",geom = "linerange",colour="red")+
+  labs(x="Plot",y="MnP activity per gOM (log-transformed) centered")+
+  theme_classic()
+
+#tiff("../figures/MnP_gOM_by_plot_raw.tiff",res = 1000,width = 6000,height = 5000,units = "px")
+MnP.byplot.raw
 ```
 
 
