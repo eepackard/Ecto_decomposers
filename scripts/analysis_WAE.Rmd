@@ -37,9 +37,6 @@ colnames(wae.15)<-c("Weight.aver")
 wae.15.perox<-as.data.frame(colSums(Meta.data.spatial$Perox_gOM_centered*datasetlist.rel.agar.15)/colSums(datasetlist.rel.agar.15))
 colnames(wae.15.perox)<-c("Weight.aver")
 
-wae.15.mnpindep<-as.data.frame(colSums(Meta.data.spatial$MnPindep_gOM_centered*datasetlist.rel.agar.15)/colSums(datasetlist.rel.agar.15))
-colnames(wae.15.mnpindep)<-c("Weight.aver")
-
 wae.15.genera<-as.data.frame(colSums(Meta.data.spatial$MnP_gOM_centered*datasetlist.rel.agar.genus.15)/colSums(datasetlist.rel.agar.genus.15))
 colnames(wae.15.genera)<-c("Weight.aver")
 
@@ -127,12 +124,9 @@ set.seed(13)
 permtest.results.15.perox <- permutation.test(MnP =  Meta.data.spatial$Perox_gOM_centered, spec.data = datasetlist.rel.agar.15,test.stat = wae.15.perox, 10000)
 
 #plot Cort
-hist(as.numeric(as.data.frame(permtest.results.15.perox[[2]])[13,]), breaks=50, col='grey', main="Permutation Distribution", las=1, xlab='')
-abline(v=wae.15.perox[which(rownames(wae.15.perox)== "scata6531_82"),], lwd=3, col="red")
+hist(as.numeric(as.data.frame(permtest.results.15.perox[[2]])[140,]), breaks=50, col='grey', main="Permutation Distribution", las=1, xlab='')
+abline(v=wae.15.perox[which(rownames(wae.15.perox)== "scata6546_741"),], lwd=3, col="red")
 
-#plot suillus 
-hist(as.numeric(as.data.frame(permtest.results.15.perox[[2]])[68,]), breaks=50, col='grey', main="Permutation Distribution", las=1, xlab='')
-abline(v=wae.15.perox[which(rownames(wae.15.perox)== "scata6531_318"),], lwd=3, col="red")
 
 
 wae.perm.results.15.perox<-as.data.frame(cbind(colnames(datasetlist.rel.agar.15),p.adjust(permtest.results.15.perox[[1]],method = "fdr",length(permtest.results.15.perox[[1]])),permtest.results.15.perox[[1]]))
@@ -202,10 +196,10 @@ permtest.results.15.oppo <- permutation.test.reverse(MnP =  Meta.data.spatial$Mn
 
 #plot piloderma
 hist(as.numeric(as.data.frame(permtest.results.15.oppo[[2]])[2,]), breaks=50, col='grey', main="Permutation Distribution", las=1, xlab='')
-abline(v=wae.15[which(rownames(wae.15)== "scata6531_18"),], lwd=3, col="red")
+abline(v=wae.15[which(rownames(wae.15)== "scata6546_741"),], lwd=3, col="red")
 
 #plot serendipita
-hist(as.numeric(as.data.frame(permtest.results.15.oppo[[2]])[27,]), breaks=50, col='grey', main="Permutation Distribution", las=1, xlab='')
+hist(as.numeric(as.data.frame(permtest.results.15.oppo[[2]])[140,]), breaks=50, col='grey', main="Permutation Distribution", las=1, xlab='')
 abline(v=wae.15[which(rownames(wae.15)== "scata6531_110"),], lwd=3, col="red")
 
 wae.perm.results.15.oppo<-as.data.frame(cbind(colnames(datasetlist.rel.agar.15),p.adjust(permtest.results.15.oppo[[1]],method = "fdr",length(permtest.results.15.oppo[[1]])),permtest.results.15.oppo[[1]]))
@@ -222,14 +216,9 @@ set.seed(13)
 #this now tests in the opposite direction which taxa have lower WAE than expected by random... 
 permtest.results.15.oppo.perox <- permutation.test.reverse(MnP =  Meta.data.spatial$Perox_gOM_centered, spec.data = datasetlist.rel.agar.15,test.stat = wae.15.perox, 10000)
 
-
-#plot piloderma
-hist(as.numeric(as.data.frame(permtest.results.15.oppo[[2]])[2,]), breaks=50, col='grey', main="Permutation Distribution", las=1, xlab='')
-abline(v=wae.15[which(rownames(wae.15)== "scata6531_18"),], lwd=3, col="red")
-
-#plot serendipita
-hist(as.numeric(as.data.frame(permtest.results.15.oppo[[2]])[27,]), breaks=50, col='grey', main="Permutation Distribution", las=1, xlab='')
-abline(v=wae.15[which(rownames(wae.15)== "scata6531_110"),], lwd=3, col="red")
+#plot C. spilomeus
+hist(as.numeric(as.data.frame(permtest.results.15.oppo.perox[[2]])[140,]), breaks=50, col='grey', main="Permutation Distribution", las=1, xlab='')
+abline(v=wae.15.perox[which(rownames(wae.15.perox)== "scata6546_741"),], lwd=3, col="red")
 
 wae.perm.results.15.oppo.perox<-as.data.frame(cbind(colnames(datasetlist.rel.agar.15),p.adjust(permtest.results.15.oppo.perox[[1]],method = "fdr",length(permtest.results.15.oppo.perox[[1]])),permtest.results.15.oppo.perox[[1]]))
 wae.perm.results.15.oppo.perox[which(wae.perm.results.15.oppo.perox$V3 < 0.1),]
