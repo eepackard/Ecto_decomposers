@@ -67,8 +67,8 @@ SS.coordinates[12,2]<-60.28000
 #SFSI.soil.f1<-SFSI.soil.f1[which(between(SFSI.soil.f1$Temperatursumma,1000,1425)),]
 
 #create spruce pine variable
-SFSI.soil.f2$host<-if_else(SFSI.soil.f2$Granandel >= 60,"Spruce",if_else(SFSI.soil.f2$Tallandel >= 60,"Pine","miss")) 
-SFSI.soil.f2<-SFSI.soil.f2[-which(SFSI.soil.f2$host == "miss"),]
+SFSI.soil.f2$host<-if_else(SFSI.soil.f2$Granandel >= 60,"Spruce",if_else(SFSI.soil.f2$Tallandel >= 60,"Pine","Mixed")) 
+#SFSI.soil.f2<-SFSI.soil.f2[-which(SFSI.soil.f2$host == "miss"),]
 ```
 
 
@@ -97,10 +97,10 @@ map1 <- tm_shape(sverige_simp) +
   tm_shape(sjoar) +
   tm_fill(col = "lightblue") +
   tm_shape(data_sf_sfsi["host"]) +
-  tm_dots(col = "host", size = 0.25,alpha=0.5,shape=19,palette=c("#AACB90","#415B25"),title = "National samples",legend.show = FALSE)+
+  tm_dots(col = "host", size = 0.25,alpha=0.5,shape=19,palette=c("#448C3F","#AACB90","#415B25"),title = "National samples",legend.show = FALSE)+
   #tm_shape(data_sf_ss["Species"]) +
   #tm_dots(col = "Species", size = 0.25,shape = 1,palette=c("orange","darkred"),title = "Regional samples",legend.show = FALSE)+
-  tm_add_legend(type = "symbol",shape =19 ,col = c("#AACB90","#415B25"),labels = c("Pine dominated", "Spruce dominated"),title = "Large-scale samples")+
+  tm_add_legend(type = "symbol",shape =19 ,col = c("#448C3F","#AACB90","#415B25"),labels = c("Mixed","Pine dominated", "Spruce dominated" ),title = "Large-scale samples")+
   tm_add_legend(type = "symbol",shape =19 ,col = c("#A5D7E6","#32219B"),labels = c("Pine dominated", "Spruce dominated"),title = "Small-scale samples")+
   tm_layout(legend.width = 1,legend.outside = TRUE,legend.position = c(-0.15,0.1),frame = FALSE)
 
@@ -113,7 +113,7 @@ map2 <- tm_shape(sverige_simp) +
   #tm_shape(data_sf_ss["Age"]) +
   #tm_dots(col = "Age", size = 0.25,shape = 1,palette=c("navy","dodgerblue"),title = "Regional samples",legend.show = F)+
   tm_add_legend(type = "symbol",shape=19,col=c(tmaptools::get_brewer_pal("OrRd", 5, plot = FALSE)),labels = c("10-50", "50-100","100-150","150-200","200+"),title = "National samples")+
-  tm_add_legend(type = "symbol",shape=19,col = c("navy","dodgerblue"),labels = c("Old > 70 years", "Young < 70 years"),title = "Regional samples")+
+  tm_add_legend(type = "symbol",shape=19,col = c("navy","dodgerblue"),labels = c("Old > 80 years", "Young 15-20 years"),title = "Regional samples")+
   tm_layout(legend.width = 1,legend.outside = TRUE,legend.position = c(-0.15,0.1),frame = FALSE)
 
 map3 <- tm_shape(sverige,bbox = c(xmin=600000,ymin=6613368,xmax=712000,ymax=6700000)) +
@@ -123,12 +123,12 @@ map3 <- tm_shape(sverige,bbox = c(xmin=600000,ymin=6613368,xmax=712000,ymax=6700
   tm_shape(data_sf_ss["Species"]) +
   tm_dots(col = "Species", size = 12.0,border.lwd=4,alpha = 0.5,shape=19,palette=c("#A5D7E6","#32219B"),title = "Regional samples",legend.show = FALSE)
 
-map4 <- tm_shape(sverige,bbox = c(xmin=600000,ymin=6603368,xmax=736000,ymax=6750000)) +
+map4 <- tm_shape(sverige,bbox = c(xmin=600000,ymin=6613368,xmax=712000,ymax=6700000)) +
   tm_polygons(border.col = "black", col = "white", alpha = 0.1)+ 
-  tm_shape(sjoar,bbox = c(xmin=600000,ymin=6603368,xmax=736000,ymax=6750000)) +
+  tm_shape(sjoar,bbox = c(xmin=600000,ymin=6613368,xmax=712000,ymax=6700000)) +
   tm_fill(col = "lightblue")+
-  tm_shape(data_sf_ss["Species"]) +
-  tm_dots(col = "Species", size = 4.0,border.lwd=3,alpha = 0.5,shape=19,palette=c("navy","dodgerblue"),title = "Regional samples",legend.show = FALSE)
+  tm_shape(data_sf_ss["Age"]) +
+  tm_dots(col = "Age", size = 12.0,border.lwd=4,alpha = 0.5,shape=19,palette=c("navy","dodgerblue"),title = "Regional samples",legend.show = FALSE)
 
 
 ```
@@ -156,8 +156,8 @@ tmap_save(tm = map4, filename = "../figures/Age_map_inset.png")
 tmap_save(tm = map1, filename = "../figures/revised/Sampling_map.pdf")
 tmap_save(tm = map1, filename = "../figures/Sampling_map.eps")
 tmap_save(tm = map3, filename = "../figures/Sampling_map_inset.pdf")
-tmap_save(tm = map2, filename = "../figures/Age_map.pdf")
-tmap_save(tm = map4, filename = "../figures/Age_map_inset.pdf")
+tmap_save(tm = map2, filename = "../figures/revised/Age_map.pdf")
+tmap_save(tm = map4, filename = "../figures/revised/Age_map_inset.pdf")
 ```
 
 
