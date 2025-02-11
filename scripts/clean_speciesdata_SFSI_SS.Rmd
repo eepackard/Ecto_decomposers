@@ -18,7 +18,7 @@ library(tidyr)
 #need to align species data with SS metadata so need to read in clean metadata
 Meta.data.spatial<-read_csv("../clean_data/Clean_spatial_study_metadata.csv",show_col_types = FALSE)
 
-#or the clusters combined with the SFSI - 1.5 - species level 
+#clusters combined with the SFSI - 1.5% - species level 
 SFSI.SS.specraw.1<-read_delim("../raw_data/all_tag_by_cluster_counts_6546.txt",delim = ";",col_names = TRUE,trim_ws = FALSE,show_col_types = FALSE)
 
 datasetlist<-list(SFSI.SS.specraw.1)
@@ -133,7 +133,7 @@ datasetlist.rel.sfsi$JordProvnr<-datasetlist.SFSI[[1]]$tag1
 
 #create filtered relative abun data and count
 ```{r}
-##can be present at any level of relative abundance, present in at least 15 cores -everything must be run together
+##can be present at any level of relative abundance, present in at least 10 cores - everything must be run together
 
 #create the df so I don't overwrite when converting to presence absence
 datasetlist.p2<-datasetlist.rel
@@ -151,7 +151,7 @@ datasetlist.p2.agar[[i]]<-datasetlist.p2[[i]][,which(colnames(datasetlist.p2[[i]
 }
 
 
-#filter out specs present in less than 15 cores
+#filter out specs present in less than 10 cores
 datasetlist.p2.15<-list()
 datasetlist.p2.agar.15<-list()
 for (i in 1:length(datasetlist.p2.agar)){
@@ -242,7 +242,7 @@ colnames(datasetlist.rel.agar.genus.combine)<-unique(colnames(several.species.r)
 datasetlist.count.agar.genus.combine<- do.call(cbind.data.frame,datasetlist.count.agar.genus.combine)
 colnames(datasetlist.count.agar.genus.combine)<-unique(colnames(several.species.c))
 
-#now just double check that the values are as I would expect - these values shold match
+#now just double check that the values are as I would expect - these values should match
 sum(rowSums(datasetlist.rel.agar.genus[,which(colnames(datasetlist.rel.agar.genus) == "Suillus")])) == sum(datasetlist.rel.agar.genus.combine$Suillus)
 sum(rowSums(datasetlist.count.agar.genus[,which(colnames(datasetlist.count.agar.genus) == "Suillus")])) == sum(datasetlist.count.agar.genus.combine$Suillus)
 
@@ -251,7 +251,7 @@ datasetlist.rel.agar.genus<-cbind(datasetlist.rel.agar.genus.combine,single.spec
 datasetlist.count.agar.genus<-cbind(datasetlist.count.agar.genus.combine,single.species.c)
 colnames(datasetlist.rel.agar.genus) == unique(colnames(datasetlist.rel.agar.genus)) #make sure not repeats
 
-##now check that the genera are frequent enough and filter! 
+##now check that the genera are frequent enough and filter! this is for rel abun data 
 datasetlist.p2.agar.genus<-datasetlist.rel.agar.genus
 datasetlist.p2.agar.genus[datasetlist.p2.agar.genus >0]<-1
 
@@ -268,7 +268,7 @@ datasetlist.rel.agar.genus.15<-datasetlist.rel.agar.genus[,which(colnames(datase
 ##will remove those to family level because I cannot say they are from same genus - clavariaceae and thelephoraceae
 datasetlist.rel.agar.genus.15<-datasetlist.rel.agar.genus.15[,-which(grepl("aceae",colnames(datasetlist.rel.agar.genus.15)))]
 
-##now check that the genera are frequent enough and filter! 
+##now check that the genera are frequent enough and filter! this is for count data data 
 datasetlist.p2c.agar.genus<-datasetlist.count.agar.genus
 datasetlist.p2c.agar.genus[datasetlist.p2c.agar.genus >0]<-1
 
@@ -310,19 +310,22 @@ datasetlist.rel.sfsi.ecm$JordProvnr<-datasetlist.ecm.sfsi$JordProvnr
 
 perc<-list("1.5")
 for(x in 1:length(perc)){
-   write.csv(datasetlist.rel.15[[x]],file = paste('../clean_data/','SS_data_relabun_15_',perc[x],'perc','.rev','.csv',sep=""), row.names = F)
+  write.csv(datasetlist.rel.15[[x]],file = paste('../clean_data/','SS_data_relabun_15_',perc[x],'perc','.rev','.csv',sep=""), row.names = F)
   write.csv(datasetlist.count.15[[x]],file = paste('../clean_data/','SS_data_count_15_',perc[x],'perc','.rev','.csv',sep=""), row.names = F)
   write.csv(datasetlist.SS[[x]],file = paste('../clean_data/','SS_data_count',perc[x],'perc','.rev','.csv',sep=""), row.names = F)
 }
 
+#only agaricomycetes datasets
 for(x in 1:length(perc)){
    write.csv(datasetlist.rel.agar.15[[x]],file = paste('../clean_data/','SS_data_relabun_agar_15_',perc[x],'perc','.rev','.csv',sep=""), row.names = F)
    write.csv(datasetlist.count.agar.15[[x]],file = paste('../clean_data/','SS_data_count_agar_15_',perc[x],'perc','.rev','.csv',sep=""), row.names = F)
 }
 
+#genus level datasets
 write.csv(datasetlist.rel.agar.genus.15,file = '../clean_data/SS_data_relabun__agar_genus_15.rev.csv', row.names = F)
 write.csv(datasetlist.count.agar.genus.15,file = '../clean_data/SS_data_count__agar_genus_15.rev.csv', row.names = F)
 
+#national level datasets 
 write_csv(datasetlist.rel.sfsi,"../clean_data/SFSI_data_relabun_1.5perc.rev.csv")
 write_csv(datasetlist.rel.sfsi.ecm,"../clean_data/SFSI_data_relabun_ECM_1.5perc.rev.csv")
 ```

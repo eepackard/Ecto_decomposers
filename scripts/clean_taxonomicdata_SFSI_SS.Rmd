@@ -129,10 +129,7 @@ taxsetlist.agar$Genus<-matches
 
 #write clean data
 ```{r}
-#write listed df to seperate csvs https://stackoverflow.com/questions/42046992/write-csv-on-a-list-of-data-frames
-
 #all SS and SFSI clusters cleaned
-
 
 write.csv(taxsetlist,file = paste('../clean_data/','clean_taxonomicdata_SFSI_SS','_','1.5','perc','rev','.csv',sep=""), row.names = F)
 

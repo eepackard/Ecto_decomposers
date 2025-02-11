@@ -68,7 +68,6 @@ SS.coordinates[12,2]<-60.28000
 
 #create spruce pine variable
 SFSI.soil.f2$host<-if_else(SFSI.soil.f2$Granandel >= 60,"Spruce",if_else(SFSI.soil.f2$Tallandel >= 60,"Pine","Mixed")) 
-#SFSI.soil.f2<-SFSI.soil.f2[-which(SFSI.soil.f2$host == "miss"),]
 ```
 
 
