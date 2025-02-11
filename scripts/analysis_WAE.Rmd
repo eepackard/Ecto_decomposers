@@ -25,7 +25,7 @@ datasetlist.rel.agar.genus.15<-read_csv("../clean_data/SS_data_relabun__agar_gen
 Meta.data.spatial<-read_csv("../clean_data/Clean_spatial_study_metadata.csv")
 taxsetlist.agar<-read_csv("../clean_data/clean_taxonimcdata_SFSI_SS_agar_1.5percrev.csv")
 ```
-
+The idea of the weighted averages is that species with higher weighted averages are more co-localised with MnP activity. This handles the zero inflated data nicely because when they are absent it does not contribute but as relative abundance increases in samples where there is peroxidase activity the value becomes greater.
 
 #create weight averages
 ```{r}
@@ -100,18 +100,18 @@ set.seed(13)
 
 permtest.results.15 <- permutation.test(MnP =  Meta.data.spatial$MnP_gOM_centered, spec.data = datasetlist.rel.agar.15,test.stat = wae.15, 10000)
 
-#plot Cort
+#plot Cort row 14 and scata6546_71 
 hist(as.numeric(as.data.frame(permtest.results.15[[2]])[14,]), breaks=50, col='grey', main="Permutation Distribution", las=1, xlab='')
 abline(v=wae.15[which(rownames(wae.15)== "scata6546_71"),], lwd=3, col="red")
 
-#plot suillus 
+#plot suillus row 80 and scata6546_346 
 hist(as.numeric(as.data.frame(permtest.results.15[[2]])[80,]), breaks=50, col='grey', main="Permutation Distribution", las=1, xlab='')
 abline(v=wae.15[which(rownames(wae.15)== "scata6546_346"),], lwd=3, col="red")
 
-
+#make permutation results into a table with p values and adjusted p_values 
 wae.perm.results.15<-as.data.frame(cbind(colnames(datasetlist.rel.agar.15),p.adjust(permtest.results.15[[1]],method = "fdr",length(permtest.results.15[[1]])),permtest.results.15[[1]]))
 wae.perm.results.15[which(wae.perm.results.15$V3 < 0.1),]
-wae.perm.results.15$ID<-taxsetlist.agar[match(wae.perm.results.15$V1,taxsetlist.agar$`Cluster ID`),]$Reference
+wae.perm.results.15$ID<-taxsetlist.agar[match(wae.perm.results.15$V1,taxsetlist.agar$`Cluster ID`),]$Reference #add taxonomic ID 
 colnames(wae.perm.results.15)<-c("Cluster_ID","adjusted_p","p","ID")
 
 wae.perm.results.15[order(wae.perm.results.15$p),]
@@ -139,7 +139,7 @@ wae.perm.results.15.perox[order(wae.perm.results.15.perox$p),]
 #check overlapping of MnP and perox total results
 ```{r}
 sig.mnp<-wae.perm.results.15[which(wae.perm.results.15$p < 0.1),]
-sig.mnp<-rbind(sig.mnp,wae.perm.results.15[which(wae.perm.results.15$Cluster_ID == "scata6546_429"),])
+sig.mnp<-rbind(sig.mnp,wae.perm.results.15[which(wae.perm.results.15$Cluster_ID == "scata6546_429"),]) #adding in scat_6546_429 because for some reason when p value is 3e-4 it doesnt recognize that p value is less than 0.1
 sig.perox<-wae.perm.results.15.perox[which(wae.perm.results.15.perox$p < 0.1),]
 only.mnp<-setdiff(sig.mnp$Cluster_ID,sig.perox$Cluster_ID)
 only.perox<-setdiff(sig.perox$Cluster_ID,sig.mnp$Cluster_ID)

@@ -50,7 +50,7 @@ water.weight<-fresh.weight- Leticia.MnP.calc$total_dry_weight
 Meta.data.spatial$waterg_m2<-water.weight/core.area
 
 #weight of water per gram of organic matter 
-OM.weight<-Leticia.MnP.calc$total_dry_weight*(Meta.data.spatial$C/100)/0.462
+OM.weight<-Leticia.MnP.calc$total_dry_weight*(Meta.data.spatial$C/100)/0.462 #based on 46.2% C in pure organic matter 46.2% is the average percent carbon excluding peat
 Meta.data.spatial$waterg_gOM<-water.weight/OM.weight
 
 #weight of ergosterol per area of core
@@ -65,11 +65,11 @@ Meta.data.spatial$roots_m2<-Meta.data.spatial$roots_gsoil*Leticia.MnP.calc$total
 #roots per gram of OM
 Meta.data.spatial$roots_gOM<-Meta.data.spatial$roots_gsoil*Leticia.MnP.calc$total_dry_weight/OM.weight
 
-#mineral content of core - based on 46.2% C in pure organic matter
+#mineral content of core
 Meta.data.spatial$mincon<-1-((0.01*Meta.data.spatial$C)/0.462)
 
 #determine final concentration of enzyme solution in reaction 
-soil.conv<-rep((0.2/25000)*(50/200),456)
+soil.conv<-rep((0.2/25000)*(50/200),456) #50 µl of soil solution added to a 200 ml reaction, with soil extract being first diluted 
 
 #MnP activity per gram of soil
 MnP_pergram<-(Leticia.MnP.calc$MnDependentOx...3*0.00001)/soil.conv

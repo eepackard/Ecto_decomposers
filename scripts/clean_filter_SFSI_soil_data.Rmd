@@ -17,7 +17,7 @@ library(tidyr)
 
 #read in data
 ```{r}
-SFSI.soil<-read_delim("raw_data/SFSI_NFI_data_20240828_reduced.csv",delim = ";",show_col_types = FALSE)
+SFSI.soil<-read_delim("raw_data/SFSI_NFI_data_20240828_reduced.csv",delim = ";",show_col_types = FALSE) #this is most recent metadata for SFSI
 datasetlist.rel.sfsi<-read_csv("clean_data/SFSI_data_relabun_1.5perc.rev.csv")
 datasetlist.rel.sfsi.ecm<-read_csv("clean_data/SFSI_data_relabun_ECM_1.5perc.rev.csv")
 ```
@@ -27,7 +27,7 @@ datasetlist.rel.sfsi.ecm<-read_csv("clean_data/SFSI_data_relabun_ECM_1.5perc.rev
 SFSI.soil$CN<-SFSI.soil$C/SFSI.soil$N
 SFSI.soil$NC<-SFSI.soil$N/SFSI.soil$C
 SFSI.soil$Cstock<-SFSI.soil$H_mangd*SFSI.soil$C
-SFSI.soil$mincon<-1-((0.01*SFSI.soil$C)/0.50)
+SFSI.soil$mincon<-1-((0.01*SFSI.soil$C)/0.50) #assuming % C of pure organic matter is 50 %
 ```
 
 #transform for normal distributions
@@ -63,7 +63,7 @@ which(SFSI.soil$CN >200) # row 725 # 100 % stand of 167 years #JordProvnr 204631
 table(SFSI.soil$Agoslag) # mostly "productive forest" 2235 samples
 
 #temperature range
-length(SFSI.soil[which(between(SFSI.soil$Temperatursumma,1000,1425)),]$Temperatursumma) #965 in this range
+length(SFSI.soil[which(between(SFSI.soil$Temperatursumma,1000,1425)),]$Temperatursumma) #1067 in this range
 
 SFSI.soil.f1<-SFSI.soil[which(SFSI.soil$Bestandsalder >10),] #remove sites mean stand age 10 and under
 SFSI.soil.f1<-SFSI.soil.f1[which(SFSI.soil.f1$Agoslag == 1),] #only productive forests
@@ -86,9 +86,9 @@ datasetlist.rel.sfsi.ecm.f1<-datasetlist.rel.sfsi.ecm.f1[,-which(colSums(dataset
 
 #now match the rows of species data to the order of sfsi
 datasetlist.rel.sfsi.f2<-datasetlist.rel.sfsi.f2[match(SFSI.soil.f2$JordprovNr,datasetlist.rel.sfsi.f2$JordProvnr),]
-length(which(datasetlist.rel.sfsi.f2$JordProvnr != SFSI.soil.f2$JordprovNr))
+length(which(datasetlist.rel.sfsi.f2$JordProvnr != SFSI.soil.f2$JordprovNr)) #This should be zero 
 datasetlist.rel.sfsi.ecm.f1<-datasetlist.rel.sfsi.ecm.f1[match(SFSI.soil.f2$JordprovNr,datasetlist.rel.sfsi.ecm.f1$JordProvnr),]
-length(which(datasetlist.rel.sfsi.ecm.f1$JordProvnr != SFSI.soil.f2$JordprovNr))
+length(which(datasetlist.rel.sfsi.ecm.f1$JordProvnr != SFSI.soil.f2$JordprovNr)) #This should be zero 
 ```
 
 #write cleaned data files

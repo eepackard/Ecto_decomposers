@@ -56,8 +56,8 @@ anova(MnP.CCA.test,permutations = ctrl)# this test just sees that if MnP is rand
 ```
 #write CCA scores
 ```{r}
-write.csv(scores(MnP.CCA.1,choices = 1)$species,"../clean_data/MNP.CCA.scores.1.5percrev.csv")
-write.csv(scores(MnP.CCA.2,choices = 1)$species,"../clean_data/MNP.CCA.scores.residu.1.5percrev.csv")
+write.csv(scores(MnP.CCA.1,choices = 1)$species,"../clean_data/MNP.CCA.scores.MnP.1.5percrev.csv")
+write.csv(scores(MnP.CCA.2,choices = 1)$species,"../clean_data/MNP.CCA.scores.Perox.1.5percrev.csv")
 ```
 
 

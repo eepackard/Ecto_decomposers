@@ -17,6 +17,5 @@ The scripts should be run in the following order:
 - analysis_WAE.Rmd
 - analysis_fungal_niche.Rmd
 - analysis_genecounts.Rmd
-- analysis_phylotree.Rmd
 - create_sitemap.Rmd
 - figures_fungal_niche.Rmd
