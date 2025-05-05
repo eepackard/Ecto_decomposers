@@ -19,3 +19,6 @@ The scripts should be run in the following order:
 - analysis_genecounts.Rmd
 - create_sitemap.Rmd
 - figures_fungal_niche.Rmd
+
+
+[![DOI](https://zenodo.org/badge/697689036.svg)](https://doi.org/10.5281/zenodo.15343881)
