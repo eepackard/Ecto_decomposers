@@ -398,7 +398,7 @@ SFSI.soil.sel<-SFSI.soil.sel[-which(SFSI.soil.sel$tree_dom == "miss"),]
 
 #write to a metadata file with only the variables I will want to share
 #NC, Ph, tall, gran, jordprovnr, bestandalder, 
-write_csv(SFSI.soil.sel[,c(14,34,20,23,24,26)],"../clean_data/SFSI_metadata_SRA.csv")
+write_csv(SFSI.soil.sel[,which(colnames(SFSI.soil.sel) %in% c("NC","pH_H2O","Tallandel","Granandel","JordprovNr","Bestandsalder","Taxar"))],"../clean_data/SFSI_metadata_SRA.csv")
 ```
 
 
