@@ -1850,7 +1850,7 @@ MnP.byplot.raw<-ggplot(Meta.data.spatial)+
   scale_color_manual(values=c("#AACB90","#415B25"))+
   stat_summary(aes(x=reorder(plot,MnP_gOM),y=MnP_gOM),fun.y="mean",geom = "point",colour="red")+
   stat_summary(aes(x=reorder(plot,MnP_gOM),y=MnP_gOM),fun.data = "mean_se",geom = "linerange",colour="red")+
-  labs(x="Plot",y="MnP activity per gOM")+
+  labs(x="Plot",y="\u394 absorbance (595 nm) per minute per gOM")+
   theme_classic()
 
 ggplot(Meta.data.spatial)+
